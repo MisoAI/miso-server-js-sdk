@@ -1,0 +1,18 @@
+# generated
+node_modules/
+dist/
+
+# env
+.env
+
+# log
+*.log
+npm-debug.log*
+
+# cache
+.npm
+.eslintcache
+.parcel-cache
+
+.DS_Store
+local/

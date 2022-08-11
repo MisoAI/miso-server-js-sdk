@@ -1,0 +1,11 @@
+{
+  "name": "@miso.ai/server-sdk-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/cli"
+  ],
+  "scripts": {},
+  "dependencies": {
+    "split2": "^4.1.0"
+  }
+}

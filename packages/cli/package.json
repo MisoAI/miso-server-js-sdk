@@ -1,0 +1,17 @@
+{
+  "name": "miso-cli",
+  "description": "Miso CLI",
+  "type": "module",
+  "bin": "cli/index.js",
+  "scripts": {},
+  "repository": "MisoAI/miso-server-js-sdk",
+  "license": "MIT",
+  "contributors": [
+    "simonpai <simon.pai@askmiso.com>"
+  ],
+  "dependencies": {
+    "axios": "^0.27.2",
+    "dotenv": "^16.0.1",
+    "yargs": "^17.5.1"
+  }
+}
