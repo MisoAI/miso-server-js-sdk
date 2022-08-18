@@ -1,7 +1,6 @@
 import { fileURLToPath } from 'url';
-import { writeFileSync, existsSync } from 'fs';
-import { dirname, join as joinPath } from 'path';
-import { readPackageFileSync, writePackageFileSync } from './package.mjs';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -17,14 +16,28 @@ if (!VERSION_REGEXP.test(version)) {
   process.exit(1);
 }
 
-const rootDir = joinPath(__dirname, '..');
-const versionFileName = 'src/version.js';
+const rootDir = join(__dirname, '..');
+const VERSION_FILE_NAME = 'src/version.js';
+const PACKAGE_FILE_NAME = 'package.json';
 
 function writeVersionFile(path, version) {
-  const filePath = joinPath(rootDir, path, versionFileName);
+  const filePath = join(rootDir, path, VERSION_FILE_NAME);
   if (existsSync(filePath)) {
     writeFileSync(filePath, `export default '${version}';`);
   }
+}
+
+function readPackageFileSync(path) {
+  const file = join(path, PACKAGE_FILE_NAME);
+  return existsSync(file) ? JSON.parse(readFileSync(file)) : undefined;
+}
+
+function writePackageFileSync(path, data) {
+  const file = join(path, PACKAGE_FILE_NAME);
+  if (!existsSync(file)) {
+    mkdirSync(dirname(file), { recursive: true });
+  }
+  writeFileSync(join(path, PACKAGE_FILE_NAME), JSON.stringify(data, null, 2));
 }
 
 // read root package.json
@@ -38,7 +51,7 @@ const projectPathToModuleName = {};
 
 // first pass: collect some info
 for (const projectPath of projectPaths) {
-  const project = readPackageFileSync(joinPath(rootDir, projectPath));
+  const project = readPackageFileSync(join(rootDir, projectPath));
   !project.private && projects.push({ projectPath, project });
   projectPathToModuleName[projectPath] = project.name;
 }
@@ -61,6 +74,6 @@ for (const { projectPath, project } of projects) {
   overwriteDependencyVersions(project.devDependencies, version);
   overwriteDependencyVersions(project.peerDependencies, version);
   project.version = version;
-  writePackageFileSync(joinPath(rootDir, projectPath), project);
+  writePackageFileSync(join(rootDir, projectPath), project);
   writeVersionFile(projectPath, version);
 }
