@@ -2,6 +2,7 @@
   "name": "miso-cli",
   "description": "Miso CLI",
   "type": "module",
+  "main": "src/index.js",
   "bin": "cli/index.js",
   "publishConfig": {
     "access": "public"

@@ -6,5 +6,7 @@
     "packages/cli",
     "packages/data"
   ],
-  "scripts": {}
+  "scripts": {
+    "version": "node ./bin/version.mjs"
+  }
 }
