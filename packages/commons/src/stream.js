@@ -17,9 +17,9 @@ export async function pipelineToStdout(...streams) {
 }
 
 export async function collectStream(stream) {
-  const records = []
+  const records = [];
   for await (const record of stream) {
-    records.push(record)
+    records.push(record);
   }
   return records;
 }
