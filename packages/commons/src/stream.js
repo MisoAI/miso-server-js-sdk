@@ -24,14 +24,9 @@ export async function collectStream(stream) {
   return records;
 }
 
+// from https://github.com/maxogden/concat-stream/issues/66
 export async function * concatStreams(...streams) {
-  // if this ain't working
   for (const stream of streams) yield * stream
-
-  // maybe this can 
-  // for (const stream of ...streams) {
-  //   for await (const data of stream) yield data
-  // }
 }
 
 export function transform(fn, { transform: _, ...options } = {}) {
