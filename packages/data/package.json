@@ -1,11 +1,12 @@
 {
-  "name": "miso-cli",
-  "description": "Miso CLI",
+  "name": "miso-data",
+  "description": "Miso Data Tools",
   "type": "module",
-  "bin": "cli/index.js",
   "publishConfig": {
     "access": "public"
   },
+  "main": "src/index.js",
+  "bin": "cli/index.js",
   "scripts": {},
   "repository": "MisoAI/miso-server-js-sdk",
   "license": "MIT",
@@ -14,9 +15,8 @@
   ],
   "dependencies": {
     "axios": "^0.27.2",
+    "denque": "^2.1.0",
     "dotenv": "^16.0.1",
-    "split2": "^4.1.0",
-    "yargs": "^17.5.1",
-    "@miso.ai/server-commons": "file:packages/commons"
+    "yargs": "^17.5.1"
   }
 }

@@ -1,10 +1,11 @@
 import { Transform } from 'stream';
+import { trimObj } from '@miso.ai/server-commons';
 
 function getDefaultRecordsPerRequest(type) {
   return type === 'interactions' ? 1000 : 200;
 }
 
-const PAYLOAD_PREFIX = '{data:[';
+const PAYLOAD_PREFIX = '{"data":[';
 const PAYLOAD_SUFFIX = ']}';
 const PAYLOAD_OVERHEAD_BYTES = (PAYLOAD_PREFIX.length + PAYLOAD_SUFFIX.length) * 2;
 
@@ -110,13 +111,15 @@ export default class UploadStream extends Transform {
 
     this._state.open(request);
 
+    const payload = content + PAYLOAD_SUFFIX;
+
     (async () => {
       let response;
       try {
         const { async, dryRun } = this._options;
-        response = (await this._client.upload(this._type, content + PAYLOAD_SUFFIX, { async, dryRun })).data;
+        response = (await this._client.upload(this._type, payload, { async, dryRun })).data;
       } catch(error) {
-        response = error.response || { errors: true, cause: error };
+        response = error.response ? error.response.data : trimObj({ errors: true, cause: error.message });
       }
       response.timestamp = Date.now();
 
@@ -124,13 +127,14 @@ export default class UploadStream extends Transform {
 
       this._state.close(request, response);
 
-      this.push({
+      this.push(trimObj({
         event: 'response',
         timestamp: Date.now(),
         state: this.state,
         request,
         response,
-      });
+        payload: response.errors ? payload : undefined,
+      }));
     })();
   }
 

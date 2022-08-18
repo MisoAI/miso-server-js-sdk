@@ -1,0 +1,16 @@
+{
+  "name": "@miso.ai/server-commons",
+  "description": "Miso Utility Functions",
+  "type": "module",
+  "main": "src/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {},
+  "repository": "MisoAI/miso-server-js-sdk",
+  "license": "MIT",
+  "contributors": [
+    "simonpai <simon.pai@askmiso.com>"
+  ],
+  "dependencies": {}
+}

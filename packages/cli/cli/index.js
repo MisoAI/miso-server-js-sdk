@@ -34,7 +34,6 @@ yargs(hideBin(process.argv))
   .command(products)
   .command(users)
   .demandCommand(2)
-  .strict()
   .help()
   .parse();
 

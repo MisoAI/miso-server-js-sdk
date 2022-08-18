@@ -1,6 +1,6 @@
-import { Transform, pipeline } from 'stream';
 import split2 from 'split2';
 import { MisoClient } from '../src/index.js';
+import { stringify, pipelineToStdout } from '@miso.ai/server-commons';
 
 function build(yargs) {
   return yargs
@@ -44,23 +44,13 @@ const run = type => async ({
     bytesPerSecond,
   });
 
-  const stream = process.stdin
-    .pipe(split2())
-    .pipe(uploadStream);
-  
-  stream
-    .pipe(stringify())
-    .pipe(process.stdout); // TODO
+  await pipelineToStdout(
+    process.stdin,
+    split2(),
+    uploadStream,
+    stringify(),
+  );
 };
-
-function stringify() {
-  return new Transform({
-    transform(chunk, _, callback) {
-      callback(null, JSON.stringify(chunk) + '\n');
-    },
-    writableObjectMode: true,
-  });
-}
 
 export default function(type) {
   return {
