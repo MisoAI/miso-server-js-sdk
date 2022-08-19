@@ -13,7 +13,7 @@ export default class Categories {
   }
 
   async getAll(options) {
-    return collectStream(this.stream(options));
+    return collectStream(await this.stream(options));
   }
 
   async count(options) {
