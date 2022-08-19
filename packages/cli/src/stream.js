@@ -39,7 +39,17 @@ export default class UploadStream extends Transform {
     this._resetBuffer();
   }
 
+  _construct(done) {
+    this.push({
+      event: 'construct',
+      timestamp: Date.now(),
+      state: this.state,
+    });
+    done();
+  }
+
   _transform(record, _, next) {
+    this._pushStartEventIfNecessary();
     const { objectMode, bytesPerRequest } = this._options;
     const str = objectMode ? JSON.stringify(record) : record;
     const newSize = str.length * 2;
@@ -66,14 +76,20 @@ export default class UploadStream extends Transform {
         restTime,
       });
       setTimeout(next, restTime);
-  } else {
+    } else {
       next();
     }
   }
 
   async _flush(done) {
+    this._pushStartEventIfNecessary();
     this._dispatch();
     await Promise.all(this._state.pending.map(r => requestPromises.get(r)));
+    this.push({
+      event: 'end',
+      timestamp: Date.now(),
+      state: this.state,
+    });
     done();
   }
 
@@ -82,6 +98,16 @@ export default class UploadStream extends Transform {
   }
 
   // helper //
+  _pushStartEventIfNecessary() {
+    if (this._state.next.request === 0 && this._buffer.records === 0) {
+      this.push({
+        event: 'start',
+        timestamp: Date.now(),
+        state: this.state,
+      });
+    }
+  }
+
   _dispatchIfNecessary() {
     const { records, bytes } = this._buffer;
     const { recordsPerRequest, bytesPerRequest } = this._options;
