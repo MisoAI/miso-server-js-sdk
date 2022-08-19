@@ -43,7 +43,7 @@ export default class UploadStream extends Transform {
     this.push({
       event: 'construct',
       timestamp: Date.now(),
-      state: this.state,
+      config: this.config,
     });
     done();
   }
@@ -95,6 +95,14 @@ export default class UploadStream extends Transform {
 
   get state() {
     return this._state.export();
+  }
+
+  get config() {
+    return Object.freeze({
+      type: this._type,
+      ...this._client.options,
+      ...this._options,
+    });
   }
 
   // helper //

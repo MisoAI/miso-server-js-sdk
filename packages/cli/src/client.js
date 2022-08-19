@@ -22,6 +22,13 @@ export default class MisoClient {
     return new UploadStream(this, type, options);
   }
 
+  get options() {
+    const { server } = this._options;
+    return Object.freeze({
+      server,
+    });
+  }
+
 }
 
 function normalizeOptions(options) {

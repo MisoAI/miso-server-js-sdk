@@ -49,6 +49,7 @@ function _buildBase(yargs) {
       describe: 'API key',
     })
     .option('server', {
+      alias: ['api-server'],
       describe: 'API server',
     })
     .demandOption(['key'], 'API key is required.');
