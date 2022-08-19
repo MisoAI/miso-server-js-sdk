@@ -1,11 +1,15 @@
 import { Buffer } from 'buffer';
 import axios from 'axios';
 import UploadStream from './stream.js';
+import version from './version.js';
 
 export default class MisoClient {
 
+  static version = version;
+
   constructor(options) {
     this._options = normalizeOptions(options);
+    this.version = version;
   }
 
   async upload(type, records, options) {

@@ -3,6 +3,7 @@ import 'dotenv/config';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import upload from './upload.js';
+import version from '../src/version.js';
 
 const interactions = {
   command: 'interactions',
@@ -34,6 +35,7 @@ yargs(hideBin(process.argv))
   .command(products)
   .command(users)
   .demandCommand(2)
+  .version(version)
   .help()
   .parse();
 
