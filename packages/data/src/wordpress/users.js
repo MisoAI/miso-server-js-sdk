@@ -8,12 +8,12 @@ export default class Users {
     this._client = client;
   }
   
-  stream(options) {
+  async stream(options) {
     return this._client._helpers.stream(RESOURCE_NAME, options);
   }
 
   async getAll(options) {
-    return collectStream(this.stream(options));
+    return collectStream(await this.stream(options));
   }
 
   count(options) {

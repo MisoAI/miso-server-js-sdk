@@ -6,11 +6,11 @@ export default class Posts {
     this._client = client;
   }
   
-  stream(options) {
+  async stream(options) {
     return this._client._helpers.stream(RESOURCE_NAME, options);
   }
 
-  count(options) {
+  async count(options) {
     return this._client._helpers.count(RESOURCE_NAME, options);
   }
 

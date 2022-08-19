@@ -25,7 +25,7 @@ async function runCount(client, options) {
 
 async function runGet(client, options) {
   await pipelineToStdout(
-    client.categories.stream(options),
+    await client.categories.stream(options),
     stringify(),
   );
 }

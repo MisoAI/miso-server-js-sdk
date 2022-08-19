@@ -61,7 +61,7 @@ async function runCount(client, options) {
 
 async function runGet(client, { patch, transform, ...options }) {
   await pipelineToStdout(
-    client.posts.stream(options),
+    await client.posts.stream(options),
     ...await transformStreams(client, patch, transform),
     stringify(),
   );
@@ -73,18 +73,20 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
   const threshold = now - update;
   await pipelineToStdout(
     concatStreams(
-      // get recent published
-      client.posts.stream({
-        ...options,
-        after: threshold,
-      }),
-      // get recent modified, excluding ones already fetched
-      client.posts.stream({
-        ...options,
-        orderBy: 'modified',
-        before: threshold,
-        until: post => parseDate(post.modified) < threshold,
-      })
+      ...await Promise.all([
+        // get recent published
+        client.posts.stream({
+          ...options,
+          after: threshold,
+        }),
+        // get recent modified, excluding ones already fetched
+        client.posts.stream({
+          ...options,
+          orderBy: 'modified',
+          before: threshold,
+          until: post => parseDate(post.modified_gmt) < threshold,
+        })
+      ])
     ),
     ...await transformStreams(client, patch, transform),
     stringify(),

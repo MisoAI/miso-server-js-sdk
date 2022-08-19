@@ -1,4 +1,4 @@
-const DURATION_EXPR = /^(\d+)([s|m|h|d])$/;
+const DURATION_EXPR = /^(\d+)([s|m|h|d|w])$/;
 const TS_PER_UNIT = {
   ms: 1,
   s: 1000,
@@ -6,6 +6,7 @@ const TS_PER_UNIT = {
 TS_PER_UNIT.m = TS_PER_UNIT.s * 60;
 TS_PER_UNIT.h = TS_PER_UNIT.m * 60;
 TS_PER_UNIT.d = TS_PER_UNIT.h * 24;
+TS_PER_UNIT.w = TS_PER_UNIT.d * 7;
 //TS_PER_UNIT.M = TS_PER_UNIT.d * 31;
 //TS_PER_UNIT.y = TS_PER_UNIT.d * 366;
 

@@ -107,7 +107,7 @@ export class ResourceBuffer {
 
     state.request();
 
-    const url = this._helpers.url.append(this._url, {
+    const url = await this._helpers.url.append(this._url, {
       page: fetchIndex,
       pageSize: this._options.pageSize,
     });
@@ -177,7 +177,7 @@ export class ResourceBuffer {
   _postProcess(data) {
     const { preserveLinks, filter } = this._options;
     if (!preserveLinks) {
-      data = data.map(({ _links: _, ...post }) => post);
+      data = data.map(this._helpers.removeLinks);
     }
     if (filter) {
       data = data.map(filter);
