@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '../axios.js';
 import { ResourceStream } from './stream.js';
 
 export default class Helpers {

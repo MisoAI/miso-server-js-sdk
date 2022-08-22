@@ -1,5 +1,5 @@
 import { Readable } from 'stream';
-import axios from 'axios';
+import axios from '../axios.js';
 import Denque from 'denque';
 import { TaskQueue } from '@miso.ai/server-commons';
 
