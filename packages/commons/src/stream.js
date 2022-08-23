@@ -32,9 +32,9 @@ export async function * concatStreams(...streams) {
 export function transform(fn, { transform: _, ...options } = {}) {
   return new Transform({
     ...options,
-    transform(chunk, encoding, next) {
+    async transform(chunk, encoding, next) {
       try {
-        next(undefined, fn(chunk, encoding));
+        next(undefined, await fn(chunk, encoding));
       } catch (error) {
         next(error);
       }

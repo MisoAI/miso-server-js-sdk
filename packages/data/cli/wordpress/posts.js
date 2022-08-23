@@ -1,4 +1,13 @@
-import { stringify, pipelineToStdout, startOfDate, endOfDate, parseDuration, concatFns, transform as toTransformStream, concatStreams } from '@miso.ai/server-commons';
+import {
+  stringify,
+  pipelineToStdout,
+  startOfDate,
+  endOfDate,
+  parseDuration,
+  concatAsyncFns,
+  transform as toTransformStream,
+  concatStreams
+} from '@miso.ai/server-commons';
 import { WordPressClient, transform as transformFn } from '../../src/wordpress/index.js';
 
 function build(yargs) {
@@ -97,19 +106,27 @@ async function transformStreams(client, patch, transform) {
   if (!patch && !transform) {
     return [];
   }
-  const [categoryIndex, userIndex] = await Promise.all([
-    client.categories.index(),
-    client.users.index(),
-  ]);
-  const fn = transform ?
-    concatFns(categoryIndex.patch, userIndex.patch, transformFn) :
-    concatFns(categoryIndex.patch, userIndex.patch);
-  return [toTransformStream(fn, { objectMode: true })];
+  return [toTransformStream(buildPatchFn(client, transformFn), { objectMode: true })];
 }
 
 function normalizeOptions({ date, after, before, ...options }) {
   [after, before] = [startOfDate(date || after), endOfDate(date || before)];
   return { ...options, after, before };
+}
+
+function buildPatchFn(client, transformFn) {
+  let indicies;
+  return async post => {
+    if (!indicies) {
+      indicies = Promise.all([
+        client.categories.index(),
+        client.users.index(),
+      ]);
+    }
+    const [categoryIndex, userIndex] = await indicies;
+    post = userIndex.patch(categoryIndex.patch(post));
+    return transformFn ? transformFn(post) : post;
+  };
 }
 
 function parseDate(value) {
