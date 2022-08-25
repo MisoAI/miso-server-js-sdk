@@ -10,8 +10,8 @@ function build(yargs) {
     });
 }
 
-async function run({ site, count, ...options }) {
-  const client = new WordPressClient(site);
+async function run({ count, ...options }) {
+  const client = new WordPressClient(options);
   if (count) {
     await runCount(client, options);
   } else {

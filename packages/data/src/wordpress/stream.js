@@ -24,6 +24,7 @@ export class ResourceBuffer {
     this._url = url;
     this._options = { highWatermark, pageSize, ...options };
     // TODO: support initial offset
+    // TODO: support some strategies
     this._state = new State({ pageSize });
     this._buckets = new Denque();
     this._responses = new TaskQueue();
@@ -112,7 +113,9 @@ export class ResourceBuffer {
       pageSize: this._options.pageSize,
     });
 
+    this._helpers.debug(`ResourceBuffer: fetch request ${url}`);
     let { status, data, headers } = await this._axiosGet(url);
+    this._helpers.debug(`ResourceBuffer: fetch response ${url}`);
     state.updateTotal(Number(headers['x-wp-total']));
 
     this._responses.push(fetchIndex, () => this._processFetchResponse(status, data));

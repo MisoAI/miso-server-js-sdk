@@ -4,7 +4,6 @@ import {
   startOfDate,
   endOfDate,
   parseDuration,
-  concatAsyncFns,
   transform as toTransformStream,
   concatStreams
 } from '@miso.ai/server-commons';
@@ -52,9 +51,9 @@ function build(yargs) {
     });
 }
 
-async function run({ site, count, update, ...options }) {
+async function run({ count, update, ...options }) {
   options = normalizeOptions(options);
-  const client = new WordPressClient(site);
+  const client = new WordPressClient(options);
   if (count) {
     await runCount(client, options);
   } else if (update) {

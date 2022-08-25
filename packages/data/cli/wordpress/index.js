@@ -1,3 +1,4 @@
+import profile from './profile.js';
 import posts from './posts.js';
 import categories from './categories.js';
 import users from './users.js';
@@ -11,7 +12,17 @@ function build(yargs) {
       alias: 's',
       describe: 'the WordPress site',
     })
-    .demandOption(['site'], 'Site argument is required.')
+    .option('profile', {
+      alias: 'p',
+      describe: 'Site profile file location',
+    })
+    .option('debug', {
+      type: 'boolean',
+      default: false,
+    })
+    .hide('debug')
+    //.demandOption(['site'], 'Site argument is required.')
+    .command(profile)
     .command(posts)
     .command(categories)
     .command(users);

@@ -13,6 +13,17 @@ export function trimObj(obj) {
   return obj;
 }
 
+export function splitObj(source, propNames) {
+  const propSet = new Set(propNames);
+  const a = {}, b = {};
+  for (const name in source) {
+    if (source.hasOwnProperty(name)) {
+      (propSet.has(name) ? a : b)[name] = source[name];
+    }
+  }
+  return [a, b];
+}
+
 export function asArray(value) {
   return Array.isArray(value) ? value : value === undefined ? [] : [value];
 }
@@ -22,4 +33,32 @@ export function asMap(objects, {key = 'id', target = {}} = {}) {
     acc[c[key]] = c;
     return acc;
   }, target);
+}
+
+export function asNumber(value) {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  value = Number(value);
+  return isNaN(value) ? undefined : value;
+}
+
+/**
+ * Assign values on target object with Object.defineProperties() from source object.
+ */
+ export function defineValues(target, source) {
+  for (const name in source) {
+    if (source.hasOwnProperty(name)) {
+      Object.defineProperty(target, name, { value: source[name] });
+    }
+  }
+}
+
+export function copyValues(target, source, propNames) {
+  for (const name of propNames || Object.keys(source)) {
+    if (source.hasOwnProperty(name)) {
+      target[name] = source[name];
+    }
+  }
+  return target;
 }

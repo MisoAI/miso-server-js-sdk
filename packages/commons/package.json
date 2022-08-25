@@ -12,5 +12,8 @@
   "contributors": [
     "simonpai <simon.pai@askmiso.com>"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "toml": "^3.0.0"
+  }
 }

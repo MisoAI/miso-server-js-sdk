@@ -1,10 +1,14 @@
+import { asNumber } from '@miso.ai/server-commons';
 import axios from '../axios.js';
 import { ResourceStream } from './stream.js';
 
+const MS_PER_HOUR = 1000 * 60 * 60;
+
 export default class Helpers {
 
-  constructor(site) {
-    this._site = site;
+  constructor(client) {
+    this._start = Date.now();
+    this._client = client;
     this.url = new Url(this);
     this._samples = {};
   }
@@ -16,35 +20,55 @@ export default class Helpers {
 
   async sample(resource) {
     if (!this._samples[resource]) {
-      const url = await this.url.build(resource, { page: 0, pageSize: 1 });
-      const { data } = await axios.get(url);
-      if (!data.length) {
-        throw new Error(`No record of ${resource} avaliable`);
-      }
-      this._samples[resource] = data[0];
+      // don't await, save the promise
+      this._samples[resource] = this._fetchSample(resource);
     }
     return this._samples[resource];
   }
 
+  async _fetchSample(resource) {
+    const url = await this.url.build(resource, { page: 0, pageSize: 1 });
+    const { data, headers } = await axios.get(url);
+    if (!data.length) {
+      throw new Error(`No record of ${resource} avaliable`);
+    }
+    this.debug(`Fetched ${resource} sample, total = ${asNumber(headers['x-wp-total'])}`);
+    return { data: data[0], headers: headers };
+}
+
   async count(resource, { offset: _, ...options } = {}) {
     const url = await this.url.build(resource, { ...options, page: 0, pageSize: 1 });
     const { headers } = await axios.get(url);
-    return Number(headers['x-wp-total']);
+    return asNumber(headers['x-wp-total']);
+  }
+
+  async countUrl(url) {
+    url = await this.url.append(url, { page: 0, pageSize: 1 });
+    const { headers } = await axios.get(url);
+    return asNumber(headers['x-wp-total']);
   }
 
   /**
    * Return the UTC offset in milliseconds for this site.
    */
-  async utcOffset() {
-    if (this._utcOffset === undefined) {
-      const post = await this.sample('posts');
-      this._utcOffset = Date.parse(`${post.date}Z`) - Date.parse(`${post.date_gmt}Z`);
+  async utcOffsetInMs() {
+    const profile = this._client._profile;
+    if (profile.utcOffset === undefined) {
+      // we may call this multiple times but it's ok
+      const { data: post } = await this.sample('posts');
+      profile.utcOffset = (Date.parse(`${post.date}Z`) - Date.parse(`${post.date_gmt}Z`)) / MS_PER_HOUR;
+      this.debug(`Got utcOffset: ${profile.utcOffset}`);
     }
-    return this._utcOffset;
+    return profile.utcOffset * MS_PER_HOUR;
   }
 
   removeLinks({ _links: _, ...record }) {
     return record;
+  }
+
+  debug(v) {
+    const elapsed = (Date.now() - this._start) / 1000;
+    this._client._options.debug && console.error(`[${elapsed}]`, v);
   }
 
 }
@@ -56,7 +80,7 @@ class Url {
   }
 
   async build(resource, options) {
-    return this.append(`https://${this._helpers._site}/wp-json/wp/v2/${resource}`, options);
+    return this.append(`https://${this._helpers._client.site}/wp-json/wp/v2/${resource}`, options);
   }
 
   // modifiedAfter, modifiedBefore is supported since WordPress 5.7
@@ -67,7 +91,7 @@ class Url {
 
     // The date is compared against site's local time, not UTC, so we have to work on timezone offset
     if (has(after) || has(before)) {
-      const utcOffset = await this._helpers.utcOffset();
+      const utcOffset = await this._helpers.utcOffsetInMs();
       has(after) && params.push(`after=${toISOString(after, utcOffset)}`);
       has(before) && params.push(`before=${toISOString(before, utcOffset)}`);
     }
