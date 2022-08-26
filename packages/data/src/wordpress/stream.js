@@ -17,20 +17,38 @@ export class ResourceStream extends Readable {
 
 }
 
+const DEFAULT_STRATEGY = {
+  highWatermark: 1000, 
+  pageSize: 100,
+  waitForTotal: true,
+  fetchBeforeFirstRead: false,
+};
+
 export class ResourceBuffer {
 
-  constructor(helpers, url, { highWatermark = 1000, pageSize = 100, ...options } = {}) {
+  constructor(helpers, url, { strategy = {}, ...options } = {}) {
     this._helpers = helpers;
     this._url = url;
-    this._options = { highWatermark, pageSize, ...options };
+    this._strategy = strategy = { ...DEFAULT_STRATEGY, ...strategy };
+    this._options = options;
     // TODO: support initial offset
-    // TODO: support some strategies
-    this._state = new State({ pageSize });
+    // TODO: support limit
+    this._state = new State({ pageSize: strategy.pageSize });
     this._buckets = new Denque();
     this._responses = new TaskQueue();
     this._index = 0;
+    this._helpers.debug(`ResourceBuffer: constructed for url ${url}, strategy: ${JSON.stringify(strategy)}`);
 
-    this._fetchIfNecessaryNextTick();
+    if (strategy.fetchBeforeFirstRead) {
+      if (strategy.waitForTotal) {
+        (async () => {
+          await this._waitForTotal();
+          this._fetchIfNecessaryNextTick();
+        });
+      } else {
+        this._fetchIfNecessaryNextTick();
+      }
+    }
   }
 
   _fetchIfNecessaryNextTick() {
@@ -58,7 +76,7 @@ export class ResourceBuffer {
     }
     const record = bucket[this._index++];
     if (this._index >= bucket.length) {
-      this._buckets.shift()
+      this._buckets.shift();
       this._index = 0;
     }
     this._state.serve();
@@ -70,10 +88,31 @@ export class ResourceBuffer {
       if (this._state.allReturned) {
         return undefined;
       }
+      if (this._strategy.waitForTotal) {
+        await this._waitForTotal();
+      }
       this._fetchIfNecessary();
       await this._waitForData();
     }
     return this._buckets.isEmpty() ? undefined : this._buckets.peekFront();
+  }
+
+  async _waitForTotal() {
+    const state = this._state;
+    if (state.records.total !== undefined) {
+      return state.records.total;
+    }
+    return this._totalPromise || (this._totalPromise = new Promise(async (resolve, reject) => {
+      try {
+        this._helpers.debug(`ResourceBuffer: fetch total for ${this._url}`);
+        const total = await this._helpers.countUrl(this._url);
+        this._helpers.debug(`ResourceBuffer: fetched total: ${total}`);
+        state.updateTotal(total);
+        resolve(total);
+      } catch(e) {
+        reject(e);
+      }
+    }));
   }
 
   _waitForData() {
@@ -99,7 +138,7 @@ export class ResourceBuffer {
 
   _shallFetch() {
     // TODO: we can have a slower start
-    return !this._state.allRequested && this._state.watermark < this._options.highWatermark;
+    return !this._state.allRequested && this._state.watermark < this._strategy.highWatermark;
   }
 
   async _fetch() {
@@ -110,7 +149,7 @@ export class ResourceBuffer {
 
     const url = await this._helpers.url.append(this._url, {
       page: fetchIndex,
-      pageSize: this._options.pageSize,
+      pageSize: this._strategy.pageSize,
     });
 
     this._helpers.debug(`ResourceBuffer: fetch request ${url}`);
@@ -155,7 +194,7 @@ export class ResourceBuffer {
         // just in case
         this._fetchIfNecessaryNextTick();
       }
-      if (rawDataLength < this._options.pageSize) {
+      if (rawDataLength < this._strategy.pageSize) {
         state.finish();
         this._resolveDataPromise();
       }

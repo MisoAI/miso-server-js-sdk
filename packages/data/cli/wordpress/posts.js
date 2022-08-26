@@ -51,7 +51,7 @@ function build(yargs) {
     });
 }
 
-async function run({ count, update, ...options }) {
+async function run({ site, profile, count, update, ...options }) {
   options = normalizeOptions(options);
   const client = new WordPressClient(options);
   if (count) {
@@ -92,6 +92,12 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
           ...options,
           orderBy: 'modified',
           before: threshold,
+          strategy: {
+            pageSize: 20,
+            highWatermark: 100,
+            waitForTotal: false,
+            fetchBeforeFirstRead: true,
+          },
           until: post => parseDate(post.modified_gmt) < threshold,
         })
       ])
