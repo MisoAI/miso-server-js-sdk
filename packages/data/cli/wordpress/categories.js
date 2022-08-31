@@ -1,4 +1,4 @@
-import { stringify, pipelineToStdout } from '@miso.ai/server-commons';
+import { stream } from '@miso.ai/server-commons';
 import { WordPressClient } from '../../src/wordpress/index.js';
 
 function build(yargs) {
@@ -24,9 +24,9 @@ async function runCount(client, options) {
 }
 
 async function runGet(client, options) {
-  await pipelineToStdout(
+  await stream.pipelineToStdout(
     await client.categories.stream(options),
-    stringify(),
+    stream.stringify(),
   );
 }
 

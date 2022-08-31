@@ -1,4 +1,4 @@
-import { asMap, collectStream } from '@miso.ai/server-commons';
+import { asMap, stream } from '@miso.ai/server-commons';
 
 const RESOURCE_NAME = 'users';
 
@@ -13,7 +13,7 @@ export default class Users {
   }
 
   async getAll(options) {
-    return collectStream(await this.stream(options));
+    return stream.collect(await this.stream(options));
   }
 
   count(options) {

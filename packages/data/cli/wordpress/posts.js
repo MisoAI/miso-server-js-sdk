@@ -1,11 +1,8 @@
 import {
-  stringify,
-  pipelineToStdout,
+  stream,
   startOfDate,
   endOfDate,
   parseDuration,
-  transform as toTransformStream,
-  concatStreams
 } from '@miso.ai/server-commons';
 import { WordPressClient, transform as transformFn } from '../../src/wordpress/index.js';
 
@@ -68,10 +65,10 @@ async function runCount(client, options) {
 }
 
 async function runGet(client, { patch, transform, ...options }) {
-  await pipelineToStdout(
+  await stream.pipelineToStdout(
     await client.posts.stream(options),
     ...await transformStreams(client, patch, transform),
-    stringify(),
+    stream.stringify(),
   );
 }
 
@@ -79,8 +76,8 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
   const now = Date.now();
   update = parseDuration(update);
   const threshold = now - update;
-  await pipelineToStdout(
-    concatStreams(
+  await stream.pipelineToStdout(
+    stream.concat(
       ...await Promise.all([
         // get recent published
         client.posts.stream({
@@ -103,7 +100,7 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
       ])
     ),
     ...await transformStreams(client, patch, transform),
-    stringify(),
+    stream.stringify(),
   );
 }
 
@@ -111,7 +108,7 @@ async function transformStreams(client, patch, transform) {
   if (!patch && !transform) {
     return [];
   }
-  return [toTransformStream(buildPatchFn(client, transformFn), { objectMode: true })];
+  return [stream.transform(buildPatchFn(client, transformFn), { objectMode: true })];
 }
 
 function normalizeOptions({ date, after, before, ...options }) {

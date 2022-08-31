@@ -1,5 +1,14 @@
 import { Transform, pipeline as _pipeline } from 'stream';
 
+export function parse() {
+  return new Transform({
+    transform(chunk, _, callback) {
+      callback(null, JSON.parse(chunk));
+    },
+    readableObjectMode: true,
+  });
+}
+
 export function stringify() {
   return new Transform({
     transform(chunk, _, callback) {
@@ -16,7 +25,7 @@ export async function pipelineToStdout(...streams) {
   );
 }
 
-export async function collectStream(stream) {
+export async function collect(stream) {
   const records = [];
   for await (const record of stream) {
     records.push(record);
@@ -25,7 +34,7 @@ export async function collectStream(stream) {
 }
 
 // from https://github.com/maxogden/concat-stream/issues/66
-export async function * concatStreams(...streams) {
+export async function * concat(...streams) {
   for (const stream of streams) yield * stream
 }
 

@@ -1,4 +1,4 @@
-import { asMap, collectStream } from '@miso.ai/server-commons';
+import { asMap, stream } from '@miso.ai/server-commons';
 
 const RESOURCE_NAME = 'categories';
 
@@ -13,7 +13,7 @@ export default class Categories {
   }
 
   async getAll(options) {
-    return collectStream(await this.stream(options));
+    return stream.collect(await this.stream(options));
   }
 
   async count(options) {

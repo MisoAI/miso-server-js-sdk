@@ -1,6 +1,4 @@
 import { fileExists } from '@miso.ai/server-commons';
-import { constants } from 'fs';
-import { access } from 'fs/promises';
 import { WordPressClient } from '../../src/wordpress/index.js';
 
 function build(yargs) {

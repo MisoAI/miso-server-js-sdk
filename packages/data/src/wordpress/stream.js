@@ -176,7 +176,7 @@ export class ResourceBuffer {
     state.response();
 
     // TODO: other error status
-    if (status == 400 && data.code === 'rest_post_invalid_page_number') {
+    if (status >= 400 && status < 500 && data.code === 'rest_post_invalid_page_number') {
       state.finish();
       this._resolveDataPromise();
     } else {
