@@ -1,5 +1,6 @@
 import { Transform } from 'stream';
 import { trimObj } from '@miso.ai/server-commons';
+import { LOG_LEVELS } from './stream-logger.js';
 
 function getDefaultRecordsPerRequest(type) {
   return type === 'interactions' ? 1000 : 200;
@@ -37,14 +38,14 @@ export default class UploadStream extends Transform {
     };
     this._state = new State();
     this._resetBuffer();
+    // log functions
+    for (const level of LOG_LEVELS) {
+      this[`_${level}`] = this._log.bind(this, level);
+    }
   }
 
   _construct(done) {
-    this.push({
-      event: 'construct',
-      timestamp: Date.now(),
-      config: this.config,
-    });
+    this._info('construct', { config: this.config });
     done();
   }
 
@@ -69,27 +70,29 @@ export default class UploadStream extends Transform {
 
     const restTime = this._state.restTime(this._getBpsLimit());
     if (restTime > 0) {
-      this.push({
-        event: 'rest',
-        timestamp: Date.now(),
-        state: this.state,
-        restTime,
-      });
+      this._debug('rest', { restTime });
       setTimeout(next, restTime);
     } else {
       next();
     }
   }
 
+  _log(level, event, args = {}) {
+    this.push(trimObj({
+      level,
+      event,
+      timestamp: Date.now(),
+      ...args,
+      state: this.state,
+    }));
+  }
+
   async _flush(done) {
     this._pushStartEventIfNecessary();
     this._dispatch();
     await Promise.all(this._state.pending.map(r => requestPromises.get(r)));
-    this.push({
-      event: 'end',
-      timestamp: Date.now(),
-      state: this.state,
-    });
+    const { successful, failed } = this.state;
+    this._info('end', { successful, failed });
     done();
   }
 
@@ -108,11 +111,7 @@ export default class UploadStream extends Transform {
   // helper //
   _pushStartEventIfNecessary() {
     if (this._state.next.request === 0 && this._buffer.records === 0) {
-      this.push({
-        event: 'start',
-        timestamp: Date.now(),
-        state: this.state,
-      });
+      this._info('start');
     }
   }
 
@@ -136,12 +135,7 @@ export default class UploadStream extends Transform {
       requestResolve = r;
     }));
 
-    this.push({
-      event: 'request',
-      timestamp: Date.now(),
-      state: this.state,
-      request,
-    });
+    this._debug('request', { request });
 
     this._state.open(request);
 
@@ -158,17 +152,17 @@ export default class UploadStream extends Transform {
       response.timestamp = Date.now();
 
       requestResolve();
-
       this._state.close(request, response);
 
-      this.push(trimObj({
-        event: 'response',
-        timestamp: Date.now(),
-        state: this.state,
-        request,
-        response,
-        payload: response.errors ? payload : undefined,
-      }));
+      this._debug('response', { request, response, payload: response.errors ? payload : undefined });
+      this._info('upload', {
+        result: response.errors ? 'failed' : 'successful',
+        index: request.index,
+        records: request.records,
+        bytes: request.bytes,
+        took: response.took,
+        latency: response.timestamp - request.timestamp - response.took
+      });
     })();
   }
 

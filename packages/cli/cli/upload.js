@@ -1,5 +1,5 @@
 import split2 from 'split2';
-import { MisoClient } from '../src/index.js';
+import { MisoClient, logger } from '../src/index.js';
 import { stream } from '@miso.ai/server-commons';
 
 function build(yargs) {
@@ -23,6 +23,12 @@ function build(yargs) {
     .option('bytes-per-second', {
       alias: ['bps'],
       describe: 'How many bytes to send per second',
+    })
+    .option('log-level', {
+      describe: 'Log level',
+    })
+    .option('log-format', {
+      describe: 'Log format',
     });
 }
 
@@ -34,6 +40,8 @@ const run = type => async ({
   ['records-per-request']: recordsPerRequest,
   ['bytes-per-request']: bytesPerRequest,
   ['bytes-per-second']: bytesPerSecond,
+  ['log-level']: loglevel,
+  ['log-format']: logFormat,
 }) => {
   const client = new MisoClient({ key, server });
   const uploadStream = client.createUploadStream(type, {
@@ -43,12 +51,16 @@ const run = type => async ({
     bytesPerRequest,
     bytesPerSecond,
   });
+  const logStream = new logger.LogStream({
+    level: loglevel,
+    format: logFormat,
+  });
 
   await stream.pipelineToStdout(
     process.stdin,
     split2(),
     uploadStream,
-    stream.stringify(),
+    logStream,
   );
 };
 
