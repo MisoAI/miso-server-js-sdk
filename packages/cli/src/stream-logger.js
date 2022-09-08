@@ -27,7 +27,7 @@ export class LogStream extends Transform {
     if (this._level < LOG_LEVEL_DEBUG) {
       delete record.state;
     }
-    this.push(this._formatter(record));
+    this.push(this._formatter(record) + '\n');
     next();
   }
 
@@ -49,7 +49,7 @@ function formatJson(record) {
 }
 
 function formatText({ level, timestamp, event, ...record }) {
-  return `[${new Date(timestamp).toISOString()}][${level.toUpperCase()}] ${event}, ${JSON.stringify(record)}\n`;
+  return `[${new Date(timestamp).toISOString()}][${level.toUpperCase()}] ${event}, ${JSON.stringify(record)}`;
 }
 
 function toOrdinalMap(items) {
