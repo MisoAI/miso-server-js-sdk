@@ -6,6 +6,14 @@ function getDefaultRecordsPerRequest(type) {
   return type === 'interactions' ? 1000 : 200;
 }
 
+function normalizeParams(params) {
+  return params.reduce((acc, param) => {
+    const [key, value = '1'] = param.split('=');
+    acc[key] = value;
+    return acc;
+  }, {});
+}
+
 const PAYLOAD_PREFIX = '{"data":[';
 const PAYLOAD_SUFFIX = ']}';
 const PAYLOAD_OVERHEAD_BYTES = (PAYLOAD_PREFIX.length + PAYLOAD_SUFFIX.length) * 2;
@@ -18,6 +26,7 @@ export default class UploadStream extends Transform {
     objectMode,
     async, 
     dryRun,
+    params,
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,
@@ -32,6 +41,7 @@ export default class UploadStream extends Transform {
       objectMode: !!objectMode,
       async: !!async, 
       dryRun: !!dryRun,
+      params: normalizeParams(params),
       recordsPerRequest: recordsPerRequest || getDefaultRecordsPerRequest(type),
       bytesPerRequest: bytesPerRequest || 1024 * 1024,
       bytesPerSecond: bytesPerSecond || 5 * 1024 * 1024,
@@ -144,8 +154,8 @@ export default class UploadStream extends Transform {
     (async () => {
       let response;
       try {
-        const { async, dryRun } = this._options;
-        response = (await this._client.upload(this._type, payload, { async, dryRun })).data;
+        const { async, dryRun, params } = this._options;
+        response = (await this._client.upload(this._type, payload, { async, dryRun, params })).data;
       } catch(error) {
         response = error.response ? error.response.data : trimObj({ errors: true, cause: error.message });
       }

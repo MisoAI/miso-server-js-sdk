@@ -43,7 +43,7 @@ function normalizeOptions(options) {
   return options;
 }
 
-function buildUrl(client, type, { async, dryRun } = {}) {
+function buildUrl(client, type, { async, dryRun, params: extraParams } = {}) {
   let { server, key } = client._options;
   let params = `?api_key=${key}`;
   if (dryRun) {
@@ -51,7 +51,12 @@ function buildUrl(client, type, { async, dryRun } = {}) {
   } else if (async) {
     params += '&async=1';
   }
-  async = async && !dryRun;
+  if (extraParams) {
+    for (const key in extraParams) {
+      // TODO: deal with encodeURIComponent
+      params += `&${key}=${extraParams[key]}`;
+    }
+  }
   return `${server}/v1/${type}${params}`;
 }
 
