@@ -160,6 +160,7 @@ export default class UploadStream extends Transform {
         response = error.response ? error.response.data : trimObj({ errors: true, cause: error.message });
       }
       response.timestamp = Date.now();
+      response.took = response.took || 0; // TODO: ad-hoc
 
       requestResolve();
       this._state.close(request, response);
