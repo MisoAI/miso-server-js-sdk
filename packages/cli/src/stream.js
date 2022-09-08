@@ -164,9 +164,11 @@ export default class UploadStream extends Transform {
       requestResolve();
       this._state.close(request, response);
 
-      this._debug('response', { request, response, payload: response.errors ? payload : undefined });
+      const failed = response.errors;
+
+      (failed ? this._error : this._debug)('response', { request, response, payload: failed ? JSON.parse(payload) : undefined });
       this._info('upload', {
-        result: response.errors ? 'failed' : 'successful',
+        result: failed ? 'failed' : 'successful',
         index: request.index,
         records: request.records,
         bytes: request.bytes,
