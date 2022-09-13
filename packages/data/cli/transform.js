@@ -1,10 +1,8 @@
-import { createRequire } from 'module';
 import { join } from 'path';
 import split2 from 'split2';
 import { stream } from '@miso.ai/server-commons';
 
 const PWD = process.env.PWD;
-const require = createRequire(import.meta.url);
 
 function build(yargs) {
   return yargs
@@ -15,7 +13,7 @@ function build(yargs) {
 }
 
 async function run({ file }) {
-  const fn = getFunction(file);
+  const fn = await getFunction(file);
   await stream.pipelineToStdout(
     process.stdin,
     split2(),
@@ -25,8 +23,8 @@ async function run({ file }) {
   );
 }
 
-function getFunction(loc) {
-  return require(join(PWD, loc));
+async function getFunction(loc) {
+  return (await import(join(PWD, loc))).default;
 }
 
 export default {
