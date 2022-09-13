@@ -13,23 +13,29 @@ function build(yargs) {
 }
 
 async function run({ file }) {
-  const fn = await getFunction(file);
-  await stream.pipelineToStdout(
+  const TransformClass = await getTransformClass(file);
+  const transform = new TransformClass();
+  const streams = [
     process.stdin,
     split2(),
-    stream.parse(),
-    stream.transform(fn, { objectMode: true }),
-    stream.stringify(),
-  );
+  ];
+  if (transform.writableObjectMode) {
+    streams.push(stream.parse());
+  }
+  streams.push(transform);
+  if (transform.readableObjectMode) {
+    streams.push(stream.stringify());
+  }
+  await stream.pipelineToStdout(streams);
 }
 
-async function getFunction(loc) {
+async function getTransformClass(loc) {
   return (await import(join(PWD, loc))).default;
 }
 
 export default {
   command: 'transform [file]',
-  description: `Transform with a JavaScript function`,
+  description: `Transform with a JavaScript function. The default export should be a node Transform stream class. Object modes on both sides are respected.`,
   builder: build,
   handler: run,
 };
