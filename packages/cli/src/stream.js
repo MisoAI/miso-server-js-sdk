@@ -6,7 +6,7 @@ function getDefaultRecordsPerRequest(type) {
   return type === 'interactions' ? 1000 : 200;
 }
 
-function normalizeParams(params) {
+function normalizeParams(params = []) {
   return params.reduce((acc, param) => {
     const [key, value = '1'] = param.split('=');
     acc[key] = value;
