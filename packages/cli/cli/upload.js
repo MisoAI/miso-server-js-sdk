@@ -2,6 +2,8 @@ import split2 from 'split2';
 import { MisoClient, logger } from '../src/index.js';
 import { stream } from '@miso.ai/server-commons';
 
+const { LogStream } = logger;
+
 function coerceToArray(arg) {
   return Array.isArray(arg) ? arg :
     typeof arg === 'string' ? arg.split(',') :
@@ -65,7 +67,7 @@ const run = type => async ({
     bytesPerRequest,
     bytesPerSecond,
   });
-  const logStream = new logger.LogStream({
+  const logStream = new LogStream({
     level: loglevel,
     format: logFormat,
   });

@@ -14,12 +14,12 @@ export class LogStream extends Transform {
       throw new Error(`Unrecognized log level: ${level}`);
     }
     this._level = level;
-    this._debug = log.reachesThreshold(level, log.DEBUG);
+    this._debug = log.reachesThreshold(log.DEBUG, level);
     this._formatter = getFormatter(format);
   }
 
   _transform(record, _, next) {
-    if (!log.reachesThreshold(this._level, record.level)) {
+    if (!log.reachesThreshold(record.level, this._level)) {
       next();
       return;
     }

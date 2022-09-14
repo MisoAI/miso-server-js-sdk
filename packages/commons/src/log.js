@@ -17,15 +17,12 @@ export const LEVELS = Object.keys(LEVEL_VALUES);
 
 LEVELS.sort(compareLevel);
 
-export function reachesThreshold(threshold, level, fallbackLevel) {
+export function reachesThreshold(level, threshold) {
   if (!LEVEL_VALUES[threshold]) {
     throw new Error(`Unrecognized log level: ${threshold}`);
   }
   if (!level) {
     throw new Error(`Level is absent: ${level}`);
-  }
-  if (LEVEL_VALUES[level] === undefined && fallbackLevel) {
-    level = fallbackLevel;
   }
   return compareLevel(level, threshold) <= 0;
 }
