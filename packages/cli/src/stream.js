@@ -55,7 +55,8 @@ export default class UploadStream extends Transform {
   }
 
   _construct(done) {
-    this._info('construct', { config: this.config });
+    const { config } = this;
+    this._info('construct', { config });
     done();
   }
 

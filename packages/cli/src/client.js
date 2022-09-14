@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Buffer } from 'buffer';
 import axios from 'axios';
 import UploadStream from './stream.js';
@@ -23,9 +24,10 @@ export default class MisoClient {
   }
 
   get options() {
-    const { server } = this._options;
+    const { server, key } = this._options;
     return Object.freeze({
       server,
+      keyMd5: createHash('md5').update(key).digest('hex')
     });
   }
 
