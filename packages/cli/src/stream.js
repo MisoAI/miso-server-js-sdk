@@ -1,6 +1,7 @@
 import { Transform } from 'stream';
 import { trimObj } from '@miso.ai/server-commons';
 import { LOG_LEVELS } from './stream-logger.js';
+import version from './version.js';
 
 function getDefaultRecordsPerRequest(type) {
   return type === 'interactions' ? 1000 : 200;
@@ -113,6 +114,7 @@ export default class UploadStream extends Transform {
 
   get config() {
     return Object.freeze({
+      version,
       type: this._type,
       ...this._client.options,
       ...this._options,
