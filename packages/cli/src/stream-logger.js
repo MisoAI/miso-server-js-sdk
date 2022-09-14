@@ -1,30 +1,29 @@
 import { Transform } from 'stream';
+import { log } from '@miso.ai/server-commons';
 
 export const LOG_LEVELS = ['fatal', 'error', 'warning', 'info', 'debug'];
 
-const LOG_LEVEL_ORDINALS = toOrdinalMap(LOG_LEVELS);
-const LOG_LEVEL_DEBUG = LOG_LEVEL_ORDINALS['debug'];
-
 export class LogStream extends Transform {
 
-  constructor({ level = 'info', format = 'json', ...options } = {}) {
+  constructor({ level = log.INFO, format = 'json', ...options } = {}) {
     super({
       writableObjectMode: true,
       readableObjectMode: false,
     });
-    this._level = LOG_LEVEL_ORDINALS[level];
-    if (this._level === undefined) {
+    if (log.LEVELS.indexOf(level) < 0) {
       throw new Error(`Unrecognized log level: ${level}`);
     }
+    this._level = level;
+    this._debug = log.reachesThreshold(level, log.DEBUG);
     this._formatter = getFormatter(format);
   }
 
   _transform(record, _, next) {
-    if (this._level < (LOG_LEVEL_ORDINALS[record.level] || LOG_LEVEL_DEBUG)) {
+    if (!log.reachesThreshold(this._level, record.level)) {
       next();
       return;
     }
-    if (this._level < LOG_LEVEL_DEBUG) {
+    if (!this._debug) {
       delete record.state;
     }
     this.push(this._formatter(record) + '\n');
@@ -50,13 +49,4 @@ function formatJson(record) {
 
 function formatText({ level, timestamp, event, ...record }) {
   return `[${new Date(timestamp).toISOString()}][${level.toUpperCase()}] ${event}, ${JSON.stringify(record)}`;
-}
-
-function toOrdinalMap(items) {
-  let i = 1;
-  const map = {};
-  for (const item of items) {
-    map[item] = i++;
-  }
-  return map;
 }
