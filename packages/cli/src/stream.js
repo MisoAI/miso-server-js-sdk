@@ -18,6 +18,8 @@ const PAYLOAD_PREFIX = '{"data":[';
 const PAYLOAD_SUFFIX = ']}';
 const PAYLOAD_OVERHEAD_BYTES = (PAYLOAD_PREFIX.length + PAYLOAD_SUFFIX.length) * 2;
 
+const MIN_HREATBEAT = 100;
+
 const requestPromises = new WeakMap();
 
 export default class UploadStream extends Transform {
@@ -27,6 +29,7 @@ export default class UploadStream extends Transform {
     async, 
     dryRun,
     params,
+    heartbeat,
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,
@@ -42,10 +45,14 @@ export default class UploadStream extends Transform {
       async: !!async, 
       dryRun: !!dryRun,
       params: normalizeParams(params),
+      heartbeat,
       recordsPerRequest: recordsPerRequest || getDefaultRecordsPerRequest(type),
       bytesPerRequest: bytesPerRequest || 1024 * 1024,
       bytesPerSecond: bytesPerSecond || 5 * 1024 * 1024,
     };
+    if (heartbeat !== undefined && (typeof heartbeat !== 'number') || heartbeat < MIN_HREATBEAT) {
+      throw new Error(`Heartbeat must be a number at least ${MIN_HREATBEAT}: ${heartbeat}`);
+    }
     this._state = new State();
     this._resetBuffer();
     // log functions
@@ -57,6 +64,10 @@ export default class UploadStream extends Transform {
   _construct(done) {
     const { config } = this;
     this._info('construct', { config });
+    const heartbeat = this._options.heartbeat;
+    if (heartbeat) {
+      this._heartbeatIntervalId = setInterval(this._heartbeat.bind(this), heartbeat);
+    }
     done();
   }
 
@@ -98,7 +109,15 @@ export default class UploadStream extends Transform {
     }));
   }
 
+  _heartbeat() {
+    this._log(log.DEBUG, 'heartbeat');
+  }
+
   async _flush(done) {
+    if (this._heartbeatIntervalId) {
+      clearInterval(this._heartbeatIntervalId);
+      delete this._heartbeatIntervalId;
+    }
     this._pushStartEventIfNecessary();
     this._dispatch();
     await Promise.all(this._state.pending.map(r => requestPromises.get(r)));

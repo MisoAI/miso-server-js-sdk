@@ -1,4 +1,4 @@
-import { padLeft } from './string.js';
+import { padLeft, padRight } from './string.js';
 
 export const FATAL = 'fatal';
 export const ERROR = 'error';
@@ -66,4 +66,31 @@ export function formatBytes(value) {
   return `${Math.floor(value * 100) / 100} ${UNITS[i]}`;
 }
 
-const UNITS = ['Byte', 'KB', 'MB', 'GB', 'TB'];
+const UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+export function formatTable(rows, { columnPadding: columnSpacing = 3 } = {}) {
+  const maxLens = [];
+  for (const cells of rows) {
+    for (let j = 0, len = cells.length; j < len; j++) {
+      const len = `${cells[j]}`.length;
+      if (!maxLens[j] || maxLens[j] < len) {
+        maxLens[j] = len;
+      }
+    }
+  }
+  const colSpc = ' '.repeat(columnSpacing);
+  let str = '';
+  for (let i = 0, len = rows.length; i < len; i++) {
+    if (i > 0) {
+      str += '\n';
+    }
+    const cells = rows[i];
+    for (let j = 0, len = cells.length; j < len; j++) {
+      if (j > 0) {
+        str += colSpc;
+      }
+      str += padRight(`${cells[j]}`, maxLens[j], ' ');
+    }
+  }
+  return str;
+}

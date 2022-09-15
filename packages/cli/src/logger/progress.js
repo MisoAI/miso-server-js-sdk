@@ -1,8 +1,8 @@
 import { Writable } from 'stream';
 import { createLogUpdate } from 'log-update';
-import { log, padRight } from '@miso.ai/server-commons';
+import { log } from '@miso.ai/server-commons';
 
-const { formatDuration, formatBytes } = log;
+const { formatDuration, formatBytes, formatTable } = log;
 
 export default class ProgressLogStream extends Writable {
 
@@ -20,6 +20,7 @@ export default class ProgressLogStream extends Writable {
   _write({ state, ...record }, _, next) {
     const { level } = record;
     if (log.isError(level)) {
+      this._update.done();
       this._err.write(JSON.stringify(record) + '\n');
     }
     this._update(this._renderState(state));
@@ -32,10 +33,10 @@ export default class ProgressLogStream extends Writable {
     pending = sumMetrics(pending);
 
     const table = formatTable([
-      ['', 'requests', 'records', 'bytes'],
-      ['pending', pending.requests, pending.records, formatBytes(pending.bytes)],
-      ['successful', successful.requests, successful.records, formatBytes(successful.bytes)],
-      ['failed', failed.requests, failed.records, formatBytes(failed.bytes)],
+      ['', 'Requests', 'Records', 'Bytes', 'Server Time', 'Latency'],
+      ['Pending', pending.requests, pending.records, formatBytes(pending.bytes), '--', '--'],
+      ['Successful', successful.requests, successful.records, formatBytes(successful.bytes), formatDuration(successful.took), formatDuration(successful.latency)],
+      ['Failed', failed.requests, failed.records, formatBytes(failed.bytes), formatDuration(failed.took), formatDuration(failed.latency)],
     ]);
 
     return `
@@ -60,33 +61,6 @@ function sumMetrics(requests) {
     records: 0,
     bytes: 0,
   });
-}
-
-function formatTable(rows, { columnPadding: columnSpacing = 2 } = {}) {
-  const maxLens = [];
-  for (const cells of rows) {
-    for (let j = 0, len = cells.length; j < len; j++) {
-      const len = `${cells[j]}`.length;
-      if (!maxLens[j] || maxLens[j] < len) {
-        maxLens[j] = len;
-      }
-    }
-  }
-  const colSpc = ' '.repeat(columnSpacing);
-  let str = '';
-  for (let i = 0, len = rows.length; i < len; i++) {
-    if (i > 0) {
-      str += '\n';
-    }
-    const cells = rows[i];
-    for (let j = 0, len = cells.length; j < len; j++) {
-      if (j > 0) {
-        str += colSpc;
-      }
-      str += padRight(`${cells[j]}`, maxLens[j], ' ');
-    }
-  }
-  return str;
 }
 
 function formatSpeed(value) {

@@ -69,7 +69,7 @@ const run = type => async ({
 }) => {
 
   loglevel = debug ? log.DEBUG : loglevel;
-  logFormat = progress ? 'progress' : logFormat;
+  logFormat = progress ? logger.FORMAT.PROGRESS : logFormat;
 
   const client = new MisoClient({ key, server });
 
@@ -77,6 +77,7 @@ const run = type => async ({
     async, 
     dryRun,
     params,
+    heartbeat: logFormat === logger.FORMAT.PROGRESS ? 250 : undefined,
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,
