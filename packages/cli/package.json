@@ -14,10 +14,11 @@
     "simonpai <simon.pai@askmiso.com>"
   ],
   "dependencies": {
+    "@miso.ai/server-commons": "file:packages/commons",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
+    "log-update": "^5.0.1",
     "split2": "^4.1.0",
-    "yargs": "^17.5.1",
-    "@miso.ai/server-commons": "file:packages/commons"
+    "yargs": "^17.5.1"
   }
 }

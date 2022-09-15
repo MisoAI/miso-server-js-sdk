@@ -9,7 +9,6 @@ export default class StandardLogStream extends Writable {
     format = FORMAT.JSON,
     out = process.stdout,
     err = process.stderr,
-    ...options
   } = {}) {
     super({
       objectMode: true,

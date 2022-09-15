@@ -318,7 +318,7 @@ class State {
     const { next, pending, successful, failed, sent, completed, apiBps } = this;
     timestamp = timestamp || Date.now();
     return Object.freeze({
-      next, pending, sent, successful, failed, sent, completed,
+      next, pending, sent, successful, failed, completed,
       elapsed: this.elapsed(timestamp),
       apiBps,
       sentBps: this.sentBps(timestamp),

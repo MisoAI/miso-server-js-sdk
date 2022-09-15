@@ -19,7 +19,7 @@ function build(yargs) {
       describe: 'Dry run mode',
     })
     .option('param', {
-      alias: ['p'],
+      alias: ['v', 'var'],
       describe: 'Extra URL parameters',
       type: 'array',
       coerce: coerceToArray,

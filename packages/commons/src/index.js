@@ -1,4 +1,5 @@
 export * from './object.js';
+export * from './string.js';
 export * from './date.js';
 export * from './file.js';
 export * from './config.js';

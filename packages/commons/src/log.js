@@ -1,3 +1,5 @@
+import { padLeft } from './string.js';
+
 export const FATAL = 'fatal';
 export const ERROR = 'error';
 export const WARNING = 'warning';
@@ -34,3 +36,34 @@ export function isError(level) {
 function compareLevel(a, b) {
   return (LEVEL_VALUES[a] || FALLBACK_LEVEL_VALUE) - (LEVEL_VALUES[b] || FALLBACK_LEVEL_VALUE);
 }
+
+export function formatDuration(value) {
+  if (typeof value !== 'number') {
+    throw new Error(`Value must be a number: ${value}`);
+  }
+  value = Math.floor(value);
+  const ms = padLeft(`${value % 60000}`, 5, '0');
+  let min = '00';
+  let hour = '00';
+  if (value >= 60000) {
+    value = Math.floor(value / 60000);
+    min = padLeft(`${value % 60}`, 2, '0');
+    if (value >= 60) {
+      hour = padLeft(Math.floor(value / 60), 2, '0');
+    }
+  }
+  return `${hour}:${min}:${ms.substring(0, 2)}.${ms.substring(2, 5)}`;
+}
+
+export function formatBytes(value) {
+  let i = 0;
+  for (; i < 4; i++) {
+    if (value < 1024) {
+      break;
+    }
+    value /= 1024;
+  }
+  return `${Math.floor(value * 100) / 100} ${UNITS[i]}`;
+}
+
+const UNITS = ['Byte', 'KB', 'MB', 'GB', 'TB'];

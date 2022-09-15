@@ -1,5 +1,6 @@
 import { FORMAT } from './constants.js';
 import StandardLogStream from './standard.js';
+import ProgressLogStream from './progress.js';
 
 export * from './constants.js';
 
@@ -10,8 +11,11 @@ export function createLogStream({
   err,
 }) {
   switch (format || FORMAT.JSON) {
-    //case FORMAT.PROGRESS:
-      // TODO
+    case FORMAT.PROGRESS:
+      return new ProgressLogStream({
+        out,
+        err,
+      });
     case FORMAT.TEXT:
     case FORMAT.JSON:
       return new StandardLogStream({
