@@ -20,7 +20,7 @@ export default class ProgressLogStream extends Writable {
   _write({ state, ...record }, _, next) {
     const { level } = record;
     if (log.isError(level)) {
-      this._update.done();
+      //this._update.done();
       this._err.write(JSON.stringify(record) + '\n');
     }
     this._update(this._renderState(state));
