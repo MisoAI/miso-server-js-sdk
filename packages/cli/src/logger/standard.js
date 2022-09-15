@@ -1,14 +1,18 @@
-import { Transform } from 'stream';
+import { Writable } from 'stream';
 import { log } from '@miso.ai/server-commons';
+import { FORMAT } from './constants.js';
 
-export const LOG_LEVELS = ['fatal', 'error', 'warning', 'info', 'debug'];
+export default class StandardLogStream extends Writable {
 
-export class LogStream extends Transform {
-
-  constructor({ level = log.INFO, format = 'json', ...options } = {}) {
+  constructor({
+    level = log.INFO,
+    format = FORMAT.JSON,
+    out = process.stdout,
+    err = process.stderr,
+    ...options
+  } = {}) {
     super({
-      writableObjectMode: true,
-      readableObjectMode: false,
+      objectMode: true,
     });
     if (log.LEVELS.indexOf(level) < 0) {
       throw new Error(`Unrecognized log level: ${level}`);
@@ -16,17 +20,20 @@ export class LogStream extends Transform {
     this._level = level;
     this._debug = log.reachesThreshold(log.DEBUG, level);
     this._formatter = getFormatter(format);
+    this._out = out;
+    this._err = err;
   }
 
-  _transform(record, _, next) {
-    if (!log.reachesThreshold(record.level, this._level)) {
+  _write(record, _, next) {
+    const { level } = record;
+    if (!log.reachesThreshold(level, this._level)) {
       next();
       return;
     }
     if (!this._debug) {
       delete record.state;
     }
-    this.push(this._formatter(record) + '\n');
+    (log.isError(level) ? this._err : this._out).write(this._formatter(record) + '\n');
     next();
   }
 
@@ -34,9 +41,9 @@ export class LogStream extends Transform {
 
 function getFormatter(format) {
   switch (format) {
-    case 'text':
+    case FORMAT.TEXT:
       return formatText;
-    case 'json':
+    case FORMAT.JSON:
       return formatJson;
     default:
       throw new Error(`Unrecognized format: ${format}`);

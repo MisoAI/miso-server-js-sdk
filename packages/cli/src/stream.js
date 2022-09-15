@@ -1,6 +1,5 @@
 import { Transform } from 'stream';
-import { trimObj } from '@miso.ai/server-commons';
-import { LOG_LEVELS } from './stream-logger.js';
+import { trimObj, log } from '@miso.ai/server-commons';
 import version from './version.js';
 
 function getDefaultRecordsPerRequest(type) {
@@ -50,7 +49,7 @@ export default class UploadStream extends Transform {
     this._state = new State();
     this._resetBuffer();
     // log functions
-    for (const level of LOG_LEVELS) {
+    for (const level of log.LEVELS) {
       this[`_${level}`] = this._log.bind(this, level);
     }
   }

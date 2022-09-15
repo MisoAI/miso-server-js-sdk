@@ -1,8 +1,6 @@
 import split2 from 'split2';
+import { log, stream } from '@miso.ai/server-commons';
 import { MisoClient, logger } from '../src/index.js';
-import { stream } from '@miso.ai/server-commons';
-
-const { LogStream } = logger;
 
 function coerceToArray(arg) {
   return Array.isArray(arg) ? arg :
@@ -38,6 +36,15 @@ function build(yargs) {
       alias: ['bps'],
       describe: 'How many bytes to send per second',
     })
+    .option('debug', {
+      describe: 'Set log level to debug',
+      type: 'boolean',
+    })
+    .option('progress', {
+      alias: ['p'],
+      describe: 'Set log format progress',
+      type: 'boolean',
+    })
     .option('log-level', {
       describe: 'Log level',
     })
@@ -55,10 +62,17 @@ const run = type => async ({
   ['records-per-request']: recordsPerRequest,
   ['bytes-per-request']: bytesPerRequest,
   ['bytes-per-second']: bytesPerSecond,
+  debug,
+  progress,
   ['log-level']: loglevel,
   ['log-format']: logFormat,
 }) => {
+
+  loglevel = debug ? log.DEBUG : loglevel;
+  logFormat = progress ? 'progress' : logFormat;
+
   const client = new MisoClient({ key, server });
+
   const uploadStream = client.createUploadStream(type, {
     async, 
     dryRun,
@@ -67,12 +81,13 @@ const run = type => async ({
     bytesPerRequest,
     bytesPerSecond,
   });
-  const logStream = new LogStream({
+
+  const logStream = logger.createLogStream({
     level: loglevel,
     format: logFormat,
   });
 
-  await stream.pipelineToStdout(
+  await stream.pipeline(
     process.stdin,
     split2(),
     uploadStream,

@@ -27,6 +27,10 @@ export function reachesThreshold(level, threshold) {
   return compareLevel(level, threshold) <= 0;
 }
 
+export function isError(level) {
+  return reachesThreshold(level, ERROR);
+}
+
 function compareLevel(a, b) {
   return (LEVEL_VALUES[a] || FALLBACK_LEVEL_VALUE) - (LEVEL_VALUES[b] || FALLBACK_LEVEL_VALUE);
 }
