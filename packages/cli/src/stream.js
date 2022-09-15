@@ -103,6 +103,7 @@ export default class UploadStream extends Transform {
     this.push(trimObj({
       level,
       event,
+      source: 'sdk.upload',
       timestamp: Date.now(),
       ...args,
       state: this.state,
