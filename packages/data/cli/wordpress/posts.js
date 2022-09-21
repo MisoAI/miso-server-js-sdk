@@ -25,7 +25,6 @@ function build(yargs) {
       describe: 'Only include records modified in given duration (3h, 2d, etc.)',
     })
     .option('patch', {
-      alias: 'p',
       describe: 'Patch posts with category names and author name',
       type: 'boolean',
     })
@@ -48,7 +47,7 @@ function build(yargs) {
     });
 }
 
-async function run({ site, profile, count, update, ...options }) {
+async function run({ site, count, update, ...options }) {
   options = normalizeOptions(options);
   const client = new WordPressClient(options);
   if (count) {
