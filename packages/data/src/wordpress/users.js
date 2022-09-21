@@ -48,9 +48,18 @@ class UserIndex {
   }
 
   patch(post) {
-    const { author } = post;
-    const authorName = this.getName(author);
-    return authorName ? { ...post, authorName } : post;
+    const { author: author_id, _patch = {} } = post;
+    const author = this.getName(author_id);
+    if (!author) {
+      return post;
+    }
+    return {
+      ...post,
+      _patch: {
+        ..._patch,
+        author,
+      },
+    };
   }
 
 }

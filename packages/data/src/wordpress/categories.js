@@ -66,10 +66,13 @@ class CategoryIndex {
   }
 
   patch(post) {
-    const { categories = [] } = post;
+    const { categories: category_ids = [], _patch = {} } = post;
     return {
       ...post,
-      categoryNames: this.getNames(categories),
+      _patch: {
+        ..._patch,
+        categories: this.getNames(category_ids),
+      },
     };
   }
 

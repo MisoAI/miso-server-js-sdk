@@ -6,27 +6,23 @@ export default function transform({
   type,
   date_gmt,
   modified_gmt,
-  guid: {
-    rendered: guid,
-  },
-  slug,
   title: {
     rendered: title,
   },
   content: {
     rendered: html,
   },
-  author: author_id,
-  categories: category_ids,
-  tags: tag_ids,
+  author: authorId,
+  categories: categoryIds,
+  tags_names: tags,
   link: url,
-  featured_media,
+  better_featured_image,
   status,
   sticky,
   comment_status,
   ping_status,
   format,
-  template,
+  yoast,
 }) {
   const product_id = `${id}`;
   if (!product_id) {
@@ -36,7 +32,10 @@ export default function transform({
   const updated_at = modified_gmt && `${modified_gmt}Z`;
   const authors = asArray(_patch.author);
   const categories = _patch.categories;
-  const tags = _patch.tags;
+
+  // TODO: ad-hoc
+  const description = yoast && yoast.metadesc;
+  const cover_image = better_featured_image && better_featured_image.source_url && encodeURI(better_featured_image.source_url);
 
   return trimObj({
     product_id,
@@ -44,24 +43,21 @@ export default function transform({
     created_at,
     updated_at,
     title,
+    description,
     html,
+    cover_image,
     url,
     authors,
     categories,
     tags,
     custom_attributes: trimObj({
-      guid,
-      slug,
       status,
       sticky,
       comment_status,
       ping_status,
       format,
-      template,
-      author_id,
-      category_ids,
-      tag_ids,
-      featured_media,
+      authorId,
+      categoryIds,
     }),
   });
 }

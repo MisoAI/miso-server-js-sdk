@@ -4,7 +4,11 @@ import {
   endOfDate,
   parseDuration,
 } from '@miso.ai/server-commons';
-import { WordPressClient, transform as transformFn } from '../../src/wordpress/index.js';
+import {
+  WordPressClient,
+  transform as transformFn,
+  transformLegacy,
+} from '../../src/wordpress/index.js';
 
 function build(yargs) {
   return yargs
@@ -31,6 +35,10 @@ function build(yargs) {
     .option('transform', {
       alias: 't',
       describe: 'Transform posts to miso product records',
+      type: 'boolean',
+    })
+    .option('legacy', {
+      describe: 'Use legacy transform function',
       type: 'boolean',
     })
     /*
@@ -63,15 +71,15 @@ async function runCount(client, options) {
   console.log(await client.posts.count(options));
 }
 
-async function runGet(client, { patch, transform, ...options }) {
+async function runGet(client, { patch, transform, legacy, ...options }) {
   await stream.pipelineToStdout(
     await client.posts.stream(options),
-    ...await transformStreams(client, patch, transform),
+    ...await transformStreams(client, patch, transform, legacy),
     stream.stringify(),
   );
 }
 
-async function runUpdate(client, update, { date, after, before, orderBy, order, patch, transform, ...options }) {
+async function runUpdate(client, update, { date, after, before, orderBy, order, patch, transform, legacy, ...options }) {
   const now = Date.now();
   update = parseDuration(update);
   const threshold = now - update;
@@ -98,16 +106,17 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
         })
       ])
     ),
-    ...await transformStreams(client, patch, transform),
+    ...await transformStreams(client, patch, transform, legacy),
     stream.stringify(),
   );
 }
 
-async function transformStreams(client, patch, transform) {
+async function transformStreams(client, patch, transform, legacy) {
   if (!patch && !transform) {
     return [];
   }
-  return [stream.transform(buildPatchFn(client, transformFn), { objectMode: true })];
+  const fn = legacy ? transformLegacy : transformFn;
+  return [stream.transform(buildPatchFn(client, fn), { objectMode: true })];
 }
 
 function normalizeOptions({ date, after, before, ...options }) {
