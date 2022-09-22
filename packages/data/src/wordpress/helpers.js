@@ -45,12 +45,16 @@ export default class Helpers {
 
   async findTaxonomyByResourceName(name, options) {
     const taxonomies = await this.taxonomies(options);
-    for (const taxonomy of Object.values(taxonomies)) {
+    for (const taxonomy of taxonomies) {
       if (taxonomy.rest_base === name) {
         return taxonomy;
       }
     }
     return undefined;
+  }
+
+  async findAssociatedTaxonomies(type, options) {
+    return (await this.taxonomies(options)).filter(taxonomy => taxonomy.types.includes(type));
   }
 
   async taxonomies({ noCache = false } = {}) {
@@ -65,7 +69,7 @@ export default class Helpers {
     const url = await this.url.build('taxonomies');
     const { data } = await axios.get(url);
     this.debug(`Fetched taxonomies.`);
-    return data;
+    return Object.values(data);
   }
 
   extractTerms(data) {

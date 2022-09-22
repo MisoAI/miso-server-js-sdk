@@ -129,17 +129,30 @@ function normalizeOptions({ date, after, before, ...options }) {
 }
 
 function buildPatchAndTransformFn(client, transformFn) {
-  let indicies;
+  const patchFn = buildPatchFn(client);
   return async post => {
-    if (!indicies) {
-      indicies = Promise.all([
-        client.entities('categories').index(),
-        client.entities('users').index(),
+    post = await patchFn(post);
+    return transformFn ? transformFn(post) : post;
+  };
+}
+
+function buildPatchFn(client) {
+  let indiciesPromise;
+  return async post => {
+    if (!indiciesPromise) {
+      const userIndexPromise = client.users.index();
+      const taxonomies = await client._helpers.findAssociatedTaxonomies('post');
+      indiciesPromise = Promise.all([
+        userIndexPromise,
+        ...(taxonomies).map(({ rest_base }) => client.entities(rest_base).index()),
       ]);
     }
-    const [categoryIndex, userIndex] = await indicies;
-    post = userIndex.patch(categoryIndex.patch(post), 'author');
-    return transformFn ? transformFn(post) : post;
+    const [userIndex, ...indicies] = await indiciesPromise;
+    post = userIndex.patch(post, 'author');
+    for (const index of indicies) {
+      post = index.patch(post);
+    }
+    return post;
   };
 }
 
