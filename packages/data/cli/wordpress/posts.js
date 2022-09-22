@@ -120,7 +120,7 @@ async function transformStreams(client, patch, transform, legacy) {
     return [];
   }
   const fn = transform ? (legacy ? transformLegacy : transformFn) : undefined;
-  return [stream.transform(buildPatchAndTransformFn(client, fn), { objectMode: true })];
+  return [stream.transform(await buildPatchAndTransformFn(client, fn), { objectMode: true })];
 }
 
 function normalizeOptions({ date, after, before, ...options }) {
@@ -128,31 +128,39 @@ function normalizeOptions({ date, after, before, ...options }) {
   return { ...options, after, before };
 }
 
-function buildPatchAndTransformFn(client, transformFn) {
-  const patchFn = buildPatchFn(client);
+async function buildPatchAndTransformFn(client, transformFn) {
+  const patchFn = await buildPatchFn(client);
   return async post => {
     post = await patchFn(post);
     return transformFn ? transformFn(post) : post;
   };
 }
 
-function buildPatchFn(client) {
-  let indiciesPromise;
+async function buildPatchFn(client) {
+  const taxonomies = await client._helpers.findAssociatedTaxonomies('post');
+  const indicies = taxonomies.map(({ rest_base }) => client.entities(rest_base).index);
   return async post => {
-    if (!indiciesPromise) {
-      const userIndexPromise = client.users.index();
-      const taxonomies = await client._helpers.findAssociatedTaxonomies('post');
-      indiciesPromise = Promise.all([
-        userIndexPromise,
-        ...(taxonomies).map(({ rest_base }) => client.entities(rest_base).index()),
-      ]);
-    }
-    const [userIndex, ...indicies] = await indiciesPromise;
-    post = userIndex.patch(post, 'author');
-    for (const index of indicies) {
-      post = index.patch(post);
+    const patches = await Promise.all([
+      client.users.index.patch(post, 'author'),
+      ...indicies.map(index => index.patch(post)),
+    ]);
+    for (const patch of patches) {
+      post = applyPatch(post, patch);
     }
     return post;
+  };
+}
+
+function applyPatch(post, patch) {
+  if (!patch) {
+    return post;
+  }
+  return {
+    ...post,
+    _patch: {
+      ...post._patch,
+      ...patch,
+    },
   };
 }
 
