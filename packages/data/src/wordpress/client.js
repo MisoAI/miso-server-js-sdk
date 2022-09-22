@@ -46,6 +46,10 @@ export default class WordPressClient {
     return this._profile.export();
   }
 
+  taxonomies(options) {
+    return this._helpers.taxonomies(options);
+  }
+
   entities(name) {
     switch (name) {
       case 'posts':

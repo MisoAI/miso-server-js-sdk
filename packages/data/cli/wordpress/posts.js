@@ -119,7 +119,7 @@ async function transformStreams(client, patch, transform, legacy) {
     return [];
   }
   const fn = legacy ? transformLegacy : transformFn;
-  return [stream.transform(buildPatchFn(client, fn), { objectMode: true })];
+  return [stream.transform(buildPatchAndTransformFn(client, fn), { objectMode: true })];
 }
 
 function normalizeOptions({ date, after, before, ...options }) {
@@ -127,7 +127,7 @@ function normalizeOptions({ date, after, before, ...options }) {
   return { ...options, after, before };
 }
 
-function buildPatchFn(client, transformFn) {
+function buildPatchAndTransformFn(client, transformFn) {
   let indicies;
   return async post => {
     if (!indicies) {

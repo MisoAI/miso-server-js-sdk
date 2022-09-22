@@ -43,6 +43,21 @@ export default class Helpers {
     };
   }
 
+  async taxonomies({ noCache = false }) {
+    if (noCache || !this._taxonomies) {
+      // don't await, save the promise
+      this._taxonomies = this._fetchTaxonomies();
+    }
+    return this._taxonomies;
+  }
+
+  async _fetchTaxonomies() {
+    const url = await this.url.build('taxonomies');
+    const { data } = await axios.get(url);
+    this.debug(`Fetched taxonomies.`);
+    return data;
+  }
+
   extractTerms(data) {
     return (data._links['wp:term'] || []).map(term => {
       const { href } = term;
