@@ -2,8 +2,6 @@ import { defineValues, copyValues, trimObj, loadConfigSync, saveConfig, splitObj
 import { constants } from 'fs';
 import Helpers from './helpers.js';
 import Posts from './posts.js';
-import Categories from './categories.js';
-import Users from './users.js';
 import { Entities } from './entities.js';
 
 const DEFAULT_PROFILE = './wordpress.json';
@@ -27,9 +25,9 @@ export default class WordPressClient {
     this._profile = new SiteProfile(profileObj);
 
     this._helpers = new Helpers(this);
-    this.posts = new Posts(this);
-    this.categories = new Categories(this);
-    this.users = new Users(this);
+    this._entities = {
+      posts: new Posts(this),
+    };
   }
 
   async generateProfile() {
@@ -50,17 +48,16 @@ export default class WordPressClient {
     return this._helpers.taxonomies(options);
   }
 
+  get posts() {
+    return this.entities('posts');
+  }
+
+  get users() {
+    return this.entities('users');
+  }
+
   entities(name) {
-    switch (name) {
-      case 'posts':
-        return this.posts;
-      case 'categories':
-        return this.categories;
-      case 'users':
-        return this.users;
-      default:
-        return new Entities(this, name);
-    }
+    return this._entities[name] || (this._entities[name] = new Entities(this, name));
   }
 
 }

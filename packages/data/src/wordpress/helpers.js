@@ -20,7 +20,7 @@ export default class Helpers {
     return new ResourceStream(this, url, streamOptions);
   }
 
-  async sample(resource, { noCache = false }) {
+  async sample(resource, { noCache = false } = {}) {
     if (noCache || !this._samples[resource]) {
       // don't await, save the promise
       this._samples[resource] = this._fetchSample(resource)
@@ -43,7 +43,17 @@ export default class Helpers {
     };
   }
 
-  async taxonomies({ noCache = false }) {
+  async findTaxonomyByResourceName(name, options) {
+    const taxonomies = await this.taxonomies(options);
+    for (const taxonomy of Object.values(taxonomies)) {
+      if (taxonomy.rest_base === name) {
+        return taxonomy;
+      }
+    }
+    return undefined;
+  }
+
+  async taxonomies({ noCache = false } = {}) {
     if (noCache || !this._taxonomies) {
       // don't await, save the promise
       this._taxonomies = this._fetchTaxonomies();
@@ -55,7 +65,7 @@ export default class Helpers {
     const url = await this.url.build('taxonomies');
     const { data } = await axios.get(url);
     this.debug(`Fetched taxonomies.`);
-    return Object.values(data);
+    return data;
   }
 
   extractTerms(data) {
@@ -68,7 +78,7 @@ export default class Helpers {
     return asNumber(headers['x-wp-total']);
   }
 
-  async terms(resource, { noCache = false }) {
+  async terms(resource, { noCache = false } = {}) {
     return (await this.sample(resource, { noCache })).terms;
   }
 

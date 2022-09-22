@@ -7,7 +7,7 @@ function build(yargs) {
 async function run(options) {
   const client = new WordPressClient(options);
   const taxonomies = await client.taxonomies({ noCache: true });
-  for (const taxonomy of taxonomies) {
+  for (const taxonomy of Object.values(taxonomies)) {
     console.log(JSON.stringify(taxonomy));
   }
 }

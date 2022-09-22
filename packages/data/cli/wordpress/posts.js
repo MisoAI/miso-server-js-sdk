@@ -76,7 +76,7 @@ async function runTerms(client, options) {
 
 async function runGet(client, { patch, transform, legacy, ...options }) {
   await stream.pipelineToStdout(
-    await client.posts.stream(options),
+    await client.entities('posts').stream(options),
     ...await transformStreams(client, patch, transform, legacy),
     stream.stringify(),
   );
@@ -86,16 +86,17 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
   const now = Date.now();
   update = parseDuration(update);
   const threshold = now - update;
+  const posts = client.entities('posts');
   await stream.pipelineToStdout(
     stream.concat(
       ...await Promise.all([
         // get recent published
-        client.posts.stream({
+        posts.stream({
           ...options,
           after: threshold,
         }),
         // get recent modified, excluding ones already fetched
-        client.posts.stream({
+        posts.stream({
           ...options,
           orderBy: 'modified',
           before: threshold,
@@ -118,7 +119,7 @@ async function transformStreams(client, patch, transform, legacy) {
   if (!patch && !transform) {
     return [];
   }
-  const fn = legacy ? transformLegacy : transformFn;
+  const fn = transform ? (legacy ? transformLegacy : transformFn) : undefined;
   return [stream.transform(buildPatchAndTransformFn(client, fn), { objectMode: true })];
 }
 
@@ -132,12 +133,12 @@ function buildPatchAndTransformFn(client, transformFn) {
   return async post => {
     if (!indicies) {
       indicies = Promise.all([
-        client.categories.index(),
-        client.users.index(),
+        client.entities('categories').index(),
+        client.entities('users').index(),
       ]);
     }
     const [categoryIndex, userIndex] = await indicies;
-    post = userIndex.patch(categoryIndex.patch(post));
+    post = userIndex.patch(categoryIndex.patch(post), 'author');
     return transformFn ? transformFn(post) : post;
   };
 }

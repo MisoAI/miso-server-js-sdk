@@ -23,22 +23,36 @@ export class Entities {
     return this._client._helpers.terms(this._name, options);
   }
 
-  async index() {
-    return new EntityIndex(await this.getAll());
+  async index({ noCache = false } = {}) {
+    if (noCache || !this._index) {
+      const [taxonomy, entities] = await Promise.all([
+        this._taxonomy({ noCache }),
+        this.getAll(),
+      ]);
+      this._index = new EntityIndex(entities, { taxonomy, name: this._name });
+    }
+    return this._index;
+  }
+
+  async _taxonomy(options) {
+    return await this._client._helpers.findTaxonomyByResourceName(this._name, options);
   }
 
 }
 
 export class EntityIndex {
 
-  constructor(entities, name) {
+  constructor(entities, { name, taxonomy }) {
     this._name = name;
+    this._taxonomy = taxonomy;
+    this._hierarchical = !!(taxonomy && taxonomy.hierarchical);
     this._build(entities);
   }
 
   _build(entities) {
-    this._list = Object.freeze(entities); // TODO: deep freeze
     this._index = asMap(entities);
+    this._list = this._hierarchical ? shimFullPath(entities, this._index) : entities;
+    Object.freeze(this._list); // TODO: deep freeze
   }
 
   get list() {
@@ -51,7 +65,7 @@ export class EntityIndex {
 
   getName(id) {
     const entity = this._index[id];
-    return entity && entity.name;
+    return entity && (this._hierarchical ? entity.fullPath.names : entity.name);
   }
 
   getNames(ids = []) {
@@ -74,4 +88,31 @@ export class EntityIndex {
     };
   }
 
+}
+
+function shimFullPath(entities, index) {
+  // DP to compute full path
+  function fullPath(entity) {
+    if (!entity.fullPath) {
+      const { parent, id, name } = entity;
+      if (parent) {
+        const { ids, names } = fullPath(index[parent]);
+        entity.fullPath = {
+          ids: [...ids, id],
+          names: [...names, name],
+        };
+      } else {
+        entity.fullPath = {
+          ids: [id],
+          names: [name],
+        };
+      }
+    }
+    return entity.fullPath;
+  }
+
+  return entities.map(c => {
+    fullPath(c);
+    return c;
+  });
 }
