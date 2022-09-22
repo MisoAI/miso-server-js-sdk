@@ -9,7 +9,7 @@ import {
   transform as transformFn,
   transformLegacy,
 } from '../../src/wordpress/index.js';
-import { buildForEntities } from './entities.js';
+import { buildForEntities, runCount as _runCount, runTerms as _runTerms } from './entities.js';
 
 function build(yargs) {
   // TODO: make update, count, terms mutually exclusive
@@ -67,11 +67,11 @@ async function run({ site, count, terms, update, ...options }) {
 }
 
 async function runCount(client, options) {
-  console.log(await client.posts.count(options));
+  _runCount(client, 'posts', options);
 }
 
 async function runTerms(client, options) {
-  console.log(await client.posts.terms(options));
+  _runTerms(client, 'posts', options);
 }
 
 async function runGet(client, { patch, transform, legacy, ...options }) {

@@ -8,7 +8,7 @@ async function run(options) {
   const client = new WordPressClient(options);
   const taxonomies = await client.taxonomies({ noCache: true });
   for (const taxonomy of taxonomies) {
-    console.log(JSON.stringify(taxonomy) + '\n');
+    console.log(JSON.stringify(taxonomy));
   }
 }
 

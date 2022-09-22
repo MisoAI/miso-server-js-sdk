@@ -59,19 +59,7 @@ export default class Helpers {
   }
 
   extractTerms(data) {
-    return (data._links['wp:term'] || []).map(term => {
-      const { href } = term;
-      const i = href.indexOf('/wp/v2/');
-      if (i >= 0) {
-        let slug = href.substring(i + 7);
-        const j = slug.lastIndexOf('?');
-        if (j >= 0) {
-          slug = slug.substring(0, j);
-        }
-        term.slug = slug;
-      }
-      return term;
-    });
+    return data._links['wp:term'] || [];
   }
 
   async count(resource, { offset: _, ...options } = {}) {
