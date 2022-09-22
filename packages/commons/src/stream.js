@@ -12,7 +12,11 @@ export function parse() {
 export function stringify() {
   return new Transform({
     transform(chunk, _, callback) {
-      callback(null, JSON.stringify(chunk) + '\n');
+      try {
+        callback(null, JSON.stringify(chunk) + '\n');
+      } catch(e) {
+        callback(null, `${chunk}` + '\n');
+      }
     },
     writableObjectMode: true,
   });

@@ -41,7 +41,7 @@ export async function runTerms(client, name, options) {
 
 export async function runGet(client, name, options) {
   await stream.pipelineToStdout(
-    client.entities(name).stream(options),
+    await client.entities(name).stream(options),
     stream.stringify(),
   );
 }
