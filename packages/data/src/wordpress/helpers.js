@@ -55,7 +55,7 @@ export default class Helpers {
     const url = await this.url.build('taxonomies');
     const { data } = await axios.get(url);
     this.debug(`Fetched taxonomies.`);
-    return data;
+    return Object.values(data);
   }
 
   extractTerms(data) {
