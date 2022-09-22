@@ -1,51 +1,35 @@
-import { asMap, stream } from '@miso.ai/server-commons';
+import { Entities, EntityIndex } from './entities.js';
+import { asMap } from '@miso.ai/server-commons';
 
 const RESOURCE_NAME = 'categories';
 
-export default class Categories {
+export default class Categories extends Entities {
 
   constructor(client) {
-    this._client = client;
+    super(client, RESOURCE_NAME);
   }
   
-  async stream(options) {
-    return this._client._helpers.stream(RESOURCE_NAME, options);
-  }
-
-  async getAll(options) {
-    return stream.collect(await this.stream(options));
-  }
-
-  async count(options) {
-    return this._client._helpers.count(RESOURCE_NAME, options);
-  }
-
   async index() {
     return new CategoryIndex(await this.getAll());
   }
 
 }
 
-class CategoryIndex {
+class CategoryIndex extends EntityIndex {
 
   constructor(categories) {
-    this._index = asMap(categories);
-    this._categories = Object.freeze(shimFullPath(categories, this._index));
-    this.patch = this.patch.bind(this);
+    super(categories, 'categories');
   }
 
-  get categories() {
-    return this._categories;
-  }
-
-  getCategory(id) {
-    return this._index[id];
+  _build(entities) {
+    this._index = asMap(entities);
+    this._list = Object.freeze(shimFullPath(entities, this._index));
   }
 
   getNames(ids) {
     const shadowed = new Set();
     for (const id of ids) {
-      const category = this._index[id];
+      const category = this.get(id);
       if (category) {
         const cids = category.fullPath.ids;
         for (let i = 0, len = cids.length - 1; i < len; i++) {
@@ -56,24 +40,13 @@ class CategoryIndex {
     const categories = [];
     for (const id of ids) {
       if (!shadowed.has(id)) {
-        const category = this._index[id];
+        const category = this.get(id);
         if (category) {
           categories.push(category.fullPath.names);
         }
       }
     }
     return categories;
-  }
-
-  patch(post) {
-    const { categories: category_ids = [], _patch = {} } = post;
-    return {
-      ...post,
-      _patch: {
-        ..._patch,
-        categories: this.getNames(category_ids),
-      },
-    };
   }
 
 }

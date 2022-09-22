@@ -9,9 +9,11 @@ import {
   transform as transformFn,
   transformLegacy,
 } from '../../src/wordpress/index.js';
+import { buildForEntities } from './entities.js';
 
 function build(yargs) {
-  return yargs
+  // TODO: make update, count, terms mutually exclusive
+  return buildForEntities(yargs)
     .option('date', {
       alias: 'd',
       describe: 'Only include records in this year/month/day',
@@ -37,10 +39,6 @@ function build(yargs) {
       describe: 'Transform posts to miso product records',
       type: 'boolean',
     })
-    .option('legacy', {
-      describe: 'Use legacy transform function',
-      type: 'boolean',
-    })
     /*
     .option('limit', {
       alias: 'n',
@@ -48,18 +46,19 @@ function build(yargs) {
       type: 'number',
     })
     */
-    .option('count', {
-      alias: 'c',
-      describe: 'Return the total number of records',
+    .option('legacy', {
+      describe: 'Use legacy transform function',
       type: 'boolean',
     });
 }
 
-async function run({ site, count, update, ...options }) {
+async function run({ site, count, terms, update, ...options }) {
   options = normalizeOptions(options);
   const client = new WordPressClient(options);
   if (count) {
     await runCount(client, options);
+  } else if (terms) {
+    await runTerms(client, options);
   } else if (update) {
     await runUpdate(client, update, options);
   } else {
@@ -69,6 +68,10 @@ async function run({ site, count, update, ...options }) {
 
 async function runCount(client, options) {
   console.log(await client.posts.count(options));
+}
+
+async function runTerms(client, options) {
+  console.log(await client.posts.terms(options));
 }
 
 async function runGet(client, { patch, transform, legacy, ...options }) {

@@ -1,7 +1,6 @@
 import profile from './profile.js';
 import posts from './posts.js';
-import categories from './categories.js';
-import users from './users.js';
+import entities from './entities.js';
 
 // TODO: support standalone transform CLI
 
@@ -21,11 +20,9 @@ function build(yargs) {
       default: false,
     })
     .hide('debug')
-    //.demandOption(['site'], 'Site argument is required.')
     .command(profile)
     .command(posts)
-    .command(categories)
-    .command(users);
+    .command(entities);
 }
 
 export default {

@@ -14,17 +14,16 @@ export default class Helpers {
     this._samples = {};
   }
 
-
   async stream(resource, { page, ...options } = {}) {
     const [streamOptions, urlOptions] = splitObj(options, STREAM_OPTIONS);
     const url = await this.url.build(resource, urlOptions);
     return new ResourceStream(this, url, streamOptions);
   }
 
-  async sample(resource) {
-    if (!this._samples[resource]) {
+  async sample(resource, { noCache = false }) {
+    if (noCache || !this._samples[resource]) {
       // don't await, save the promise
-      this._samples[resource] = this._fetchSample(resource);
+      this._samples[resource] = this._fetchSample(resource)
     }
     return this._samples[resource];
   }
@@ -36,13 +35,38 @@ export default class Helpers {
       throw new Error(`No record of ${resource} avaliable`);
     }
     this.debug(`Fetched ${resource} sample, total = ${asNumber(headers['x-wp-total'])}`);
-    return { data: data[0], headers: headers };
-}
+
+    return {
+      data: data[0],
+      headers,
+      terms: this.extractTerms(data[0]),
+    };
+  }
+
+  extractTerms(data) {
+    return (data._links['wp:term'] || []).map(term => {
+      const { href } = term;
+      const i = href.indexOf('/wp/v2/');
+      if (i >= 0) {
+        let slug = href.substring(i + 7);
+        const j = slug.lastIndexOf('?');
+        if (j >= 0) {
+          slug = slug.substring(0, j);
+        }
+        term.slug = slug;
+      }
+      return term;
+    });
+  }
 
   async count(resource, { offset: _, ...options } = {}) {
     const url = await this.url.build(resource, { ...options, page: 0, pageSize: 1 });
     const { headers } = await axios.get(url);
     return asNumber(headers['x-wp-total']);
+  }
+
+  async terms(resource, { noCache = false }) {
+    return (await this.sample(resource, { noCache })).terms;
   }
 
   async countUrl(url) {

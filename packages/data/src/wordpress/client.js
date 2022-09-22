@@ -4,6 +4,7 @@ import Helpers from './helpers.js';
 import Posts from './posts.js';
 import Categories from './categories.js';
 import Users from './users.js';
+import { Entities } from './entities.js';
 
 const DEFAULT_PROFILE = './wordpress.json';
 
@@ -43,6 +44,19 @@ export default class WordPressClient {
 
   get profile() {
     return this._profile.export();
+  }
+
+  entities(name) {
+    switch (name) {
+      case 'posts':
+        return this.posts;
+      case 'categories':
+        return this.categories;
+      case 'users':
+        return this.users;
+      default:
+        return new Entities(this, name);
+    }
   }
 
 }

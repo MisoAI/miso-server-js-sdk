@@ -1,17 +1,19 @@
+import { Entities } from './entities.js';
+
 const RESOURCE_NAME = 'posts';
 
-export default class Posts {
+export default class Posts extends Entities {
 
   constructor(client) {
-    this._client = client;
+    super(client, RESOURCE_NAME);
   }
   
-  async stream(options) {
-    return this._client._helpers.stream(RESOURCE_NAME, options);
+  async getAll() {
+    throw new Error(`Getting all posts is not supported.`);
   }
 
-  async count(options) {
-    return this._client._helpers.count(RESOURCE_NAME, options);
+  async index() {
+    throw new Error(`Indexing posts is not supported.`);
   }
 
 }

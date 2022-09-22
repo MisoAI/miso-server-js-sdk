@@ -1,65 +1,15 @@
-import { asMap, stream } from '@miso.ai/server-commons';
+import { Entities, EntityIndex } from './entities.js';
 
 const RESOURCE_NAME = 'users';
 
-export default class Users {
+export default class Users extends Entities {
 
   constructor(client) {
-    this._client = client;
+    super(client, RESOURCE_NAME);
   }
   
-  async stream(options) {
-    return this._client._helpers.stream(RESOURCE_NAME, options);
-  }
-
-  async getAll(options) {
-    return stream.collect(await this.stream(options));
-  }
-
-  count(options) {
-    return this._client._helpers.count(RESOURCE_NAME, options);
-  }
-
   async index() {
-    return new UserIndex(await this.getAll());
-  }
-
-}
-
-class UserIndex {
-
-  constructor(users) {
-    this._index = asMap(users);
-    this._users = Object.freeze(users);
-    this.patch = this.patch.bind(this);
-  }
-
-  get users() {
-    return this._users;
-  }
-
-  getUser(id) {
-    return this._index[id];
-  }
-
-  getName(id) {
-    const user = this._index[id];
-    return user && user.name;
-  }
-
-  patch(post) {
-    const { author: author_id, _patch = {} } = post;
-    const author = this.getName(author_id);
-    if (!author) {
-      return post;
-    }
-    return {
-      ...post,
-      _patch: {
-        ..._patch,
-        author,
-      },
-    };
+    return new EntityIndex(await this.getAll(), 'author');
   }
 
 }
