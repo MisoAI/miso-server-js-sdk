@@ -29,11 +29,28 @@ const users = {
     .command(upload('users')),
 };
 
+const experiments = {
+  command: 'experiments',
+  aliases: ['experiment'],
+  description: 'Experiment commands',
+  builder: yargs => _buildBase(yargs)
+    .option('experiment-id', {
+      alias: ['exp-id'],
+      describe: 'Experiment ID for experiment API',
+    })
+    .command({
+      command: 'events',
+      builder: yargs => yargs
+        .command(upload('experiment-events')),
+    }),
+};
+
 yargs(hideBin(process.argv))
   .env('MISO')
   .command(interactions)
   .command(products)
   .command(users)
+  .command(experiments)
   .demandCommand(2)
   .version(version)
   .help()

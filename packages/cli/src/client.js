@@ -19,6 +19,19 @@ export default class MisoClient {
     return await axios.post(url, payload);
   }
 
+  // TODO: extract to .experiment() later
+  async uploadExperimentEvent(expId, record) {
+    // TODO: support non-string record
+    const url = buildUrl(this, `experiments/${expId}/events`);
+    const response = await axios.post(url, record, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    // 200 response body does not have .data layer
+    return response.data ? response : { data: response };
+  }
+
   createUploadStream(type, options) {
     return new UploadStream(this, type, options);
   }

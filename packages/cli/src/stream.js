@@ -3,7 +3,12 @@ import { trimObj, log } from '@miso.ai/server-commons';
 import version from './version.js';
 
 function getDefaultRecordsPerRequest(type) {
-  return type === 'interactions' ? 1000 : 200;
+  switch (type) {
+    case 'interactions':
+      return 1000;
+    default:
+      return 200;
+  }
 }
 
 function normalizeParams(params = []) {
@@ -33,6 +38,7 @@ export default class UploadStream extends Transform {
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,
+    experimentId,
   } = {}) {
     super({
       readableObjectMode: true,
@@ -49,10 +55,21 @@ export default class UploadStream extends Transform {
       recordsPerRequest: recordsPerRequest || getDefaultRecordsPerRequest(type),
       bytesPerRequest: bytesPerRequest || 1024 * 1024,
       bytesPerSecond: bytesPerSecond || 5 * 1024 * 1024,
+      experimentId
     };
     if (heartbeat !== undefined && (typeof heartbeat !== 'number') || heartbeat < MIN_HREATBEAT) {
       throw new Error(`Heartbeat must be a number at least ${MIN_HREATBEAT}: ${heartbeat}`);
     }
+    this._singleRecordPerRequest = false;
+
+    switch (type) {
+      case 'experiment-events':
+        if (!experimentId) {
+          throw new Error(`Experiment id is required for experiment APIs`);
+        }
+        this._singleRecordPerRequest = true;
+    }
+
     this._state = new State();
     this._resetBuffer();
     // log functions
@@ -77,18 +94,26 @@ export default class UploadStream extends Transform {
     const str = objectMode ? JSON.stringify(record) : record;
     const newSize = str.length * 2;
 
-    if (this._buffer.records && this._buffer.bytes + newSize >= bytesPerRequest) {
-      // flush previous records if this record is large enough to exceed BPR threshold
+    if (this._singleRecordPerRequest) {
+      this._buffer.content = str;
+      this._buffer.bytes = newSize;
+      this._buffer.records = 1;
       this._dispatch();
-    }
-    if (this._buffer.records > 0) {
-      this._buffer.content += ',';
-    }
-    this._buffer.content += str;
-    this._buffer.bytes += newSize;
-    this._buffer.records++;
 
-    this._dispatchIfNecessary();
+    } else {
+      if (this._buffer.records && this._buffer.bytes + newSize >= bytesPerRequest) {
+        // flush previous records if this record is large enough to exceed BPR threshold
+        this._dispatch();
+      }
+      if (this._buffer.records > 0) {
+        this._buffer.content += ',';
+      }
+      this._buffer.content += str;
+      this._buffer.bytes += newSize;
+      this._buffer.records++;
+  
+      this._dispatchIfNecessary();
+    }
 
     const restTime = this._state.restTime(this._getBpsLimit());
     if (restTime > 0) {
@@ -156,6 +181,7 @@ export default class UploadStream extends Transform {
   }
 
   _dispatch() {
+    const singleRecord = this._singleRecordPerRequest;
     const { records, bytes, content } = this._resetBuffer();
     if (records === 0) {
       return;
@@ -171,13 +197,12 @@ export default class UploadStream extends Transform {
 
     this._state.open(request);
 
-    const payload = content + PAYLOAD_SUFFIX;
+    const payload = singleRecord ? content : content + PAYLOAD_SUFFIX;
 
     (async () => {
       let response;
       try {
-        const { async, dryRun, params } = this._options;
-        response = (await this._client.upload(this._type, payload, { async, dryRun, params })).data;
+        response = await this._upload(payload);
       } catch(error) {
         response = error.response ? error.response.data : trimObj({ errors: true, cause: error.message });
       }
@@ -199,6 +224,17 @@ export default class UploadStream extends Transform {
         latency: response.timestamp - request.timestamp - response.took
       });
     })();
+  }
+
+  async _upload(payload) {
+    switch (this._type) {
+      case 'experiment-events':
+        const { experimentId } = this._options;
+        return (await this._client.uploadExperimentEvent(experimentId, payload)).data;
+      default:
+        const { async, dryRun, params } = this._options;
+        return (await this._client.upload(this._type, payload, { async, dryRun, params })).data;
+    }
   }
 
   _resetBuffer() {

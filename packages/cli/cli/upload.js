@@ -62,6 +62,7 @@ const run = type => async ({
   ['records-per-request']: recordsPerRequest,
   ['bytes-per-request']: bytesPerRequest,
   ['bytes-per-second']: bytesPerSecond,
+  ['experiment-id']: experimentId,
   debug,
   progress,
   ['log-level']: loglevel,
@@ -81,6 +82,7 @@ const run = type => async ({
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,
+    experimentId,
   });
 
   const logStream = logger.createLogStream({
