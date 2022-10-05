@@ -119,6 +119,9 @@ export default class UploadStream extends Transform {
     if (restTime > 0) {
       this._debug('rest', { restTime });
       setTimeout(next, restTime);
+    } else if (this._state._pending.length > 0) {
+      // release event loop for downstream
+      setTimeout(next);
     } else {
       next();
     }
@@ -204,7 +207,7 @@ export default class UploadStream extends Transform {
       try {
         response = await this._upload(payload);
       } catch(error) {
-        response = error.response ? error.response.data : trimObj({ errors: true, cause: error.message });
+        response = error.response && error.response.data ? error.response.data : trimObj({ errors: true, cause: error.message });
       }
       response.timestamp = Date.now();
       response.took = response.took || 0; // TODO: ad-hoc
@@ -253,6 +256,7 @@ export default class UploadStream extends Transform {
   _getBpsLimit() {
     const { bytesPerSecond } = this._options;
     const { pending, apiBps, completed } = this.state;
+    // TODO: threshold to switch to real API BPS should be based on bytes, not requests
     // respect API BPS only when
     // 1. has pending requests
     // 2. has enouch data points from completed requests
