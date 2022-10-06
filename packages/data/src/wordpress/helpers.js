@@ -3,7 +3,7 @@ import axios from '../axios.js';
 import { ResourceStream } from './stream.js';
 
 const MS_PER_HOUR = 1000 * 60 * 60;
-const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'until', 'preserveLinks'];
+const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'until', 'preserveLinks', 'onFetch'];
 
 export default class Helpers {
 
@@ -130,8 +130,10 @@ class Url {
   // modifiedAfter, modifiedBefore is supported since WordPress 5.7
   // https://make.wordpress.org/core/2021/02/23/rest-api-changes-in-wordpress-5-7/
   async append(url, options = {}) {
-    const { after, before, order, orderBy, page, pageSize, offset } = options;
+    const { after, before, order, orderBy, page, pageSize, offset, include, exclude } = options;
     const params = [];
+
+    // TODO: support single id
 
     // The date is compared against site's local time, not UTC, so we have to work on timezone offset
     if (has(after) || has(before)) {
@@ -145,11 +147,17 @@ class Url {
     has(page) && params.push(`page=${page + 1}`); // 0-based to 1-based
     has(pageSize) && params.push(`per_page=${pageSize}`);
     has(offset) && params.push(`offset=${offset}`);
+    has(include) && include.length && params.push(`include=${joinIds(include)}`);
+    has(exclude) && exclude.length && params.push(`exclude=${joinIds(exclude)}`);
 
     const head = params.length === 0 ? '' : url.indexOf('?') < 0 ? '?' : '&';
     return `${url}${head}${params.join('&')}`;
   }
 
+}
+
+function joinIds(ids) {
+  return ids.map(id => encodeURIComponent(`${id}`)).join(',');
 }
 
 function has(value) {

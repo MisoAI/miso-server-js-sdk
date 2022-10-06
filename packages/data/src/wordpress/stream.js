@@ -26,10 +26,11 @@ const DEFAULT_STRATEGY = {
 
 export class ResourceBuffer {
 
-  constructor(helpers, url, { strategy = {}, ...options } = {}) {
+  constructor(helpers, url, { strategy = {}, onFetch, ...options } = {}) {
     this._helpers = helpers;
     this._url = url;
     this._strategy = strategy = { ...DEFAULT_STRATEGY, ...strategy };
+    this._onFetch = onFetch;
     this._options = options;
     // TODO: support initial offset
     // TODO: support limit
@@ -188,6 +189,7 @@ export class ResourceBuffer {
 
       if (data.length > 0) {
         this._buckets.push(data);
+        this._onFetch && this._onFetch(data);
         state.receive(data.length);
         this._resolveDataPromise();
       } else {
@@ -231,7 +233,7 @@ export class ResourceBuffer {
 
 class State {
 
-  constructor({ pageSize }) {
+  constructor({ pageSize, total }) {
     this._pageSize = pageSize;
     this.records = {
       requested: 0,
@@ -244,6 +246,7 @@ class State {
       returned: 0,
     };
     this.allReturned = false;
+    this.updateTotal(total);
   }
 
   request() {
@@ -252,7 +255,9 @@ class State {
   }
 
   updateTotal(total) {
-    this.records.total = total;
+    if (total !== undefined) {
+      this.records.total = total;
+    }
   }
 
   response() {

@@ -1,4 +1,6 @@
 import {
+  asArray,
+  asMap,
   stream,
   startOfDate,
   endOfDate,
@@ -6,7 +8,7 @@ import {
 } from '@miso.ai/server-commons';
 import {
   WordPressClient,
-  transform as transformFn,
+  transform as transformDefault,
   transformLegacy,
 } from '../../src/wordpress/index.js';
 import { buildForEntities, runCount as _runCount, runTerms as _runTerms } from './entities.js';
@@ -75,9 +77,13 @@ async function runTerms(client, options) {
 }
 
 async function runGet(client, { patch, transform, legacy, ...options }) {
+  const transformer = await buildTransformer(client, patch, transform, legacy);
   await stream.pipelineToStdout(
-    await client.entities('posts').stream(options),
-    ...await transformStreams(client, patch, transform, legacy),
+    await client.entities('posts').stream({
+      ...options,
+      ...transformer.options,
+    }),
+    ...transformer.streams,
     stream.stringify(),
   );
 }
@@ -87,17 +93,20 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
   update = parseDuration(update);
   const threshold = now - update;
   const posts = client.entities('posts');
+  const transformer = await buildTransformer(client, patch, transform, legacy);
   await stream.pipelineToStdout(
     stream.concat(
       ...await Promise.all([
         // get recent published
         posts.stream({
           ...options,
+          ...transformer.options,
           after: threshold,
         }),
         // get recent modified, excluding ones already fetched
         posts.stream({
           ...options,
+          ...transformer.options,
           orderBy: 'modified',
           before: threshold,
           strategy: {
@@ -110,17 +119,9 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
         })
       ])
     ),
-    ...await transformStreams(client, patch, transform, legacy),
+    ...transformer.streams,
     stream.stringify(),
   );
-}
-
-async function transformStreams(client, patch, transform, legacy) {
-  if (!patch && !transform) {
-    return [];
-  }
-  const fn = transform ? (legacy ? transformLegacy : transformFn) : undefined;
-  return [stream.transform(await buildPatchAndTransformFn(client, fn), { objectMode: true })];
 }
 
 function normalizeOptions({ date, after, before, ...options }) {
@@ -128,20 +129,70 @@ function normalizeOptions({ date, after, before, ...options }) {
   return { ...options, after, before };
 }
 
-async function buildPatchAndTransformFn(client, transformFn) {
-  const patchFn = await buildPatchFn(client);
+const AUTHOR_PROP_NAME = 'author';
+
+// TODO: move these into client.posts
+async function buildTransformer(client, patch, transform, legacy) {
+  if (!patch && !transform) {
+    return {
+      streams: [],
+      options: {},
+    };
+  }
+  const taxonomies = await client._helpers.findAssociatedTaxonomies('post');
+  const indicies = taxonomies.map(({ rest_base }) => client.entities(rest_base).index);
+
+  // TODO: just make a stream class
+  const patchFn = buildPatchFn(client, indicies);
+  const transformFn = transform ? (legacy ? transformLegacy : transformDefault) : undefined;
+  const patchAndTransformFn = async post => {
+    post = await patchFn(post);
+    return transformFn ? transformFn(post) : post;
+  };
+  const streams = [stream.transform(patchAndTransformFn, { objectMode: true })];
+
+  const onFetch = records => {
+    client.users.index.fetch(aggregateIds(records, AUTHOR_PROP_NAME));
+    for (const index of indicies) {
+      index.fetch(aggregateIds(records, index.name));
+    }
+  };
+  const options = { /*onFetch*/ };
+
+  return { streams, options };
+}
+
+function aggregateIds(records, propName) {
+  return Array.from(records.reduce((idSet, record) => {
+    for (const id of asArray(record[propName])) {
+      idSet.add(id);
+    }
+    return idSet;
+  }, new Set()));
+}
+
+/*
+async function transformStreams(client, indicies, patch, transform, legacy) {
+  if (!patch && !transform) {
+    return [];
+  }
+  const fn = transform ? (legacy ? transformLegacy : transformDefault) : undefined;
+  return [stream.transform(await buildPatchAndTransformFn(client, indicies, fn), { objectMode: true })];
+}
+
+async function buildPatchAndTransformFn(client, indicies, transformFn) {
+  const patchFn = buildPatchFn(client, indicies);
   return async post => {
     post = await patchFn(post);
     return transformFn ? transformFn(post) : post;
   };
 }
+*/
 
-async function buildPatchFn(client) {
-  const taxonomies = await client._helpers.findAssociatedTaxonomies('post');
-  const indicies = taxonomies.map(({ rest_base }) => client.entities(rest_base).index);
+function buildPatchFn(client, indicies) {
   return async post => {
     const patches = await Promise.all([
-      client.users.index.patch(post, 'author'),
+      client.users.index.patch(post, AUTHOR_PROP_NAME),
       ...indicies.map(index => index.patch(post)),
     ]);
     for (const patch of patches) {

@@ -1,15 +1,16 @@
-import { asMap, stream } from '@miso.ai/server-commons';
+import { asMap, asArray, stream, Resolution } from '@miso.ai/server-commons';
 
 export class Entities {
 
   constructor(client, name) {
     this._client = client;
-    this._name = name;
+    this.name = name;
     this._index = new EntityIndex(this);
+    Object.freeze(this);
   }
   
   async stream(options) {
-    return this._client._helpers.stream(this._name, options);
+    return this._client._helpers.stream(this.name, options);
   }
 
   async getAll(options) {
@@ -17,11 +18,11 @@ export class Entities {
   }
 
   async count(options) {
-    return this._client._helpers.count(this._name, options);
+    return this._client._helpers.count(this.name, options);
   }
 
   async terms(options) {
-    return this._client._helpers.terms(this._name, options);
+    return this._client._helpers.terms(this.name, options);
   }
 
   get index() {
@@ -29,7 +30,7 @@ export class Entities {
   }
 
   async _taxonomy(options) {
-    return await this._client._helpers.findTaxonomyByResourceName(this._name, options);
+    return await this._client._helpers.findTaxonomyByResourceName(this.name, options);
   }
 
 }
@@ -38,7 +39,10 @@ export class EntityIndex {
 
   constructor(entities) {
     this._entities = entities;
-    this._name = entities._name;
+    this.name = entities.name;
+    this._index = new Map();
+    this._list = [];
+    this._fetching = new Map();
   }
 
   async ready() {
@@ -49,15 +53,61 @@ export class EntityIndex {
   }
 
   async _build() {
-    const [taxonomy, records] = await Promise.all([
-      this._entities._taxonomy(),
-      this._entities.getAll(),
-    ]);
-    this._taxonomy = taxonomy;
-    this._hierarchical = !!(taxonomy && taxonomy.hierarchical);
-    this._index = asMap(records);
-    this._list = this._hierarchical ? shimFullPath(records, this._index) : records;
-    Object.freeze(this._list); // TODO: deep freeze
+    const taxonomy = this._taxonomy = await this._entities._taxonomy();
+    const hierarchical = this._hierarchical = !!(taxonomy && taxonomy.hierarchical);
+
+    if (hierarchical) {
+      const records = await this._entities.getAll();
+      for (const record of records) {
+        this._index.set(record.id, record);
+      }
+      this._list = shimFullPath(records, this._index);
+      // TODO: deep freeze
+      Object.freeze(this._list);
+    } else {
+      /*
+      const records = this._entities.getAll();
+      this._index = asMap(records);
+      this._list = records;
+      */
+    }
+    Object.freeze(this);
+  }
+
+  async fetch(ids) {
+    if (this._hierarchical) {
+      return; // already all fetched
+    }
+    ids = asArray(ids);
+
+    const promises = []
+    const include = [];
+    for (const id of ids) {
+      if (this._index.has(id)) {
+        continue;
+      }
+      if (!this._fetching.has(id)) {
+        this._fetching.set(id, new Resolution());
+        include.push(id);
+      }
+      promises.push(this._fetching.get(id).promise);
+    }
+    if (include.length > 0) {
+      (async () => {
+        //console.error('include', this.name, include);
+        const stream = await this._entities.stream({ include });
+        for await (const record of stream) {
+           const { id } = record;
+           this._index.set(id, record);
+           this._list.push(record);
+           this._fetching.get(id).resolve();
+           this._fetching.delete(id);
+        }
+        //console.error('include done', this.name, include);
+        // TODO: handle unavailable ones
+      })();
+    }
+    return Promise.all(promises);
   }
 
   async list() {
@@ -67,35 +117,38 @@ export class EntityIndex {
 
   async get(id) {
     await this.ready();
-    return this._index[id];
+    await this.fetch([id]);
+    return this._index.get(id);
+  }
+
+  async getAll(ids) {
+    await this.ready();
+    await this.fetch(ids);
+    //console.error(this.name, ids, [...this._index.keys()]);
+    return ids.map(id => this._index.get(id));
   }
 
   async getName(id) {
     if (id === undefined) {
       return undefined;
     }
-    await this.ready();
-    return this._getName(id);
-  }
-
-  _getName(id) {
-    if (id === undefined) {
-      return undefined;
-    }
-    const entity = this._index[id];
-    return entity && (this._hierarchical ? entity.fullPath.names : entity.name);
+    return this._getNameFromEntity(await this.get(id));
   }
 
   async getNames(ids = []) {
     if (ids.length === 0) {
       return [];
     }
-    await this.ready();
-    return ids.map(id => this._getName(id)).filter(v => v);
+    const entities = await this.getAll(ids);
+    return entities.map(en => this._getNameFromEntity(en)).filter(v => v);
+  }
+
+  _getNameFromEntity(entity) {
+    return entity && (this._hierarchical ? entity.fullPath.names : entity.name);
   }
 
   async patch(post, propName) {
-    propName = propName || this._name;
+    propName = propName || this.name;
     const { [propName]: ids } = post;
     const value = await (Array.isArray(ids) ? this.getNames(ids) : this.getName(ids));
     return value ? { [propName]: value } : undefined;
@@ -109,7 +162,7 @@ function shimFullPath(entities, index) {
     if (!entity.fullPath) {
       const { parent, id, name } = entity;
       if (parent) {
-        const { ids, names } = fullPath(index[parent]);
+        const { ids, names } = fullPath(index.get(parent));
         entity.fullPath = {
           ids: [...ids, id],
           names: [...names, name],
