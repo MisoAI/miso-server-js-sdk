@@ -26,7 +26,7 @@ const DEFAULT_STRATEGY = {
 
 export class ResourceBuffer {
 
-  constructor(helpers, url, { strategy = {}, onFetch, ...options } = {}) {
+  constructor(helpers, url, { strategy = {}, onFetch, ids, ...options } = {}) {
     this._helpers = helpers;
     this._url = url;
     this._strategy = strategy = { ...DEFAULT_STRATEGY, ...strategy };
@@ -34,7 +34,7 @@ export class ResourceBuffer {
     this._options = options;
     // TODO: support initial offset
     // TODO: support limit
-    this._state = new State({ pageSize: strategy.pageSize });
+    this._state = new State({ pageSize: strategy.pageSize, ids });
     this._buckets = new Denque();
     this._responses = new TaskQueue();
     this._index = 0;
@@ -119,10 +119,10 @@ export class ResourceBuffer {
   _waitForData() {
     const { fetches } = this._state;
     if (fetches.requested <= fetches.returned) {
-      throw new Error(`No pending fetch.`);
+      throw new Error(`No pending fetch. URL: ${this._url}`);
     }
     if (this._dataPromise) {
-      throw new Error(`Parallel bucket peek`);
+      throw new Error(`Parallel bucket peek. URL: ${this._url}`);
     }
     const self = this;
     return new Promise((resolve, reject) => {
@@ -144,21 +144,20 @@ export class ResourceBuffer {
 
   async _fetch() {
     const state = this._state;
-    const fetchIndex = state.fetches.requested;
 
-    state.request();
-
-    const url = await this._helpers.url.append(this._url, {
-      page: fetchIndex,
-      pageSize: this._strategy.pageSize,
-    });
+    const pageSize = this._strategy.pageSize;
+    const { page, ids } = state.request();
+    const urlOptions = ids ? { include: ids, pageSize } : { page, pageSize };
+    const url = await this._helpers.url.append(this._url, urlOptions);
 
     this._helpers.debug(`ResourceBuffer: fetch request ${url}`);
     let { status, data, headers } = await this._axiosGet(url);
     this._helpers.debug(`ResourceBuffer: fetch response ${url}`);
-    state.updateTotal(Number(headers['x-wp-total']));
+    if (!ids) {
+      state.updateTotal(Number(headers['x-wp-total']));
+    }
 
-    this._responses.push(fetchIndex, () => this._processFetchResponse(status, data));
+    this._responses.push(page, () => this._processFetchResponse(status, data));
   }
 
   async _axiosGet(url) {
@@ -196,7 +195,11 @@ export class ResourceBuffer {
         // just in case
         this._fetchIfNecessaryNextTick();
       }
-      if (rawDataLength < this._strategy.pageSize) {
+      // terminating condition
+      const shallTerminate = state._ids ?
+        (state._ids.length === 0 && state.fetches.requested === state.fetches.returned) :
+        (rawDataLength < state._pageSize);
+      if (shallTerminate) {
         state.finish();
         this._resolveDataPromise();
       }
@@ -233,8 +236,9 @@ export class ResourceBuffer {
 
 class State {
 
-  constructor({ pageSize, total }) {
+  constructor({ pageSize, ids }) {
     this._pageSize = pageSize;
+    this._ids = ids;
     this.records = {
       requested: 0,
       returned: 0,
@@ -246,12 +250,21 @@ class State {
       returned: 0,
     };
     this.allReturned = false;
-    this.updateTotal(total);
+    if (ids) {
+      this.updateTotal(ids.length);
+    }
   }
 
   request() {
+    const page = this.fetches.requested;
     this.records.requested += this._pageSize;
     this.fetches.requested++;
+    const info = { page };
+    if (this._ids) {
+      // slice out the first page of ids
+      info.ids = this._ids.splice(0, this._pageSize);
+    }
+    return info;
   }
 
   updateTotal(total) {
@@ -283,8 +296,10 @@ class State {
   }
 
   get allRequested() {
-    const { allReturned, records } = this;
-    return allReturned || (records.total !== undefined && records.requested >= records.total + 10);
+    const { allReturned, records, _ids } = this;
+    return allReturned ||
+      (_ids && _ids.length === 0) ||
+      (records.total !== undefined && records.requested >= records.total + 10);
   }
 
 }

@@ -140,7 +140,15 @@ async function buildTransformer(client, patch, transform, legacy) {
     };
   }
   const taxonomies = await client._helpers.findAssociatedTaxonomies('post');
+
   const indicies = taxonomies.map(({ rest_base }) => client.entities(rest_base).index);
+  // we need taxonomy fetched so we know whether it's hierarchical
+  await Promise.all(indicies.map(index => index.ready()));
+  for (const index of indicies) {
+    if (index.hierarchical) {
+      index._dataReady(); // kick off fetch all, but don't wait
+    }
+  }
 
   // TODO: just make a stream class
   const patchFn = buildPatchFn(client, indicies);
@@ -154,10 +162,12 @@ async function buildTransformer(client, patch, transform, legacy) {
   const onFetch = records => {
     client.users.index.fetch(aggregateIds(records, AUTHOR_PROP_NAME));
     for (const index of indicies) {
-      index.fetch(aggregateIds(records, index.name));
+      if (!index.hierarchical) {
+        index.fetch(aggregateIds(records, index.name));
+      }
     }
   };
-  const options = { /*onFetch*/ };
+  const options = { onFetch };
 
   return { streams, options };
 }
@@ -170,24 +180,6 @@ function aggregateIds(records, propName) {
     return idSet;
   }, new Set()));
 }
-
-/*
-async function transformStreams(client, indicies, patch, transform, legacy) {
-  if (!patch && !transform) {
-    return [];
-  }
-  const fn = transform ? (legacy ? transformLegacy : transformDefault) : undefined;
-  return [stream.transform(await buildPatchAndTransformFn(client, indicies, fn), { objectMode: true })];
-}
-
-async function buildPatchAndTransformFn(client, indicies, transformFn) {
-  const patchFn = buildPatchFn(client, indicies);
-  return async post => {
-    post = await patchFn(post);
-    return transformFn ? transformFn(post) : post;
-  };
-}
-*/
 
 function buildPatchFn(client, indicies) {
   return async post => {

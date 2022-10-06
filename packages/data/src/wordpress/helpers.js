@@ -3,7 +3,7 @@ import axios from '../axios.js';
 import { ResourceStream } from './stream.js';
 
 const MS_PER_HOUR = 1000 * 60 * 60;
-const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'until', 'preserveLinks', 'onFetch'];
+const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'until', 'preserveLinks', 'ids', 'onFetch'];
 
 export default class Helpers {
 
@@ -23,7 +23,7 @@ export default class Helpers {
   async sample(resource, { noCache = false } = {}) {
     if (noCache || !this._samples[resource]) {
       // don't await, save the promise
-      this._samples[resource] = this._fetchSample(resource)
+      this._samples[resource] = this._fetchSample(resource);
     }
     return this._samples[resource];
   }

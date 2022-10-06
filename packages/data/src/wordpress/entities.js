@@ -41,7 +41,6 @@ export class EntityIndex {
     this._entities = entities;
     this.name = entities.name;
     this._index = new Map();
-    this._list = [];
     this._fetching = new Map();
   }
 
@@ -52,53 +51,52 @@ export class EntityIndex {
     return this._ready;
   }
 
+  async _dataReady() {
+    await this.ready();
+    if (this.hierarchical) {
+      return this._allFetched || (this._allFetched = this._fetchAll());
+    }
+  }
+
+  async _fetchAll() {
+    const records = await this._entities.getAll();
+    for (const record of records) {
+      this._index.set(record.id, record);
+    }
+    if (this.hierarchical) {
+      shimFullPath(records, this._index);
+    }
+  }
+
   async _build() {
     const taxonomy = this._taxonomy = await this._entities._taxonomy();
-    const hierarchical = this._hierarchical = !!(taxonomy && taxonomy.hierarchical);
-
-    if (hierarchical) {
-      const records = await this._entities.getAll();
-      for (const record of records) {
-        this._index.set(record.id, record);
-      }
-      this._list = shimFullPath(records, this._index);
-      // TODO: deep freeze
-      Object.freeze(this._list);
-    } else {
-      /*
-      const records = this._entities.getAll();
-      this._index = asMap(records);
-      this._list = records;
-      */
-    }
-    Object.freeze(this);
+    this.hierarchical = !!(taxonomy && taxonomy.hierarchical);
   }
 
   async fetch(ids) {
-    if (this._hierarchical) {
+    if (this.hierarchical) {
       return; // already all fetched
     }
     ids = asArray(ids);
 
     const promises = []
-    const include = [];
+    const toFetch = [];
     for (const id of ids) {
       if (this._index.has(id)) {
         continue;
       }
       if (!this._fetching.has(id)) {
         this._fetching.set(id, new Resolution());
-        include.push(id);
+        toFetch.push(id);
       }
       promises.push(this._fetching.get(id).promise);
     }
-    if (include.length > 0) {
+    if (toFetch.length > 0) {
       (async () => {
-        const stream = await this._entities.stream({ include });
+        const stream = await this._entities.stream({ ids: toFetch });
         for await (const record of stream) {
            const { id } = record;
            this._index.set(id, record);
-           this._list.push(record);
            this._fetching.get(id).resolve();
            this._fetching.delete(id);
         }
@@ -108,19 +106,14 @@ export class EntityIndex {
     return Promise.all(promises);
   }
 
-  async list() {
-    await this.ready();
-    return this._list;
-  }
-
   async get(id) {
-    await this.ready();
+    await this._dataReady();
     await this.fetch([id]);
     return this._index.get(id);
   }
 
   async getAll(ids) {
-    await this.ready();
+    await this._dataReady();
     await this.fetch(ids);
     return ids.map(id => this._index.get(id));
   }
@@ -141,7 +134,7 @@ export class EntityIndex {
   }
 
   _getNameFromEntity(entity) {
-    return entity && (this._hierarchical ? entity.fullPath.names : entity.name);
+    return entity && (this.hierarchical ? entity.fullPath.names : entity.name);
   }
 
   async patch(post, propName) {
