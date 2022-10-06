@@ -94,7 +94,6 @@ export class EntityIndex {
     }
     if (include.length > 0) {
       (async () => {
-        //console.error('include', this.name, include);
         const stream = await this._entities.stream({ include });
         for await (const record of stream) {
            const { id } = record;
@@ -103,7 +102,6 @@ export class EntityIndex {
            this._fetching.get(id).resolve();
            this._fetching.delete(id);
         }
-        //console.error('include done', this.name, include);
         // TODO: handle unavailable ones
       })();
     }
@@ -124,7 +122,6 @@ export class EntityIndex {
   async getAll(ids) {
     await this.ready();
     await this.fetch(ids);
-    //console.error(this.name, ids, [...this._index.keys()]);
     return ids.map(id => this._index.get(id));
   }
 
