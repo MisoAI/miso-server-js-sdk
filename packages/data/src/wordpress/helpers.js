@@ -1,9 +1,10 @@
-import { asNumber, splitObj } from '@miso.ai/server-commons';
+import { asNumber, splitObj, stream } from '@miso.ai/server-commons';
 import axios from '../axios.js';
-import { ResourceStream } from './stream.js';
+import DataSource from './source/index.js';
 
 const MS_PER_HOUR = 1000 * 60 * 60;
-const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'until', 'preserveLinks', 'ids', 'onFetch'];
+
+const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'transform', 'onLoad'];
 
 export default class Helpers {
 
@@ -12,12 +13,13 @@ export default class Helpers {
     this._client = client;
     this.url = new Url(this);
     this._samples = {};
+    this.debug = this.debug.bind(this);
   }
 
-  async stream(resource, { page, ...options } = {}) {
-    const [streamOptions, urlOptions] = splitObj(options, STREAM_OPTIONS);
-    const url = await this.url.build(resource, urlOptions);
-    return new ResourceStream(this, url, streamOptions);
+  async stream(resource, options) {
+    const [streamOptions, sourceOptions] = splitObj(options, STREAM_OPTIONS);
+    const source = new DataSource(this, resource, sourceOptions);
+    return new stream.BufferedReadStream({ ...streamOptions, source, debug: this.debug });
   }
 
   async sample(resource, { noCache = false } = {}) {

@@ -5,7 +5,7 @@ export * from './file.js';
 export * from './config.js';
 export * from './async.js';
 
-export * as stream from './stream.js';
+export * as stream from './stream/index.js';
 export * as log from './log.js';
 
 export { default as TaskQueue } from './task-queue.js';

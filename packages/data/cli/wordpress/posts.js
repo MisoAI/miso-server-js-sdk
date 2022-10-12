@@ -109,13 +109,12 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
           ...transformer.options,
           orderBy: 'modified',
           before: threshold,
+          pageSize: 20,
           strategy: {
-            pageSize: 20,
             highWatermark: 100,
-            waitForTotal: false,
-            fetchBeforeFirstRead: true,
+            eagerLoad: true,
+            terminate: post => parseDate(post.modified_gmt) < threshold,
           },
-          until: post => parseDate(post.modified_gmt) < threshold,
         })
       ])
     ),
@@ -159,7 +158,7 @@ async function buildTransformer(client, patch, transform, legacy) {
   };
   const streams = [stream.transform(patchAndTransformFn, { objectMode: true })];
 
-  const onFetch = records => {
+  const onLoad = records => {
     client.users.index.fetch(aggregateIds(records, AUTHOR_PROP_NAME));
     for (const index of indicies) {
       if (!index.hierarchical) {
@@ -167,7 +166,7 @@ async function buildTransformer(client, patch, transform, legacy) {
       }
     }
   };
-  const options = { onFetch };
+  const options = { onLoad };
 
   return { streams, options };
 }
