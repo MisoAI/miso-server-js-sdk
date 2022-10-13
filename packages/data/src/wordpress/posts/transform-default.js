@@ -1,7 +1,7 @@
 import { trimObj, asArray } from '@miso.ai/server-commons';
 
 export default function transform({
-  _patch = {},
+  _linked = {},
   id,
   type,
   date_gmt,
@@ -34,9 +34,9 @@ export default function transform({
   }
   const created_at = date_gmt && `${date_gmt}Z`;
   const updated_at = modified_gmt && `${modified_gmt}Z`;
-  const authors = asArray(_patch.author);
-  const categories = _patch.categories;
-  const tags = _patch.tags;
+  const authors = asArray(_linked.author);
+  const categories = _linked.categories;
+  const tags = _linked.tags;
 
   return trimObj({
     product_id,

@@ -1,7 +1,7 @@
 import { defineValues, copyValues, trimObj, loadConfigSync, saveConfig, splitObj, fileExistsSync } from '@miso.ai/server-commons';
 import { constants } from 'fs';
 import Helpers from './helpers.js';
-import Posts from './posts.js';
+import Posts from './posts/index.js';
 import { Entities } from './entities.js';
 
 const DEFAULT_PROFILE = './wordpress.json';

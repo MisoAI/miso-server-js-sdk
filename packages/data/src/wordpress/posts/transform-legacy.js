@@ -1,7 +1,7 @@
 import { trimObj, asArray } from '@miso.ai/server-commons';
 
 export default function transform({
-  _patch = {},
+  _linked = {},
   id,
   type,
   date_gmt,
@@ -30,8 +30,8 @@ export default function transform({
   }
   const created_at = date_gmt && `${date_gmt}Z`;
   const updated_at = modified_gmt && `${modified_gmt}Z`;
-  const authors = asArray(_patch.author);
-  const categories = _patch.categories;
+  const authors = asArray(_linked.author);
+  const categories = _linked.categories;
 
   // TODO: ad-hoc
   const description = yoast && yoast.metadesc;

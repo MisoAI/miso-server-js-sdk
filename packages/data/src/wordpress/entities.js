@@ -1,4 +1,4 @@
-import { asMap, asArray, stream, Resolution } from '@miso.ai/server-commons';
+import { asArray, stream, Resolution } from '@miso.ai/server-commons';
 
 export class Entities {
 
@@ -141,6 +141,7 @@ export class EntityIndex {
     propName = propName || this.name;
     const { [propName]: ids } = post;
     const value = await (Array.isArray(ids) ? this.getNames(ids) : this.getName(ids));
+    //console.error(this.name, propName, ids, value);
     return value ? { [propName]: value } : undefined;
   }
 
