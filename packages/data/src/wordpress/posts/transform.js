@@ -52,13 +52,10 @@ export default class PostTransformStream extends Transform {
   }
 
   async _resolveLinkedEntities(post) {
-    const patches = await Promise.all(this._indicies.map(index => index.patch(post, PostTransformStream.getPropName(index.name))));
-    /*
-    const patches = await Promise.all([
-      client.users.index.patch(post, AUTHOR_PROP_NAME),
-      ...this._indicies.map(index => index.patch(post, PostTransformStream.getPropName(index.name))),
-    ]);
-    */
+    const patches = await Promise.all(
+      this._indicies.map(index => 
+        index.patch(post, PostTransformStream.getPropName(index.name)))
+    );
     for (const patch of patches) {
       post = applyPatch(post, patch);
     }

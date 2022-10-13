@@ -23,7 +23,7 @@ export default class Posts extends Entities {
     // prepare entity indicies
     const indicies = [
       client.users.index,
-      // client.media.index,
+      client.media.index,
       ...taxonomies.map(({ rest_base }) => client.entities(rest_base).index),
     ];
     await Promise.all(indicies.map(index => index.ready()));

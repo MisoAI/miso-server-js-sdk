@@ -20,7 +20,7 @@ export default function transform({
   categories: category_ids,
   tags: tag_ids,
   link: url,
-  featured_media,
+  featured_media: featured_media_id,
   status,
   sticky,
   comment_status,
@@ -35,6 +35,7 @@ export default function transform({
   const created_at = date_gmt && `${date_gmt}Z`;
   const updated_at = modified_gmt && `${modified_gmt}Z`;
   const authors = asArray(_linked.author);
+  const cover_image = _linked.featured_media;
   const categories = _linked.categories;
   const tags = _linked.tags;
 
@@ -44,6 +45,7 @@ export default function transform({
     created_at,
     updated_at,
     title,
+    cover_image,
     html,
     url,
     authors,
@@ -61,7 +63,7 @@ export default function transform({
       author_id,
       category_ids,
       tag_ids,
-      featured_media,
+      featured_media_id,
     }),
   });
 }

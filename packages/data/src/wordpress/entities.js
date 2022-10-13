@@ -5,7 +5,7 @@ export class Entities {
   constructor(client, name) {
     this._client = client;
     this.name = name;
-    this._index = new EntityIndex(this);
+    this._index = this._createIndex();
     Object.freeze(this);
   }
   
@@ -29,6 +29,10 @@ export class Entities {
     return this._index;
   }
 
+  _createIndex() {
+    return new EntityIndex(this);
+  }
+
   async _taxonomy(options) {
     return await this._client._helpers.findTaxonomyByResourceName(this.name, options);
   }
@@ -37,8 +41,14 @@ export class Entities {
 
 export class EntityIndex {
 
-  constructor(entities) {
+  constructor(entities, { process, value } = {}) {
     this._entities = entities;
+    if (process) {
+      this._process = process;
+    }
+    if (value) {
+      this._value = value;
+    }
     this.name = entities.name;
     this._index = new Map();
     this._fetching = new Map();
@@ -94,9 +104,9 @@ export class EntityIndex {
     if (toFetch.length > 0) {
       (async () => {
         const stream = await this._entities.stream({ ids: toFetch });
-        for await (const record of stream) {
-           const { id } = record;
-           this._index.set(id, record);
+        for await (const entity of stream) {
+           const { id } = entity;
+           this._index.set(id, this._process(entity));
            this._fetching.get(id).resolve();
            this._fetching.delete(id);
         }
@@ -118,30 +128,33 @@ export class EntityIndex {
     return ids.map(id => this._index.get(id));
   }
 
-  async getName(id) {
+  async getValue(id) {
     if (id === undefined) {
       return undefined;
     }
-    return this._getNameFromEntity(await this.get(id));
+    return this._value(await this.get(id));
   }
 
-  async getNames(ids = []) {
+  async getValues(ids = []) {
     if (ids.length === 0) {
       return [];
     }
     const entities = await this.getAll(ids);
-    return entities.map(en => this._getNameFromEntity(en)).filter(v => v);
+    return entities.map(en => this._value(en)).filter(v => v);
   }
 
-  _getNameFromEntity(entity) {
+  _process(entity) {
+    return entity;
+  }
+
+  _value(entity) {
     return entity && (this.hierarchical ? entity.fullPath.names : entity.name);
   }
 
   async patch(post, propName) {
     propName = propName || this.name;
     const { [propName]: ids } = post;
-    const value = await (Array.isArray(ids) ? this.getNames(ids) : this.getName(ids));
-    //console.error(this.name, propName, ids, value);
+    const value = await (Array.isArray(ids) ? this.getValues(ids) : this.getValue(ids));
     return value ? { [propName]: value } : undefined;
   }
 

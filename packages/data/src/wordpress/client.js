@@ -1,6 +1,7 @@
 import { defineValues, copyValues, trimObj, loadConfigSync, saveConfig, splitObj, fileExistsSync } from '@miso.ai/server-commons';
 import { constants } from 'fs';
 import Helpers from './helpers.js';
+import Media from './media.js';
 import Posts from './posts/index.js';
 import { Entities } from './entities.js';
 
@@ -26,6 +27,7 @@ export default class WordPressClient {
 
     this._helpers = new Helpers(this);
     this._entities = {
+      media: new Media(this),
       posts: new Posts(this),
     };
   }
@@ -54,6 +56,10 @@ export default class WordPressClient {
 
   get users() {
     return this.entities('users');
+  }
+
+  get media() {
+    return this.entities('media');
   }
 
   entities(name) {
