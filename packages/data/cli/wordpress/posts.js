@@ -1,6 +1,9 @@
+import { join } from 'path';
 import { stream, startOfDate, endOfDate, parseDuration } from '@miso.ai/server-commons';
 import { WordPressClient } from '../../src/wordpress/index.js';
 import { buildForEntities, runCount as _runCount, runTerms as _runTerms } from './entities.js';
+
+const PWD = process.env.PWD;
 
 function build(yargs) {
   // TODO: make update, count, terms mutually exclusive
@@ -21,15 +24,15 @@ function build(yargs) {
       alias: 'u',
       describe: 'Only include records modified in given duration (3h, 2d, etc.)',
     })
-    .option('patch', {
-      describe: 'Patch posts with category names and author name',
+    .option('resolve', {
+      alias: 'r',
+      describe: 'Attach resolved entities (author, catagories) linked with posts',
       type: 'boolean',
     })
     .option('transform', {
       alias: 't',
       describe: 'Transform posts to miso product records',
-      type: 'boolean',
-    })
+    });
     /*
     .option('limit', {
       alias: 'n',
@@ -37,10 +40,6 @@ function build(yargs) {
       type: 'number',
     })
     */
-    .option('legacy', {
-      describe: 'Use legacy transform function',
-      type: 'boolean',
-    });
 }
 
 async function run({ site, count, terms, update, ...options }) {
@@ -65,8 +64,8 @@ async function runTerms(client, options) {
   _runTerms(client, 'posts', options);
 }
 
-async function runGet(client, { patch: resolveLinked, transform, legacy, ...options }) {
-  transform = transform && legacy ? 'legacy' : transform;
+async function runGet(client, { resolve: resolveLinked, transform, ...options }) {
+  transform = await normalizeTransform(transform);
   await stream.pipelineToStdout(
     await client.entities('posts').stream({
       ...options,
@@ -77,8 +76,8 @@ async function runGet(client, { patch: resolveLinked, transform, legacy, ...opti
   );
 }
 
-async function runUpdate(client, update, { date, after, before, orderBy, order, patch: resolveLinked, transform, legacy, ...options }) {
-  transform = transform && legacy ? 'legacy' : transform;
+async function runUpdate(client, update, { date, after, before, orderBy, order, resolve: resolveLinked, transform, ...options }) {
+  transform = await normalizeTransform(transform);
   const now = Date.now();
   update = parseDuration(update);
   const threshold = now - update;
@@ -116,6 +115,16 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
 function normalizeOptions({ date, after, before, ...options }) {
   [after, before] = [startOfDate(date || after), endOfDate(date || before)];
   return { ...options, after, before };
+}
+
+async function normalizeTransform(transform) {
+  if (typeof transform === 'string') {
+    if (transform === 'default' || transform === 'legacy') {
+      return transform;
+    }
+    return (await import(join(PWD, transform))).default;
+  }
+  return !!transform;
 }
 
 function parseDate(value) {

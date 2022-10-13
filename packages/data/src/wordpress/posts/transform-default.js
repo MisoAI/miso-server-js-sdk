@@ -3,7 +3,7 @@ import { trimObj, asArray } from '@miso.ai/server-commons';
 export default function transform({
   _linked = {},
   id,
-  type,
+  //type,
   date_gmt,
   modified_gmt,
   guid: {
@@ -35,13 +35,13 @@ export default function transform({
   const created_at = date_gmt && `${date_gmt}Z`;
   const updated_at = modified_gmt && `${modified_gmt}Z`;
   const authors = asArray(_linked.author);
-  const cover_image = _linked.featured_media;
+  const cover_image = _linked.featured_media && encodeURI(_linked.featured_media);
   const categories = _linked.categories;
   const tags = _linked.tags;
 
   return trimObj({
     product_id,
-    type,
+    type: 'article',
     created_at,
     updated_at,
     title,
