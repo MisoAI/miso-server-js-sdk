@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { Transform } from 'stream';
 import split2 from 'split2';
 import { stream } from '@miso.ai/server-commons';
 
@@ -13,8 +14,7 @@ function build(yargs) {
 }
 
 async function run({ file }) {
-  const TransformClass = await getTransformClass(file);
-  const transform = new TransformClass();
+  const transform = await getTransformStream(file);
   const streams = [
     process.stdin,
     split2(),
@@ -29,8 +29,9 @@ async function run({ file }) {
   await stream.pipelineToStdout(streams);
 }
 
-async function getTransformClass(loc) {
-  return (await import(join(PWD, loc))).default;
+async function getTransformStream(loc) {
+  const mod = await import(join(PWD, loc));
+  return mod.default ? new mod.default() : new Transform({ objectMode: true, ...mod });
 }
 
 export default {
