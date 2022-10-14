@@ -89,31 +89,31 @@ export class EntityIndex {
       return; // already all fetched
     }
     ids = asArray(ids);
-    const idSet = new Set(ids);
 
     const promises = []
-    const toFetch = [];
+    const idsToFetch = [];
     for (const id of ids) {
       if (this._index.has(id) || this._notFound.has(id)) {
         continue;
       }
       if (!this._fetching.has(id)) {
         this._fetching.set(id, new Resolution());
-        toFetch.push(id);
+        idsToFetch.push(id);
       }
       promises.push(this._fetching.get(id).promise);
     }
-    if (toFetch.length > 0) {
+    if (idsToFetch.length > 0) {
       (async () => {
-        const stream = await this._entities.stream({ ids: toFetch });
+        const idsFetchSet = new Set(idsToFetch);
+        const stream = await this._entities.stream({ ids: idsToFetch });
         for await (const entity of stream) {
            const { id } = entity;
            this._index.set(id, this._process(entity));
-           idSet.delete(id);
+           idsFetchSet.delete(id);
            this._resolveFetch(id);
         }
         // handle unavailable ones
-        for (const id of idSet) {
+        for (const id of idsFetchSet) {
           this._notFound.add(id);
           this._resolveFetch(id);
         }
