@@ -24,6 +24,9 @@ function build(yargs) {
       alias: 'u',
       describe: 'Only include records modified in given duration (3h, 2d, etc.)',
     })
+    .option('ids', {
+      describe: 'Specify post ids'
+    })
     .option('resolve', {
       alias: 'r',
       describe: 'Attach resolved entities (author, catagories) linked with posts',
@@ -112,9 +115,10 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
   );
 }
 
-function normalizeOptions({ date, after, before, ...options }) {
+function normalizeOptions({ date, after, before, ids, ...options }) {
   [after, before] = [startOfDate(date || after), endOfDate(date || before)];
-  return { ...options, after, before };
+  ids = ids ? `${ids}`.split(',').map(s => s.trim()) : ids;
+  return { ...options, after, before, ids };
 }
 
 async function normalizeTransform(transform) {

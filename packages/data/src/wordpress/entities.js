@@ -47,10 +47,11 @@ export class EntityIndex {
       this._process = process;
     }
     if (value) {
-      this._value = value;
+      this._value = (en => en && value(en)); // null-safe
     }
     this.name = entities.name;
     this._index = new Map();
+    this._notFound = new Set();
     this._fetching = new Map();
   }
 
@@ -88,11 +89,12 @@ export class EntityIndex {
       return; // already all fetched
     }
     ids = asArray(ids);
+    const idSet = new Set(ids);
 
     const promises = []
     const toFetch = [];
     for (const id of ids) {
-      if (this._index.has(id)) {
+      if (this._index.has(id) || this._notFound.has(id)) {
         continue;
       }
       if (!this._fetching.has(id)) {
@@ -107,13 +109,22 @@ export class EntityIndex {
         for await (const entity of stream) {
            const { id } = entity;
            this._index.set(id, this._process(entity));
-           this._fetching.get(id).resolve();
-           this._fetching.delete(id);
+           idSet.delete(id);
+           this._resolveFetch(id);
         }
-        // TODO: handle unavailable ones
+        // handle unavailable ones
+        for (const id of idSet) {
+          this._notFound.add(id);
+          this._resolveFetch(id);
+        }
       })();
     }
     return Promise.all(promises);
+  }
+
+  _resolveFetch(id) {
+    this._fetching.get(id).resolve();
+    this._fetching.delete(id);
   }
 
   async get(id) {
