@@ -1,45 +1,6 @@
-import { asArray, stream, Resolution } from '@miso.ai/server-commons';
+import { asArray, Resolution } from '@miso.ai/server-commons';
 
-export class Entities {
-
-  constructor(client, name) {
-    this._client = client;
-    this.name = name;
-    this._index = this._createIndex();
-    Object.freeze(this);
-  }
-  
-  async stream(options) {
-    return this._client._helpers.stream(this.name, options);
-  }
-
-  async getAll(options) {
-    return stream.collect(await this.stream(options));
-  }
-
-  async count(options) {
-    return this._client._helpers.count(this.name, options);
-  }
-
-  async terms(options) {
-    return this._client._helpers.terms(this.name, options);
-  }
-
-  get index() {
-    return this._index;
-  }
-
-  _createIndex() {
-    return new EntityIndex(this);
-  }
-
-  async _taxonomy(options) {
-    return await this._client._helpers.findTaxonomyByResourceName(this.name, options);
-  }
-
-}
-
-export class EntityIndex {
+export default class EntityIndex {
 
   constructor(entities, { process, value } = {}) {
     this._entities = entities;
@@ -171,13 +132,13 @@ export class EntityIndex {
 
 }
 
-function shimFullPath(entities, index) {
+function shimFullPath(entities, cache) {
   // DP to compute full path
   function fullPath(entity) {
     if (!entity.fullPath) {
       const { parent, id, name } = entity;
       if (parent) {
-        const { ids, names } = fullPath(index.get(parent));
+        const { ids, names } = fullPath(cache.get(parent));
         entity.fullPath = {
           ids: [...ids, id],
           names: [...names, name],

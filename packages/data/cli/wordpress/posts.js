@@ -1,7 +1,8 @@
 import { join } from 'path';
-import { stream, startOfDate, endOfDate, parseDuration } from '@miso.ai/server-commons';
+import { stream, parseDuration } from '@miso.ai/server-commons';
 import { WordPressClient } from '../../src/wordpress/index.js';
-import { buildForEntities, runCount as _runCount, runTerms as _runTerms } from './entities.js';
+import { buildForEntities, runGet as _runGet, runCount as _runCount, runTerms as _runTerms } from './entities.js';
+import { normalizeOptions } from './utils.js';
 
 const PWD = process.env.PWD;
 
@@ -24,17 +25,9 @@ function build(yargs) {
       alias: 'u',
       describe: 'Only include records modified in given duration (3h, 2d, etc.)',
     })
-    .option('ids', {
-      describe: 'Specify post ids'
-    })
-    .option('resolve', {
-      alias: 'r',
-      describe: 'Attach resolved entities (author, catagories) linked with posts',
-      type: 'boolean',
-    })
     .option('transform', {
       alias: 't',
-      describe: 'Transform posts to miso product records',
+      describe: 'Apply transform function to the entities',
     });
     /*
     .option('limit', {
@@ -45,7 +38,7 @@ function build(yargs) {
     */
 }
 
-async function run({ site, count, terms, update, ...options }) {
+async function run({ count, terms, update, ...options }) {
   options = normalizeOptions(options);
   const client = new WordPressClient(options);
   if (count) {
@@ -60,26 +53,22 @@ async function run({ site, count, terms, update, ...options }) {
 }
 
 async function runCount(client, options) {
-  _runCount(client, 'posts', options);
+  await _runCount(client, 'posts', options);
 }
 
 async function runTerms(client, options) {
-  _runTerms(client, 'posts', options);
+  await _runTerms(client, 'posts', options);
 }
 
-async function runGet(client, { resolve: resolveLinked, transform, ...options }) {
+async function runGet(client, { transform, ...options }) {
   transform = await normalizeTransform(transform);
-  await stream.pipelineToStdout(
-    await client.entities('posts').stream({
-      ...options,
-      resolveLinked,
-      transform,
-    }),
-    stream.stringify(),
-  );
+  await _runGet(client, 'posts', {
+    ...options,
+    transform,
+  });
 }
 
-async function runUpdate(client, update, { date, after, before, orderBy, order, resolve: resolveLinked, transform, ...options }) {
+async function runUpdate(client, update, { date, after, before, orderBy, order, resolve, transform, ...options }) {
   transform = await normalizeTransform(transform);
   const now = Date.now();
   update = parseDuration(update);
@@ -91,14 +80,14 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
         // get recent published
         posts.stream({
           ...options,
-          resolveLinked,
+          resolve,
           transform,
           after: threshold,
         }),
         // get recent modified, excluding ones already fetched
         posts.stream({
           ...options,
-          resolveLinked,
+          resolve,
           transform,
           orderBy: 'modified',
           before: threshold,
@@ -113,12 +102,6 @@ async function runUpdate(client, update, { date, after, before, orderBy, order, 
     ),
     stream.stringify(),
   );
-}
-
-function normalizeOptions({ date, after, before, ids, ...options }) {
-  [after, before] = [startOfDate(date || after), endOfDate(date || before)];
-  ids = ids ? `${ids}`.split(',').map(s => s.trim()) : ids;
-  return { ...options, after, before, ids };
 }
 
 async function normalizeTransform(transform) {

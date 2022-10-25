@@ -56,6 +56,8 @@ export default class Helpers {
   }
 
   async findAssociatedTaxonomies(type, options) {
+    // TODO: try using terms()
+    type = type === 'posts' ? 'post' : type;
     return (await this.taxonomies(options)).filter(taxonomy => taxonomy.types.includes(type));
   }
 

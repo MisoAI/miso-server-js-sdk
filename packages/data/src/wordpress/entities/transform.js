@@ -1,12 +1,4 @@
 import { Transform } from 'stream';
-import defaultTransform from './transform-default.js';
-import legacyTransform from './transform-legacy.js';
-
-function getTransformFn(transform) {
-  return typeof transform === 'function' ? transform :
-    (transform === true || transform === 'default') ? defaultTransform :
-    transform === 'legacy' ? legacyTransform : undefined;
-}
 
 function applyPatch(post, patch) {
   if (!patch) {
@@ -26,7 +18,7 @@ const PROP_NAME_OVERRIDES = {
   media: 'featured_media',
 };
 
-export default class PostTransformStream extends Transform {
+export default class EntityTransformStream extends Transform {
 
   static getPropName(resource) {
     return PROP_NAME_OVERRIDES[resource] || resource;
@@ -36,14 +28,14 @@ export default class PostTransformStream extends Transform {
     super({ objectMode: true });
     this._client = client;
     this._indicies = indicies;
-    this._transformFn = getTransformFn(transform);
+    this._transformFn = transform;
   }
 
   async _transform(post, _, next) {
     try {
       post = await this._resolveLinkedEntities(post);
       if (this._transformFn) {
-        post = await this._transformFn(post, { defaultTransform });
+        post = await this._transformFn(post);
       }
       next(undefined, post);
     } catch (error) {
@@ -54,7 +46,7 @@ export default class PostTransformStream extends Transform {
   async _resolveLinkedEntities(post) {
     const patches = await Promise.all(
       this._indicies.map(index => 
-        index.patch(post, PostTransformStream.getPropName(index.name)))
+        index.patch(post, EntityTransformStream.getPropName(index.name)))
     );
     for (const patch of patches) {
       post = applyPatch(post, patch);

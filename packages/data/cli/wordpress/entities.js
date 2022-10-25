@@ -1,5 +1,6 @@
 import { stream } from '@miso.ai/server-commons';
 import { WordPressClient } from '../../src/wordpress/index.js';
+import { normalizeOptions } from './utils.js';
 
 export function buildForEntities(yargs) {
   // TODO: make them mutually exclusive
@@ -11,6 +12,23 @@ export function buildForEntities(yargs) {
     .option('count', {
       alias: 'c',
       describe: 'Return the total number of records',
+      type: 'boolean',
+    })
+    .option('after', {
+      alias: 'a',
+      describe: 'Only include records after this time',
+    })
+    .option('before', {
+      alias: 'b',
+      describe: 'Only include records before this time',
+    })
+    .option('ids', {
+      alias: 'include',
+      describe: 'Specify post ids'
+    })
+    .option('resolve', {
+      alias: 'r',
+      describe: 'Attach resolved entities (author, catagories) linked with the subjects',
       type: 'boolean',
     });
 }
@@ -24,6 +42,7 @@ function build(yargs) {
 }
 
 async function run({ count, terms, name, ...options }) {
+  options = normalizeOptions(options);
   const client = new WordPressClient(options);
   (count ? runCount : terms ? runTerms : runGet)(client, name, options);
 }
