@@ -119,7 +119,8 @@ export default class UploadStream extends Transform {
     if (restTime > 0) {
       this._debug('rest', { restTime });
       setTimeout(next, restTime);
-    } else if (this._state._pending.length > 0) {
+    } else if (this._state._pending.length > 10) {
+      // TODO: figure out best strategy on this
       // release event loop for downstream
       setTimeout(next);
     } else {
