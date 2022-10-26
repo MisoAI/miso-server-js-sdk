@@ -1,6 +1,6 @@
-import { stream } from '@miso.ai/server-commons';
+import { stream, parseDuration } from '@miso.ai/server-commons';
 import { WordPressClient } from '../../src/wordpress/index.js';
-import { normalizeOptions } from './utils.js';
+import { normalizeOptions, normalizeTransform, parseDate } from './utils.js';
 
 export function buildForEntities(yargs) {
   // TODO: make them mutually exclusive
@@ -14,6 +14,10 @@ export function buildForEntities(yargs) {
       describe: 'Return the total number of records',
       type: 'boolean',
     })
+    .option('date', {
+      alias: 'd',
+      describe: 'Only include records in this year/month/day',
+    })
     .option('after', {
       alias: 'a',
       describe: 'Only include records after this time',
@@ -21,6 +25,10 @@ export function buildForEntities(yargs) {
     .option('before', {
       alias: 'b',
       describe: 'Only include records before this time',
+    })
+    .option('update', {
+      alias: 'u',
+      describe: 'Only include records modified in given duration (3h, 2d, etc.)',
     })
     .option('ids', {
       alias: 'include',
@@ -30,7 +38,18 @@ export function buildForEntities(yargs) {
       alias: 'r',
       describe: 'Attach resolved entities (author, catagories) linked with the subjects',
       type: 'boolean',
+    })
+    .option('transform', {
+      alias: 't',
+      describe: 'Apply transform function to the entities',
     });
+    /*
+    .option('limit', {
+      alias: 'n',
+      describe: 'Limit the amount of records',
+      type: 'number',
+    })
+    */
 }
 
 function build(yargs) {
@@ -41,10 +60,18 @@ function build(yargs) {
     });
 }
 
-async function run({ count, terms, name, ...options }) {
+async function run({ count, terms, update, name, ...options }) {
   options = normalizeOptions(options);
   const client = new WordPressClient(options);
-  (count ? runCount : terms ? runTerms : runGet)(client, name, options);
+  if (count) {
+    await runCount(client, name, options);
+  } else if (terms) {
+    await runTerms(client, name, options);
+  } else if (update) {
+    await runUpdate(client, name, update, options);
+  } else {
+    await runGet(client, name, options);
+  }
 }
 
 export async function runCount(client, name, options) {
@@ -58,9 +85,50 @@ export async function runTerms(client, name, options) {
   }
 }
 
-export async function runGet(client, name, options) {
+export async function runGet(client, name, { transform, ...options }) {
   await stream.pipelineToStdout(
-    await client.entities(name).stream(options),
+    await client.entities(name).stream({
+      ...options,
+      transform: await normalizeTransform(transform),
+    }),
+    stream.stringify(),
+  );
+}
+
+export async function runUpdate(client, name, update, {
+  date, after, before, orderBy, order, // strip off date filters and order criteria
+  transform,
+  ...options
+}) {
+  transform = await normalizeTransform(transform);
+  const now = Date.now();
+  update = parseDuration(update);
+  const threshold = now - update;
+  const entities = client.entities(name);
+  await stream.pipelineToStdout(
+    stream.concat(
+      ...await Promise.all([
+        // get recent published
+        entities.stream({
+          ...options,
+          transform,
+          after: threshold,
+        }),
+        // get recent modified, excluding ones already fetched
+        entities.stream({
+          ...options,
+          transform,
+          orderBy: 'modified',
+          before: threshold,
+          pageSize: 20,
+          strategy: {
+            highWatermark: 100,
+            eagerLoad: true,
+            terminate: entity => parseDate(entity.modified_gmt) < threshold,
+          },
+        })
+      ])
+    ),
     stream.stringify(),
   );
 }

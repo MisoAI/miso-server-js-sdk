@@ -1,9 +1,6 @@
 import profile from './profile.js';
-import posts from './posts.js';
 import taxonomies from './taxonomies.js';
 import entities from './entities.js';
-
-// TODO: support standalone transform CLI
 
 function build(yargs) {
   return yargs
@@ -23,7 +20,6 @@ function build(yargs) {
     .hide('debug')
     .command(profile)
     .command(taxonomies)
-    .command(posts)
     .command(entities);
 }
 
