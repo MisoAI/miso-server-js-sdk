@@ -6,10 +6,10 @@ export default function transform({
     featured_media,
     categories,
     tags,
-    ..._linked
+    //..._linked
   } = {},
   id,
-  //type,
+  type,
   date_gmt,
   modified_gmt,
   guid: {
@@ -27,9 +27,6 @@ export default function transform({
   sticky,
   comment_status,
   ping_status,
-  format,
-  template,
-  ...rest
 }) {
   const product_id = `${id}`;
   if (!product_id) {
@@ -43,7 +40,7 @@ export default function transform({
 
   return trimObj({
     product_id,
-    type: 'article',
+    type,
     created_at,
     updated_at,
     title,
@@ -60,10 +57,7 @@ export default function transform({
       sticky,
       comment_status,
       ping_status,
-      format,
-      template,
-      ...rest,
-      _linked,
+      //..._linked,
     }),
   });
 }
