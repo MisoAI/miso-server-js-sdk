@@ -1,7 +1,13 @@
 import { trimObj, asArray } from '@miso.ai/server-commons';
 
 export default function transform({
-  _linked = {},
+  _linked: {
+    author,
+    featured_media,
+    categories,
+    tags,
+    ..._linked
+  } = {},
   id,
   //type,
   date_gmt,
@@ -16,17 +22,14 @@ export default function transform({
   content: {
     rendered: html,
   },
-  author: author_id,
-  categories: category_ids,
-  tags: tag_ids,
   link: url,
-  featured_media: featured_media_id,
   status,
   sticky,
   comment_status,
   ping_status,
   format,
   template,
+  ...rest
 }) {
   const product_id = `${id}`;
   if (!product_id) {
@@ -34,10 +37,9 @@ export default function transform({
   }
   const created_at = date_gmt && `${date_gmt}Z`;
   const updated_at = modified_gmt && `${modified_gmt}Z`;
-  const authors = asArray(_linked.author);
-  const cover_image = _linked.featured_media && encodeURI(_linked.featured_media);
-  const categories = _linked.categories;
-  const tags = _linked.tags;
+
+  const authors = asArray(author);
+  const cover_image = featured_media && encodeURI(featured_media);
 
   return trimObj({
     product_id,
@@ -60,10 +62,8 @@ export default function transform({
       ping_status,
       format,
       template,
-      author_id,
-      category_ids,
-      tag_ids,
-      featured_media_id,
+      ...rest,
+      _linked,
     }),
   });
 }

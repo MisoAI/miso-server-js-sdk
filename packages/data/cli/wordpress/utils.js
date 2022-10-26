@@ -1,4 +1,7 @@
+import { join } from 'path';
 import { startOfDate, endOfDate } from '@miso.ai/server-commons';
+
+const PWD = process.env.PWD;
 
 export function normalizeOptions({ date, after, before, ids, ...options }) {
   [after, before] = [startOfDate(date || after), endOfDate(date || before)];

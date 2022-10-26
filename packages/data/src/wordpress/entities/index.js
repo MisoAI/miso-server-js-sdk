@@ -1,6 +1,8 @@
 import { asArray, stream } from '@miso.ai/server-commons';
 import EntityIndex from './entity-index.js';
 import EntityTransformStream from './transform.js';
+import defaultTransform from './transform-default.js';
+import legacyTransform from './transform-legacy.js';
 
 export default class Entities {
 
@@ -15,6 +17,7 @@ export default class Entities {
     if (!resolve && !transform) {
       return this._client._helpers.stream(this.name, options);
     }
+    transform = getTransformFn(transform);
 
     const client = this._client;
 
@@ -83,4 +86,10 @@ function aggregateIds(records, propName) {
     }
     return idSet;
   }, new Set()));
+}
+
+function getTransformFn(transform) {
+  return typeof transform === 'function' ? post => transform(post, { defaultTransform }) :
+    (transform === true || transform === 'default') ? defaultTransform :
+    transform === 'legacy' ? legacyTransform : undefined;
 }
