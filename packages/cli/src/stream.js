@@ -119,7 +119,7 @@ export default class UploadStream extends Transform {
     if (restTime > 0) {
       this._debug('rest', { restTime });
       setTimeout(next, restTime);
-    } else if (this._state._pending.length > 10) {
+    } else if (this._state._pending.length > 15) {
       // TODO: figure out best strategy on this
       // release event loop for downstream
       setTimeout(next);
@@ -208,7 +208,9 @@ export default class UploadStream extends Transform {
       try {
         response = await this._upload(payload);
       } catch(error) {
-        response = error.response && error.response.data ? error.response.data : trimObj({ errors: true, cause: error.message });
+        response = !error.response ? trimObj({ errors: true, cause: error.message }) :
+          typeof error.response.data !== 'object' ? trimObj({ errors: true, cause: error.response.data }) :
+          error.response.data;
       }
       response.timestamp = Date.now();
       response.took = response.took || 0; // TODO: ad-hoc
@@ -237,7 +239,8 @@ export default class UploadStream extends Transform {
         return (await this._client.uploadExperimentEvent(experimentId, payload)).data;
       default:
         const { async, dryRun, params } = this._options;
-        return (await this._client.upload(this._type, payload, { async, dryRun, params })).data;
+        const response = await this._client.upload(this._type, payload, { async, dryRun, params });
+        return response.data;
     }
   }
 
