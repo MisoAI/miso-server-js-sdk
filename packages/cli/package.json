@@ -14,7 +14,7 @@
     "simonpai <simon.pai@askmiso.com>"
   ],
   "dependencies": {
-    "@miso.ai/server-commons": "file:packages/commons",
+    "@miso.ai/server-commons": "file:packages/server-commons",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
     "log-update": "^5.0.1",

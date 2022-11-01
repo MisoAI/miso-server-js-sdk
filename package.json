@@ -2,7 +2,7 @@
   "name": "@miso.ai/server-sdk-monorepo",
   "private": true,
   "workspaces": [
-    "packages/commons",
+    "packages/server-commons",
     "packages/cli",
     "packages/data"
   ],
