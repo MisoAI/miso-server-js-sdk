@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import { Buffer } from 'buffer';
 import axios from 'axios';
-import UploadStream from './stream.js';
+import UploadStream from './stream/upload.js';
 import version from './version.js';
 
 export default class MisoClient {
@@ -35,6 +35,19 @@ export default class MisoClient {
   async getIds(type) {
     const url = buildUrl(this, `${type}/_ids`);
     return (await axios.get(url)).data.data.ids;
+  }
+
+  async delete(type, id) {
+    const url = buildUrl(this, `${type}/${id}`);
+    try {
+      await axios.delete(url);
+      return true;
+    } catch(error) {
+      if (error.response && error.response.status === 401) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   createUploadStream(type, options) {

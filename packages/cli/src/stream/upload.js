@@ -1,6 +1,6 @@
 import { Transform } from 'stream';
 import { trimObj, log } from '@miso.ai/server-commons';
-import version from './version.js';
+import version from '../version.js';
 
 function getDefaultRecordsPerRequest(type) {
   switch (type) {
