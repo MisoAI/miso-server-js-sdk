@@ -3,6 +3,7 @@ import 'dotenv/config';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import upload from './upload.js';
+import ids from './ids.js';
 import version from '../src/version.js';
 
 const interactions = {
@@ -18,7 +19,8 @@ const products = {
   aliases: ['product', 'p'],
   description: 'Product commands',
   builder: yargs => _buildBase(yargs)
-    .command(upload('products')),
+    .command(upload('products'))
+    .command(ids('products')),
 };
 
 const users = {
@@ -26,7 +28,8 @@ const users = {
   aliases: ['user', 'u'],
   description: 'User commands',
   builder: yargs => _buildBase(yargs)
-    .command(upload('users')),
+    .command(upload('users'))
+    .command(ids('users')),
 };
 
 const experiments = {
@@ -54,6 +57,7 @@ yargs(hideBin(process.argv))
   .demandCommand(2)
   .version(version)
   .help()
+  .fail(_handleFail)
   .parse();
 
 
@@ -69,7 +73,27 @@ function _buildBase(yargs) {
       alias: ['api-server'],
       describe: 'API server',
     })
+    .option('param', {
+      alias: ['v', 'var'],
+      describe: 'Extra URL parameters',
+      type: 'array',
+      coerce: _coerceToArray,
+    })
     .demandOption(['key'], 'API key is required.');
+}
+
+function _coerceToArray(arg) {
+  return Array.isArray(arg) ? arg :
+    typeof arg === 'string' ? arg.split(',') :
+    arg === undefined || arg === null ? [] : [arg];
+}
+
+function _handleFail(msg, err) {
+  if (err) {
+    throw err;
+  }
+  console.error(msg);
+  process.exit(1);
 }
 
 process.stdout.on('error', err => err.code == 'EPIPE' && process.exit(0));

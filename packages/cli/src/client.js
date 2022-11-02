@@ -32,6 +32,11 @@ export default class MisoClient {
     return response.data ? response : { data: response };
   }
 
+  async getIds(type) {
+    const url = buildUrl(this, `${type}/_ids`);
+    return (await axios.get(url)).data.data.ids;
+  }
+
   createUploadStream(type, options) {
     return new UploadStream(this, type, options);
   }
@@ -58,7 +63,7 @@ function normalizeOptions(options) {
   return options;
 }
 
-function buildUrl(client, type, { async, dryRun, params: extraParams } = {}) {
+function buildUrl(client, path, { async, dryRun, params: extraParams } = {}) {
   let { server, key } = client._options;
   let params = `?api_key=${key}`;
   if (dryRun) {
@@ -72,7 +77,7 @@ function buildUrl(client, type, { async, dryRun, params: extraParams } = {}) {
       params += `&${key}=${extraParams[key]}`;
     }
   }
-  return `${server}/v1/${type}${params}`;
+  return `${server}/v1/${path}${params}`;
 }
 
 function buildPayload(records) {

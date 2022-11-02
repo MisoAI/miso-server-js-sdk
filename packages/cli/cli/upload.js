@@ -2,12 +2,6 @@ import split2 from 'split2';
 import { log, stream } from '@miso.ai/server-commons';
 import { MisoClient, logger } from '../src/index.js';
 
-function coerceToArray(arg) {
-  return Array.isArray(arg) ? arg :
-    typeof arg === 'string' ? arg.split(',') :
-    arg === undefined || arg === null ? [] : [arg];
-}
-
 function build(yargs) {
   return yargs
     .option('async', {
@@ -17,12 +11,6 @@ function build(yargs) {
     .option('dry-run', {
       alias: ['dry'],
       describe: 'Dry run mode',
-    })
-    .option('param', {
-      alias: ['v', 'var'],
-      describe: 'Extra URL parameters',
-      type: 'array',
-      coerce: coerceToArray,
     })
     .option('records-per-request', {
       alias: ['rpr'],
