@@ -6,10 +6,10 @@ import Resolution from '../resolution.js';
 
 export default class BufferedReadStream extends Readable {
 
-  constructor({ source, strategy, filter, transform, onLoad, debug, ...options } = {}) {
+  constructor(source, { strategy, filter, transform, onLoad, debug } = {}) {
     super({ objectMode: true });
     this._debug = debug || (() => {});
-    this._source = source || new DataSource(this, options);
+    this._source = source;
     this._strategy = new Strategy(strategy);
     this._state = new State();
     this._loads = new TaskQueue();

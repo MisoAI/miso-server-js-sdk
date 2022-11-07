@@ -19,7 +19,7 @@ export default class Helpers {
   async stream(resource, options) {
     const [streamOptions, sourceOptions] = splitObj(options, STREAM_OPTIONS);
     const source = new DataSource(this, resource, sourceOptions);
-    return new stream.BufferedReadStream({ ...streamOptions, source, debug: this.debug });
+    return new stream.BufferedReadStream(source, { ...streamOptions, debug: this.debug });
   }
 
   async sample(resource, { noCache = false } = {}) {
