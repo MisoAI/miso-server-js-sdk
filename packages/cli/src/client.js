@@ -1,3 +1,4 @@
+import { asArray } from '@miso.ai/server-commons';
 import { createHash } from 'crypto';
 import { Buffer } from 'buffer';
 import axios from 'axios';
@@ -20,14 +21,12 @@ export default class MisoClient {
   }
 
   // TODO: extract to .experiment() later
-  async uploadExperimentEvent(expId, record) {
+  async uploadExperimentEvent(experimentId, record) {
     // TODO: support non-string record
-    const url = buildUrl(this, `experiments/${expId}/events`);
-    const response = await axios.post(url, record, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const url = buildUrl(this, `experiments/${experimentId}/events`);
+    // TODO: make content type header global
+    const headers = { 'Content-Type': 'application/json' };
+    const response = await axios.post(url, record, { headers });
     // 200 response body does not have .data layer
     return response.data ? response : { data: response };
   }
@@ -37,17 +36,22 @@ export default class MisoClient {
     return (await axios.get(url)).data.data.ids;
   }
 
-  async delete(type, id) {
-    const url = buildUrl(this, `${type}/${id}`);
-    try {
-      await axios.delete(url);
-      return true;
-    } catch(error) {
-      if (error.response && error.response.status === 401) {
-        return false;
-      }
-      throw error;
+  async delete(type, ids) {
+    if (type !== 'products' && type !== 'users') {
+      throw new Error(`Only products and users are supported: ${type}`);
     }
+    ids = asArray(ids);
+    if (ids.length === 0) {
+      return { data: {} };
+    }
+    const url = buildUrl(this, `${type}/_delete`);
+    const payload = {
+      data: {
+        ['products' ? 'product_ids' : 'user_ids']: ids,
+      },
+    };
+    const { data } = await axios.post(url, payload);
+    return { data };
   }
 
   createUploadStream(type, options) {

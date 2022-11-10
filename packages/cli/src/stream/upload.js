@@ -30,6 +30,7 @@ const requestPromises = new WeakMap();
 export default class UploadStream extends Transform {
 
   constructor(client, type, {
+    name,
     objectMode,
     async, 
     dryRun,
@@ -47,6 +48,7 @@ export default class UploadStream extends Transform {
     this._client = client;
     this._type = type;
     this._options = {
+      name,
       objectMode: !!objectMode,
       async: !!async, 
       dryRun: !!dryRun,
@@ -54,8 +56,8 @@ export default class UploadStream extends Transform {
       heartbeat,
       recordsPerRequest: recordsPerRequest || getDefaultRecordsPerRequest(type),
       bytesPerRequest: bytesPerRequest || 1024 * 1024,
-      bytesPerSecond: bytesPerSecond || 5 * 1024 * 1024,
-      experimentId
+      bytesPerSecond: bytesPerSecond || 4 * 1024 * 1024,
+      experimentId,
     };
     if (heartbeat !== undefined && (typeof heartbeat !== 'number') || heartbeat < MIN_HREATBEAT) {
       throw new Error(`Heartbeat must be a number at least ${MIN_HREATBEAT}: ${heartbeat}`);
@@ -130,9 +132,9 @@ export default class UploadStream extends Transform {
 
   _log(level, event, args = {}) {
     this.push(trimObj({
+      name: this._options.name,
       level,
       event,
-      source: 'sdk.upload',
       timestamp: Date.now(),
       ...args,
       state: this.state,
@@ -144,14 +146,16 @@ export default class UploadStream extends Transform {
   }
 
   async _flush(done) {
-    if (this._heartbeatIntervalId) {
-      clearInterval(this._heartbeatIntervalId);
-      delete this._heartbeatIntervalId;
-    }
     this._pushStartEventIfNecessary();
     this._dispatch();
     await Promise.all(this._state.pending.map(r => requestPromises.get(r)));
     const { successful, failed } = this.state;
+
+    if (this._heartbeatIntervalId) {
+      clearInterval(this._heartbeatIntervalId);
+      delete this._heartbeatIntervalId;
+    }
+
     this._info('end', { successful, failed });
     done();
   }

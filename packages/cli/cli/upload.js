@@ -33,6 +33,10 @@ function build(yargs) {
       describe: 'Set log format progress',
       type: 'boolean',
     })
+    .option('stream-name', {
+      alias: ['name'],
+      describe: 'Stream name that shows up in log messages',
+    })
     .option('log-level', {
       describe: 'Log level',
     })
@@ -53,16 +57,18 @@ const run = type => async ({
   ['experiment-id']: experimentId,
   debug,
   progress,
+  ['stream-name']: name,
   ['log-level']: loglevel,
   ['log-format']: logFormat,
 }) => {
 
-  loglevel = debug ? log.DEBUG : loglevel;
+  loglevel = (debug || progress) ? log.DEBUG : loglevel;
   logFormat = progress ? logger.FORMAT.PROGRESS : logFormat;
 
   const client = new MisoClient({ key, server });
 
   const uploadStream = client.createUploadStream(type, {
+    name,
     async, 
     dryRun,
     params,
