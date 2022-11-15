@@ -107,15 +107,19 @@ export default class BufferedWriteStream extends Transform {
   }
 
   get config() {
-    return Object.freeze({
+    return Object.freeze(this._exportConfig());
+  }
+
+  // can be overwritten //
+  _exportConfig() {
+    return {
       id: this.id.substring(0, 8),
       sink: this._sink.config,
       buffer: this._buffer.config,
       ...this._options,
-    });
+    };
   }
 
-  // can be overwritten //
   _output(message, args) {
     return (this._fns.output || BufferedWriteStream.DEFAULTS.output)(message, args);
   }

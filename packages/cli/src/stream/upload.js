@@ -52,6 +52,13 @@ export default class UploadStream extends stream.BufferedWriteStream {
     return this._uploadStats.snapshot();
   }
 
+  _exportConfig() {
+    return {
+      client: this._client.options,
+      ...super._exportConfig(),
+    }
+  }
+
   async _writeToSink({ request, payload }) {
     const response = await super._writeToSink({ request, payload });
 

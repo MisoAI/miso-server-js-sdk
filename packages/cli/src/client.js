@@ -68,7 +68,8 @@ export default class MisoClient {
     const { server, key } = this._options;
     return Object.freeze({
       server,
-      keyMd5: createHash('md5').update(key).digest('hex')
+      keyMasked: key.substring(0, 4) + '*'.repeat(Math.max(0, key.length - 4)),
+      //keyMd5: createHash('md5').update(key).digest('hex'),
     });
   }
 

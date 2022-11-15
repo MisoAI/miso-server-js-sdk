@@ -18,16 +18,29 @@ export default class UploadProgressLogStream extends stream.LogUpdateStream {
     return super._renderError(record);
   }
 
-  _render({ state, uploadStats }) {
+  _render({ config, state, uploadStats }) {
+    // update config info
+    config = this._config = (config || this._config);
+
+    const { name = '(anonymous)', client = {} } = config || {};
     const { pending, successful, failed, time, bps } = state;
-    const statusLine = this._renderStatusLine(state);
     const apiBps = uploadStats && uploadStats.api && uploadStats.api.bps;
 
+    const configTable = formatTable([
+      ['Job:', `${name}`],
+      ['Server:', `${client.server || '(default)'}`],
+      ['API Key:', `${client.keyMasked}`],
+    ]);
+
+    const statusTable = formatTable([
+      ['Status:', `${this._renderStatusLine(state)}`],
+      ['Service Speed:', `${isNaN(apiBps) ? '--' : formatSpeed(apiBps)}`],
+      ['Client Speed:', `${formatSpeed(bps)}`],
+    ]);
+
     const timeTable = formatTable([
-      ['Total Time', formatDuration(time.total)],
-      ['Preparing', formatDuration(time.waiting)],
-      ['Paused', formatDuration(time.paused)],
-      ['Running', formatDuration(time.running)],
+      ['Total Time:', formatDuration(time.total), '  ', 'Paused:', formatDuration(time.paused)],
+      ['Preparing:', formatDuration(time.waiting), '', 'Running:', formatDuration(time.running)],
     ]);
 
     // sum pending requests
@@ -41,9 +54,9 @@ export default class UploadProgressLogStream extends stream.LogUpdateStream {
     ]);
 
     return `
-Status: ${statusLine}
-Service Speed: ${isNaN(apiBps) ? '--' : formatSpeed(apiBps)}
-Client Speed: ${formatSpeed(bps)}
+${configTable}
+
+${statusTable}
 
 ${timeTable}
 
@@ -53,11 +66,11 @@ ${dataStatTable}
 
   _renderStatusLine({ status, time }) {
     if (status !== 'paused') {
-      return status;
+      return status.toUpperCase();
     }
     const { currentTime, willResumeAt } = time;
     const willResumeIn = Math.max(0, willResumeAt - currentTime);
-    return `${status} (resume in ${formatDuration(willResumeIn)})`;
+    return `${status.toUpperCase()} (resume in ${formatDuration(willResumeIn)})`;
   }
 
 }
