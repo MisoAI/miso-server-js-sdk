@@ -16,7 +16,7 @@ export default class OutputStream extends Writable {
     this._err = err;
   }
 
-  _writeToSink(record, _, next) {
+  _write(record, _, next) {
     this._out.write(this._format(record) + '\n');
     next();
   }
