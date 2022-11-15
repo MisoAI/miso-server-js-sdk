@@ -2,8 +2,9 @@ import { asArray } from '@miso.ai/server-commons';
 import { createHash } from 'crypto';
 import { Buffer } from 'buffer';
 import axios from 'axios';
-import UploadStream from './stream/upload.js';
 import version from './version.js';
+import LegacyUploadStream from './stream/upload.legacy.js';
+import UploadStream from './stream/upload.js';
 
 export default class MisoClient {
 
@@ -55,6 +56,11 @@ export default class MisoClient {
   }
 
   createUploadStream(type, options) {
+    if (options.legacy) {
+      options.heartbeat = options.heartbeatInvertal;
+      delete options.heartbeatInvertal;
+      return new LegacyUploadStream(this, type, options);
+    }
     return new UploadStream(this, type, options);
   }
 

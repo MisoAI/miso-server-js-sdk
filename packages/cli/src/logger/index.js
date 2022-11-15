@@ -1,10 +1,13 @@
 import { FORMAT } from './constants.js';
 import StandardLogStream from './standard.js';
-import ProgressLogStream from './progress.js';
+import LegacyProgressLogStream from './progress.legacy.js';
+import UploadProgressLogStream from './upload-progress.js';
 
 export * from './constants.js';
 
 export function createLogStream({
+  api,
+  legacy,
   level,
   format,
   out,
@@ -12,10 +15,17 @@ export function createLogStream({
 }) {
   switch (format || FORMAT.JSON) {
     case FORMAT.PROGRESS:
-      return new ProgressLogStream({
-        out,
-        err,
-      });
+      switch (api) {
+        case 'upload':
+          if (legacy) {
+            return new LegacyProgressLogStream({ out, err });
+          }
+          return new UploadProgressLogStream({ out, err });
+        case 'delete':
+          throw new Error(`Unimplemented.`);
+        default:
+          throw new Error(`Unsupported API: ${api}`);
+      }
     case FORMAT.TEXT:
     case FORMAT.JSON:
       return new StandardLogStream({

@@ -62,3 +62,7 @@ export function copyValues(target, source, propNames) {
   }
   return target;
 }
+
+export function unimplemented() {
+  throw new Error(`Unimplemented!`);
+}

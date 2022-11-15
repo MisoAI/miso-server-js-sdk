@@ -37,6 +37,11 @@ function build(yargs) {
       alias: ['name'],
       describe: 'Stream name that shows up in log messages',
     })
+    .option('legacy', {
+      type: 'boolean',
+      default: true,
+    })
+    .hide('legacy')
     .option('log-level', {
       describe: 'Log level',
     })
@@ -58,6 +63,7 @@ const run = type => async ({
   debug,
   progress,
   ['stream-name']: name,
+  legacy,
   ['log-level']: loglevel,
   ['log-format']: logFormat,
 }) => {
@@ -68,11 +74,13 @@ const run = type => async ({
   const client = new MisoClient({ key, server });
 
   const uploadStream = client.createUploadStream(type, {
+    legacy,
     name,
     async, 
     dryRun,
     params,
-    heartbeat: logFormat === logger.FORMAT.PROGRESS ? 250 : undefined,
+    heartbeatInterval: logFormat === logger.FORMAT.PROGRESS ? 250 : false,
+    //heartbeat: logFormat === logger.FORMAT.PROGRESS ? 250 : undefined,
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,
@@ -80,6 +88,9 @@ const run = type => async ({
   });
 
   const logStream = logger.createLogStream({
+    api: 'upload',
+    type,
+    legacy,
     level: loglevel,
     format: logFormat,
   });

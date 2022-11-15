@@ -1,40 +1,32 @@
-import { Writable } from 'stream';
-import { createLogUpdate } from 'log-update';
-import { log } from '@miso.ai/server-commons';
+import { log, stream } from '@miso.ai/server-commons';
 
 const { formatDuration, formatBytes, formatTable } = log;
 
-export default class ProgressLogStream extends Writable {
+export default class LegacyProgressLogStream extends stream.LogUpdateStream {
 
   constructor({
     out = process.stdout,
     err = process.stderr,
   } = {}) {
     super({
-      objectMode: true,
+      out,
+      err,
     });
-    this._update = createLogUpdate(out);
-    this._err = err;
   }
 
-  _write({ state, ...record }, _, next) {
-    const { level } = record;
-    if (log.isError(level)) {
-      //this._update.done();
-      this._err.write(JSON.stringify(record) + '\n');
-    }
-    this._update(this._renderState(state));
-    next();
+  _renderError({ state: _, ...record }) {
+    return super._renderError(record);
   }
 
-  _renderState({ elapsed, pending, successful, failed, apiBps, sentBps }) {
+  _render({ state }) {
+    const { elapsed, pending, successful, failed, apiBps, sentBps } = state;
 
     // sum pending requests
-    pending = sumMetrics(pending);
+    const pendingSums = sumMetrics(pending);
 
     const table = formatTable([
       ['', 'Requests', 'Records', 'Bytes', 'Server Time', 'Latency'],
-      ['Pending', pending.requests, pending.records, formatBytes(pending.bytes), '--', '--'],
+      ['Pending', pendingSums.requests, pendingSums.records, formatBytes(pendingSums.bytes), '--', '--'],
       ['Successful', successful.requests, successful.records, formatBytes(successful.bytes), formatDuration(successful.took), formatDuration(successful.latency)],
       ['Failed', failed.requests, failed.records, formatBytes(failed.bytes), formatDuration(failed.took), formatDuration(failed.latency)],
     ]);

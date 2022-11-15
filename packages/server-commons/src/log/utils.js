@@ -1,4 +1,4 @@
-import { padLeft, padRight } from './string.js';
+import { padLeft, padRight } from '../string.js';
 
 export const FATAL = 'fatal';
 export const ERROR = 'error';
@@ -38,7 +38,7 @@ function compareLevel(a, b) {
 }
 
 export function formatDuration(value) {
-  if (typeof value !== 'number') {
+  if (isNaN(value)) {
     throw new Error(`Value must be a number: ${value}`);
   }
   value = Math.floor(value);
