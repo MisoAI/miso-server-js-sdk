@@ -3,6 +3,7 @@ import 'dotenv/config';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import upload from './upload.js';
+import _delete from './delete.js';
 import ids from './ids.js';
 import version from '../src/version.js';
 
@@ -20,6 +21,7 @@ const products = {
   description: 'Product commands',
   builder: yargs => _buildBase(yargs)
     .command(upload('products'))
+    .command(_delete('products'))
     .command(ids('products')),
 };
 
@@ -29,6 +31,7 @@ const users = {
   description: 'User commands',
   builder: yargs => _buildBase(yargs)
     .command(upload('users'))
+    .command(_delete('users'))
     .command(ids('users')),
 };
 

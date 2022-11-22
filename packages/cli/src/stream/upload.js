@@ -15,6 +15,7 @@ export default class UploadStream extends stream.BufferedWriteStream {
     dryRun,
     params,
     experimentId,
+    recordsPerSecond,
     bytesPerSecond,
     // buffer
     recordsPerRequest,
@@ -36,6 +37,7 @@ export default class UploadStream extends stream.BufferedWriteStream {
       dryRun,
       params,
       experimentId,
+      recordsPerSecond,
       bytesPerSecond,
     });
 
@@ -44,12 +46,10 @@ export default class UploadStream extends stream.BufferedWriteStream {
       recordsPerRequest,
       bytesPerRequest,
     });
-
-    this._uploadStats = new UploadStats();
   }
 
-  get uploadStats() {
-    return this._uploadStats.snapshot();
+  get serviceStats() {
+    return this._sink.serviceStats;
   }
 
   _exportConfig() {
@@ -57,15 +57,6 @@ export default class UploadStream extends stream.BufferedWriteStream {
       client: this._client.options,
       ...super._exportConfig(),
     }
-  }
-
-  async _writeToSink({ request, payload }) {
-    const response = await super._writeToSink({ request, payload });
-
-    // keep track of API service time so we can emit more information to the output
-    this._uploadStats.track(request, response);
-
-    return response;
   }
 
   _output(message, args) {
@@ -77,44 +68,14 @@ export default class UploadStream extends stream.BufferedWriteStream {
     }
 
     // add upload stats
-    output.uploadStats = this.uploadStats;
+    output.state = {
+      ...output.state,
+      stats: {
+        service: this.serviceStats,
+      },
+    };
 
     return output;
-  }
-
-}
-
-class UploadStats {
-
-  constructor() {
-    this._api = { bytes: 0, took: 0, requests: 0 };
-  }
-
-  track(request, response) {
-    const { took } = response;
-    if (!isNaN(took) && took > 0) {
-      const api = this._api;
-      api.bytes += request.bytes;
-      api.took += took;
-      api.requests++;
-    }
-  }
-
-  get api() {
-    return Object.freeze({
-      ...this._api,
-      bps: this.apiBps,
-    });
-  }
-
-  get apiBps() {
-    const { took, bytes } = this._api;
-    return took > 0 ? (bytes / took * 1000) : NaN;
-  }
-
-  snapshot() {
-    const { api } = this;
-    return Object.freeze({ api });
   }
 
 }

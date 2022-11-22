@@ -1,6 +1,7 @@
 import BaseBuffer from './base.js';
 
 function buildTransformFunction(transform, objectMode) {
+  // TODO: review this: v could be a buffer when objectMode = false
   return objectMode ? (
     transform ? v => JSON.stringify(transform(v)) : v => JSON.stringify(v)
   ) : (

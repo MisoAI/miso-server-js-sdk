@@ -1,60 +1,30 @@
-import { sink, trimObj } from '@miso.ai/server-commons';
+import ApiSink from './api-sink.js';
 
-class UploadSink extends sink.BpsSink {
+class UploadSink extends ApiSink {
 
   constructor(client, options) {
-    super(options);
-    this._client = client;
+    super(client, options);
   }
 
   _normalizeOptions({
     async,
     dryRun,
-    params,
     ...options
   } = {}) {
+    if (!options.type) {
+      throw new Error(`Type is required.`);
+    }
     return {
       ...super._normalizeOptions(options),
-      ...trimObj({
-        async: !!async,
-        dryRun: !!dryRun,
-        params: this._normalizeParams(params),
-      }),
+      async: !!async,
+      dryRun: !!dryRun,
     };
   }
 
-  _normalizeParams(params) {
-    if (!params || params.length === 0) {
-      return undefined;
-    }
-    return params.reduce((acc, param) => {
-      const [key, value = '1'] = param.split('=');
-      acc[key] = value;
-      return acc;
-    }, {});
-  }
-
-  async _write(payload) {
-    try {
-      return await this._upload(payload);
-    } catch(error) {
-      // not axios-handled error
-      if (!error.response) {
-        throw error;
-      }
-      const { data } = error.response;
-      return data !== 'object' ? trimObj({ errors: true, cause: data }) : data;
-    }
-  }
-
-  async _upload(payload) {
+  async _execute(payload) {
     const { type, async, dryRun, params } = this._options;
     const response = await this._client.upload(type, payload, { async, dryRun, params });
     return response.data;
-  }
-
-  _sizeOf(payload) {
-    return payload.length * 2;
   }
 
 }
@@ -94,32 +64,13 @@ class DataSetUploadSink extends UploadSink {
     throw new Error(`Illegal apiBpsRate value: ${apiBpsRate}`);
   }
 
-  async _write(payload, { bytes }) {
-    const data = await super._write(payload, { bytes });
-
-    // keep track of stats of successful uploads
-    if (!data.errors && !isNaN(data.took) && data.took > 0) {
-      const { api } = this._stats;
-      api.count++;
-      api.bytes += bytes;
-      api.took += data.took;
-    }
-
-    return data;
-  }
-
-  get apiBps() {
-    const { took, bytes } = this._stats.api;
-    return took > 0 ? bytes / took * 1000 : NaN;
-  }
-
   _targetBps() {
     const { bytesPerSecond: configuredBps, apiBpsRate, apiBpsSampleThreshold } = this._options;
     if (apiBpsRate && this._stats.api.bytes < apiBpsSampleThreshold) {
       // use configured BPS until we have enough data from API response
       return configuredBps;
     }
-    const { apiBps } = this;
+    const apiBps = this._serviceStats.bps;
     return !isNaN(apiBps) ? Math.max(apiBps * apiBpsRate, configuredBps) : configuredBps;
   }
 
@@ -128,10 +79,10 @@ class DataSetUploadSink extends UploadSink {
 class ExperimentEventUploadSink extends UploadSink {
 
   constructor(client, options) {
-    super(client, 'experiment-events', options);
+    super(client, { ...options, type: 'experiment-events' });
   }
 
-  async _upload(payload) {
+  async _execute(payload) {
     const { experimentId } = this._options;
     const response = await this._client.uploadExperimentEvent(experimentId, payload);
     return response.data;

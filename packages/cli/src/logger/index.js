@@ -1,7 +1,8 @@
 import { FORMAT } from './constants.js';
 import StandardLogStream from './standard.js';
 import LegacyProgressLogStream from './progress.legacy.js';
-import UploadProgressLogStream from './upload-progress.js';
+import ApiProgressLogStream from './api-progress.js';
+import DeleteProgressLogStream from './delete-progress.js';
 
 export * from './constants.js';
 
@@ -20,9 +21,9 @@ export function createLogStream({
           if (legacy) {
             return new LegacyProgressLogStream({ out, err });
           }
-          return new UploadProgressLogStream({ out, err });
+          return new ApiProgressLogStream({ out, err });
         case 'delete':
-          throw new Error(`Unimplemented.`);
+          return new DeleteProgressLogStream({ out, err });
         default:
           throw new Error(`Unsupported API: ${api}`);
       }

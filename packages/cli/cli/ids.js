@@ -11,7 +11,7 @@ const run = type => async ({
   server,
 }) => {
   const client = new MisoClient({ key, server });
-  const ids = await client.getIds(type);
+  const ids = await client.ids(type);
 
   const readStream = Readable.from(ids);
   const outputStream = new stream.OutputStream();

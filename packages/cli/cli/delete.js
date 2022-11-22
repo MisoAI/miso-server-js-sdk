@@ -4,25 +4,13 @@ import { MisoClient, logger } from '../src/index.js';
 
 function build(yargs) {
   return yargs
-    .option('async', {
-      alias: ['a'],
-      describe: 'Asynchrnous mode',
-    })
-    .option('dry-run', {
-      alias: ['dry'],
-      describe: 'Dry run mode',
-    })
     .option('records-per-request', {
       alias: ['rpr'],
       describe: 'How many records to send in a request',
     })
-    .option('bytes-per-request', {
-      alias: ['bpr'],
-      describe: 'How many bytes to send in a request',
-    })
-    .option('bytes-per-second', {
-      alias: ['bps'],
-      describe: 'How many bytes to send per second',
+    .option('records-per-second', {
+      alias: ['rps'],
+      describe: 'How many records to send per second',
     })
     .option('debug', {
       describe: 'Set log level to debug',
@@ -37,11 +25,6 @@ function build(yargs) {
       alias: ['name'],
       describe: 'Stream name that shows up in log messages',
     })
-    .option('legacy', {
-      type: 'boolean',
-      default: false,
-    })
-    .hide('legacy')
     .option('log-level', {
       describe: 'Log level',
     })
@@ -54,16 +37,11 @@ const run = type => async ({
   key,
   server,
   param: params,
-  async,
-  ['dry-run']: dryRun,
   ['records-per-request']: recordsPerRequest,
-  ['bytes-per-request']: bytesPerRequest,
-  ['bytes-per-second']: bytesPerSecond,
-  ['experiment-id']: experimentId,
+  ['records-per-second']: recordsPerSecond,
   debug,
   progress,
   ['stream-name']: name,
-  legacy,
   ['log-level']: loglevel,
   ['log-format']: logFormat,
 }) => {
@@ -73,24 +51,17 @@ const run = type => async ({
 
   const client = new MisoClient({ key, server });
 
-  const uploadStream = client.createUploadStream(type, {
-    legacy,
+  const deleteStream = client.createDeleteStream(type, {
     name,
-    async, 
-    dryRun,
     params,
     heartbeatInterval: logFormat === logger.FORMAT.PROGRESS ? 250 : false,
-    //heartbeat: logFormat === logger.FORMAT.PROGRESS ? 250 : undefined,
     recordsPerRequest,
-    bytesPerRequest,
-    bytesPerSecond,
-    experimentId,
+    recordsPerSecond,
   });
 
   const logStream = logger.createLogStream({
-    api: 'upload',
+    api: 'delete',
     type,
-    legacy,
     level: loglevel,
     format: logFormat,
   });
@@ -98,16 +69,16 @@ const run = type => async ({
   await stream.pipeline(
     process.stdin,
     split2(),
-    uploadStream,
+    deleteStream,
     logStream,
   );
 };
 
 export default function(type) {
   return {
-    command: 'upload',
-    aliases: ['u'],
-    description: `Upload ${type}`,
+    command: 'delete',
+    aliases: ['d'],
+    description: `Delete ${type}`,
     builder: build,
     handler: run(type),
   };

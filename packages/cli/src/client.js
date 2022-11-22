@@ -5,6 +5,7 @@ import axios from 'axios';
 import version from './version.js';
 import LegacyUploadStream from './stream/upload.legacy.js';
 import UploadStream from './stream/upload.js';
+import DeleteStream from './stream/delete.js';
 
 export default class MisoClient {
 
@@ -32,7 +33,7 @@ export default class MisoClient {
     return response.data ? response : { data: response };
   }
 
-  async getIds(type) {
+  async ids(type) {
     const url = buildUrl(this, `${type}/_ids`);
     return (await axios.get(url)).data.data.ids;
   }
@@ -45,13 +46,21 @@ export default class MisoClient {
     if (ids.length === 0) {
       return { data: {} };
     }
-    const url = buildUrl(this, `${type}/_delete`);
     const payload = {
       data: {
-        ['products' ? 'product_ids' : 'user_ids']: ids,
+        [type === 'products' ? 'product_ids' : 'user_ids']: ids,
       },
     };
-    const { data } = await axios.post(url, payload);
+    return this._delete(type, payload);
+  }
+
+  async _delete(type, payload, options) {
+    const url = buildUrl(this, `${type}/_delete`, options);
+    const { data } = await axios.post(url, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     return { data };
   }
 
@@ -62,6 +71,10 @@ export default class MisoClient {
       return new LegacyUploadStream(this, type, options);
     }
     return new UploadStream(this, type, options);
+  }
+
+  createDeleteStream(type, options) {
+    return new DeleteStream(this, type, options);
   }
 
   get options() {

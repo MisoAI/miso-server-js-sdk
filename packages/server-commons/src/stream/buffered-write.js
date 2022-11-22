@@ -172,7 +172,7 @@ export default class BufferedWriteStream extends Transform {
     const request = this._state.request({ records, bytes });
     this._debug('request', { request, payload });
 
-    const response = await this._writeToSink({ request, payload });
+    const response = await this._writeToSink(payload, request);
 
     this._state.resolve(request, response);
     const failed = response.errors;
@@ -187,8 +187,8 @@ export default class BufferedWriteStream extends Transform {
     });
   }
 
-  async _writeToSink({ request, payload }) {
-    return this._sink.write(payload);
+  async _writeToSink(payload, request) {
+    return this._sink.write(payload, request);
   }
 
 }
