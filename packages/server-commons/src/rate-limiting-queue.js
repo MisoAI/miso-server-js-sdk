@@ -61,12 +61,8 @@ export default class RateLimitingQueue {
     }, this._interval);
   }
 
-  async _exec(fn, res) {
-    try {
-      res.resolve(await fn());
-    } catch(error) {
-      res.reject(error);
-    }
+  _exec(fn, res) {
+    res.resolveWith(fn);
   }
 
 }

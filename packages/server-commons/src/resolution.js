@@ -9,7 +9,7 @@ export default class Resolution {
     Object.freeze(this);
   }
 
-  async execute(fn) {
+  async resolveWith(fn) {
     try {
       this.resolve(await fn());
     } catch(error) {
