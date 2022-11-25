@@ -187,6 +187,8 @@ class Response {
 
 class Strategy {
 
+  // TODO: introduce RPS
+
   constructor({
     highWatermark = 1000,
     eagerLoad = false,

@@ -11,7 +11,7 @@ export default class OutputStream extends Writable {
     super({
       objectMode,
     });
-    this._format = format || (v => `${v}`);
+    this._format = format || (objectMode ? defaultObjectModeFormat : defaultNonObjectModeFormat);
     this._out = out;
     this._err = err;
   }
@@ -21,4 +21,13 @@ export default class OutputStream extends Writable {
     next();
   }
 
+}
+
+function defaultObjectModeFormat(v) {
+  typeof v === 'object' ? JSON.stringify(v) : `${v}`;
+}
+
+function defaultNonObjectModeFormat(v) {
+  // TODO: handle buffer
+  return v;
 }

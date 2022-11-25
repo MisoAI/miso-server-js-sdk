@@ -13,6 +13,7 @@
     "simonpai <simon.pai@askmiso.com>"
   ],
   "dependencies": {
+    "denque": "^2.1.0",
     "js-yaml": "^4.1.0",
     "log-update": "^5.0.1",
     "toml": "^3.0.0",

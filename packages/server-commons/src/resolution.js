@@ -9,4 +9,12 @@ export default class Resolution {
     Object.freeze(this);
   }
 
+  async execute(fn) {
+    try {
+      this.resolve(await fn());
+    } catch(error) {
+      this.reject(error);
+    }
+  }
+
 }

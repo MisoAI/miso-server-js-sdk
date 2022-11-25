@@ -46,41 +46,6 @@ export default class WordPressDataSource {
     return { data };
   }
 
-  _processFetchResponse(status, data) {
-    const state = this._state;
-    state.response();
-
-    // TODO: other error status
-    if (status >= 400 && status < 500 && data.code === 'rest_post_invalid_page_number') {
-      state.finish();
-      this._resolveDataPromise();
-    } else {
-      // until function acts as a terminator to end data fetching
-      data = this._processUntil(data);
-      const rawDataLength = data.length;
-
-      data = this._postProcess(data);
-
-      if (data.length > 0) {
-        this._buckets.push(data);
-        this._onFetch && this._onFetch(data);
-        state.receive(data.length);
-        this._resolveDataPromise();
-      } else {
-        // just in case
-        this._fetchIfNecessaryNextTick();
-      }
-      // terminating condition
-      const shallTerminate = state._ids ?
-        (state._ids.length === 0 && state.fetches.requested === state.fetches.returned) :
-        (rawDataLength < state._pageSize);
-      if (shallTerminate) {
-        state.finish();
-        this._resolveDataPromise();
-      }
-    }
-  }
-
   async _url(baseUrl, request) {
     throw new Error(`Unimplemented`);
   }
