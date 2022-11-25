@@ -10,5 +10,6 @@ export * as buffer from './buffer/index.js';
 export * as stream from './stream/index.js';
 export * as log from './log/index.js';
 
-export { default as TaskQueue } from './task-queue.js';
 export { default as Resolution } from './resolution.js';
+export { default as TaskQueue } from './task-queue.js';
+export { default as RateLimitingQueue } from './rate-limiting-queue.js';

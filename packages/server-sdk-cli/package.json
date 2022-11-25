@@ -1,0 +1,23 @@
+{
+  "name": "@miso.ai/server-sdk-cli",
+  "description": "Base module for Miso server SDK CLI",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "miso": "cli/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {},
+  "repository": "MisoAI/miso-server-js-sdk",
+  "license": "MIT",
+  "contributors": [
+    "simonpai <simon.pai@askmiso.com>"
+  ],
+  "dependencies": {
+    "@miso.ai/server-commons": "file:packages/server-commons",
+    "dotenv": "^16.0.1",
+    "yargs": "^17.6.2"
+  }
+}
