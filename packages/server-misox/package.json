@@ -1,9 +1,11 @@
 {
-  "name": "miso-cli",
-  "description": "Miso CLI",
+  "name": "@miso.ai/server-misox",
+  "description": "Core module for miso extension",
   "type": "module",
   "main": "src/index.js",
-  "bin": "cli/index.js",
+  "bin": {
+    "misox": "cli/index.js"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -15,9 +17,7 @@
   ],
   "dependencies": {
     "@miso.ai/server-commons": "file:packages/server-commons",
-    "axios": "^0.27.2",
     "dotenv": "^16.0.1",
-    "split2": "^4.1.0",
-    "yargs": "^17.5.1"
+    "yargs": "^17.6.2"
   }
 }

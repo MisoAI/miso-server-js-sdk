@@ -1,5 +1,5 @@
 import Denque from 'denque';
-import { Resolution } from './resolution.js';
+import Resolution from './resolution.js';
 
 export default class RateLimitingQueue {
 

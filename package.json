@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "packages/server-commons",
-    "packages/cli",
+    "packages/server-sdk",
     "packages/data"
   ],
   "scripts": {

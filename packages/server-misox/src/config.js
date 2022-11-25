@@ -1,11 +1,9 @@
 import { resolve } from 'path';
-import { constants } from 'fs';
-import { access, readFile } from 'fs/promises';
 import { findInParentDirs, isFile, readContent } from './util/files.js';
 import version from './version.js';
 
-const MISO_RC = '.misorc';
-const MISO_RC_JS = '.misorc.js';
+const MISOX_RC = '.misoxrc';
+const MISOX_RC_JS = '.misoxrc.js';
 
 const CONFIG_FORMAT = {
   JSON: 'json',
@@ -15,8 +13,8 @@ const CONFIG_FORMAT = {
 export default async function getConfig() {
   const cwd = process.env.PWD;
 
-  // look for .misorc
-  let source = await findMisoRc(cwd);
+  // look for .misoxrc
+  let source = await findMisoxRc(cwd);
 
   // look for miso entry in package.json
   // TODO
@@ -24,7 +22,7 @@ export default async function getConfig() {
   if (source) {
     try {
       source.content = await readContent(source.file, source);
-      source.config = await parseMisoRc(source);
+      source.config = await parseMisoxRc(source);
     } catch(error) {
       console.error(`Cannot read config file: ${source.file}`);
       console.error(error);
@@ -39,9 +37,9 @@ export default async function getConfig() {
   return normalizeConfig(source, { cwd });
 }
 
-async function findMisoRc(cwd) {
+async function findMisoxRc(cwd) {
   return findInParentDirs(cwd, async (path) => {
-    let file = resolve(path, MISO_RC);
+    let file = resolve(path, MISOX_RC);
     if (await isFile(file)) {
       return {
         format: CONFIG_FORMAT.JSON,
@@ -53,7 +51,7 @@ async function findMisoRc(cwd) {
   });
 }
 
-async function parseMisoRc({ format, content }) {
+async function parseMisoxRc({ format, content }) {
   switch (format) {
     case CONFIG_FORMAT.JSON:
       return JSON.parse(content);

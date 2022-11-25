@@ -1,6 +1,6 @@
 {
-  "name": "@miso.ai/server-sdk-cli",
-  "description": "Base module for Miso server SDK CLI",
+  "name": "@miso.ai/server-sdk",
+  "description": "Miso SDK for Node.js",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -17,7 +17,9 @@
   ],
   "dependencies": {
     "@miso.ai/server-commons": "file:packages/server-commons",
+    "axios": "^0.27.2",
     "dotenv": "^16.0.1",
-    "yargs": "^17.6.2"
+    "split2": "^4.1.0",
+    "yargs": "^17.5.1"
   }
 }
