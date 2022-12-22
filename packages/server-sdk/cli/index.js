@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-import 'dotenv/config';
-import _yargs from 'yargs/yargs';
-import { hideBin } from 'yargs/helpers';
+import { yargs } from '@miso.ai/server-commons';
 import upload from './upload.js';
-import _delete from './delete.js';
+import del from './delete.js';
 import ids from './ids.js';
 import transform from './transform.js';
 import version from '../src/version.js';
@@ -12,17 +10,17 @@ const interactions = {
   command: 'interactions',
   aliases: ['interaction', 'i'],
   description: 'Interaction commands',
-  builder: yargs => _buildBase(yargs)
+  builder: yargs => _buildForApi(yargs)
     .command(upload('interactions')),
 };
 
 const products = {
   command: 'products',
-  aliases: ['product', 'p'],
+  aliases: ['product', 'p', 'catalog'],
   description: 'Product commands',
-  builder: yargs => _buildBase(yargs)
+  builder: yargs => _buildForApi(yargs)
     .command(upload('products'))
-    .command(_delete('products'))
+    .command(del('products'))
     .command(ids('products')),
 };
 
@@ -30,9 +28,9 @@ const users = {
   command: 'users',
   aliases: ['user', 'u'],
   description: 'User commands',
-  builder: yargs => _buildBase(yargs)
+  builder: yargs => _buildForApi(yargs)
     .command(upload('users'))
-    .command(_delete('users'))
+    .command(del('users'))
     .command(ids('users')),
 };
 
@@ -40,7 +38,7 @@ const experiments = {
   command: 'experiments',
   aliases: ['experiment'],
   description: 'Experiment commands',
-  builder: yargs => _buildBase(yargs)
+  builder: yargs => _buildForApi(yargs)
     .option('experiment-id', {
       alias: ['exp-id'],
       describe: 'Experiment ID for experiment API',
@@ -52,25 +50,21 @@ const experiments = {
     }),
 };
 
-const yargs = _yargs(hideBin(process.argv));
-
-yargs
-  .env('MISO')
-  .command(interactions)
-  .command(products)
-  .command(users)
-  .command(experiments)
-  .command(transform)
-  .command('*', '', () => {}, () => yargs.showHelp())
-  .version(version)
-  .help()
-  .fail(_handleFail)
-  .parse();
+yargs.build(yargs => {
+  yargs
+    .env('MISO')
+    .command(interactions)
+    .command(products)
+    .command(users)
+    .command(experiments)
+    .command(transform)
+    .version(version);
+});
 
 
 
 // helpers //
-function _buildBase(yargs) {
+function _buildForApi(yargs) {
   return yargs
     .option('key', {
       alias: ['k', 'api-key'],
@@ -84,23 +78,7 @@ function _buildBase(yargs) {
       alias: ['v', 'var'],
       describe: 'Extra URL parameters',
       type: 'array',
-      coerce: _coerceToArray,
+      coerce: yargs.coerceToArray,
     })
     .demandOption(['key'], 'API key is required.');
 }
-
-function _coerceToArray(arg) {
-  return Array.isArray(arg) ? arg :
-    typeof arg === 'string' ? arg.split(',') :
-    arg === undefined || arg === null ? [] : [arg];
-}
-
-function _handleFail(msg, err) {
-  if (err) {
-    throw err;
-  }
-  console.error(msg);
-  process.exit(1);
-}
-
-process.stdout.on('error', err => err.code == 'EPIPE' && process.exit(0));
