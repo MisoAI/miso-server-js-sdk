@@ -3,8 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/server-commons",
+    "packages/server-csv",
     "packages/server-sdk",
-    "packages/server-sdk-csv",
     "packages/data"
   ],
   "scripts": {

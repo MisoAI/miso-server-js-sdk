@@ -1,5 +1,5 @@
 {
-  "name": "@miso.ai/server-sdk-csv",
+  "name": "@miso.ai/server-csv",
   "description": "Miso Data Tools",
   "type": "module",
   "main": "src/index.js",
