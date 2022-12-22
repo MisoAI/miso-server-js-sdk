@@ -1,8 +1,11 @@
 {
-  "name": "@miso.ai/server-commons",
-  "description": "Miso Utility Functions",
+  "name": "@miso.ai/server-sdk-csv",
+  "description": "Miso Data Tools",
   "type": "module",
   "main": "src/index.js",
+  "bin": {
+    "miso-csv": "cli/index.js"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -13,11 +16,7 @@
     "simonpai <simon.pai@askmiso.com>"
   ],
   "dependencies": {
-    "denque": "^2.1.0",
-    "js-yaml": "^4.1.0",
-    "log-update": "^5.0.1",
-    "toml": "^3.0.0",
-    "uuid": "^9.0.0",
-    "yargs": "^17.5.1"
+    "@miso.ai/server-commons": "file:packages/server-commons",
+    "csv-parse": "^5.3.0"
   }
 }

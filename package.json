@@ -4,6 +4,7 @@
   "workspaces": [
     "packages/server-commons",
     "packages/server-sdk",
+    "packages/server-sdk-csv",
     "packages/data"
   ],
   "scripts": {

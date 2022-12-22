@@ -9,6 +9,7 @@ export * as sink from './sink/index.js';
 export * as buffer from './buffer/index.js';
 export * as stream from './stream/index.js';
 export * as log from './log/index.js';
+export * as yargs from './yargs.js';
 
 export { default as Resolution } from './resolution.js';
 export { default as TaskQueue } from './task-queue.js';

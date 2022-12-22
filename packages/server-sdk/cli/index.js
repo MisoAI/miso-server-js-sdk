@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import 'dotenv/config';
-import yargs from 'yargs/yargs';
+import _yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import upload from './upload.js';
 import _delete from './delete.js';
@@ -52,14 +52,16 @@ const experiments = {
     }),
 };
 
-yargs(hideBin(process.argv))
+const yargs = _yargs(hideBin(process.argv));
+
+yargs
   .env('MISO')
   .command(interactions)
   .command(products)
   .command(users)
   .command(experiments)
   .command(transform)
-  //.demandCommand(2)
+  .command('*', '', () => {}, () => yargs.showHelp())
   .version(version)
   .help()
   .fail(_handleFail)
