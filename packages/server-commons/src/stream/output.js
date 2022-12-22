@@ -17,6 +17,7 @@ export default class OutputStream extends Writable {
   }
 
   _write(record, _, next) {
+    //console.error(record);
     this._out.write(this._format(record) + '\n');
     next();
   }
@@ -24,7 +25,7 @@ export default class OutputStream extends Writable {
 }
 
 function defaultObjectModeFormat(v) {
-  typeof v === 'object' ? JSON.stringify(v) : `${v}`;
+  return typeof v === 'object' ? JSON.stringify(v) : `${v}`;
 }
 
 function defaultNonObjectModeFormat(v) {

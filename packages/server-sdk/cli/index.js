@@ -5,6 +5,7 @@ import { hideBin } from 'yargs/helpers';
 import upload from './upload.js';
 import _delete from './delete.js';
 import ids from './ids.js';
+import transform from './transform.js';
 import version from '../src/version.js';
 
 const interactions = {
@@ -57,7 +58,8 @@ yargs(hideBin(process.argv))
   .command(products)
   .command(users)
   .command(experiments)
-  .demandCommand(2)
+  .command(transform)
+  //.demandCommand(2)
   .version(version)
   .help()
   .fail(_handleFail)
