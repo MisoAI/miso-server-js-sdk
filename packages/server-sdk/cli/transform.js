@@ -37,6 +37,7 @@ async function getTransformStream(loc) {
 
 export default {
   command: 'transform [file]',
+  alias: ['t'],
   description: `Transform records by a JavaScript module [file]. The module should contains a default export of a node Transform stream class. Object modes on both sides are respected.`,
   builder: build,
   handler: run,
