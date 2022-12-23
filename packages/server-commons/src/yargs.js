@@ -2,6 +2,20 @@ import 'dotenv/config';
 import _yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 
+function hasDefaultCommand(args) {
+  let args0 = args[0];
+  const command = typeof args0 === 'object' ? args0.command : typeof args0 === 'string' ? args0 : undefined;
+  if (!command) {
+    return false; // this should not happen?
+  }
+  for (const c of Array.isArray(command) ? command : [command]) {
+    if (c.startsWith('*') || c.startsWith('$0')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 class Tracker {
 
   constructor() {}
@@ -13,9 +27,7 @@ class Tracker {
   shim(yargs) {
     const _command = yargs.command;
     yargs.command = (...args) => {
-      const args0 = args[0];
-      const name = typeof args0 === 'object' ? args0.command : typeof args0 === 'string' ? args0 : undefined;
-      if (name === '*' || name === '$0') {
+      if (hasDefaultCommand(args)) {
         this._hasDefaultCommand = true;
       }
       return _command.apply(yargs, args);
