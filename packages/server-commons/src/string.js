@@ -30,3 +30,11 @@ export function padLeft(val, num, str) {
 export function padRight(val, num, str) {
   return pad(false, val, num, str);
 }
+
+export function encodeURIIfNecessary(str) {
+  return typeof str === 'string' && !str.includes('%') ? encodeURI(str) : str;
+}
+
+export function encodeURIComponentIfNecessary(str) {
+  return typeof str === 'string' && !str.includes('%') ? encodeURIComponent(str) : str;
+}
