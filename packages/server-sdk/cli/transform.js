@@ -32,7 +32,22 @@ async function run({ file }) {
 
 async function getTransformStream(loc) {
   const mod = await import(join(PWD, loc));
-  return mod.default ? new mod.default() : new Transform({ objectMode: mod.objectMode !== false, ...mod });
+  return mod.default ? new mod.default() : new Transform(normalizeOptions(mod));
+}
+
+function normalizeOptions({
+  objectMode,
+  readableObjectMode,
+  writableObjectMode,
+  ...options
+} = {}) {
+  readableObjectMode = readableObjectMode !== undefined ? readableObjectMode : objectMode !== undefined ? objectMode : true;
+  writableObjectMode = writableObjectMode !== undefined ? writableObjectMode : objectMode !== undefined ? objectMode : true;
+  return {
+    readableObjectMode,
+    writableObjectMode,
+    ...options
+  };
 }
 
 export default {
