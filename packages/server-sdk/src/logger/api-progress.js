@@ -24,20 +24,46 @@ export default class ApiProgressLogStream extends stream.LogUpdateStream {
 
   _sections({ config, state }) {
     return [
-      this._configTable(config),
+      this._configTableCached(config),
       this._statusTable(state),
       this._timeStatsTable(state),
       this._dataStatsTable(state),
     ];
   }
 
-  _configTable(config) {
-    const { name = '(anonymous)', client = {} } = config || {};
+  _configTableCached(config) {
+    return this._configTableString || (this._configTableString = this._configTable(config));
+  }
+
+  _configTable(config = {}) {
+    const { name, id, client = {} } = config;
+    const rows = [];
+    const props = this._configProps(config);
+    if (props.length) {
+      rows.push(['Config:', props.join(', ')]);
+    }
     return formatTable([
-      ['Job:', `${name}`],
+      ['Job:', `${name || id}`],
+      ...rows,
       ['Server:', `${client.server || '(default)'}`],
       ['API Key:', `${client.keyMasked}`],
     ]);
+  }
+
+  _configProps(config = {}) {
+    const { sink = {}, extra = {} } = config;
+    const { dryRun, async, params } = sink;
+    const props = [];
+    if (dryRun) {
+      props.push('dry-run');
+    }
+    if (async) {
+      props.push('async');
+    }
+    if (params && Object.keys(params).length) {
+      props.push(`params = ${JSON.stringify(params)}`);
+    }
+    return props;
   }
 
   _statusTable(state) {
