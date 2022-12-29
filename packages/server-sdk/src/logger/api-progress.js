@@ -36,8 +36,11 @@ export default class ApiProgressLogStream extends stream.LogUpdateStream {
   }
 
   _configTable(config = {}) {
-    const { name, id, client = {} } = config;
+    const { name, id, client = {}, experimentId } = config;
     const rows = [];
+    if (experimentId) {
+      rows.push(['Exp. ID:', experimentId]);
+    }
     const props = this._configProps(config);
     if (props.length) {
       rows.push(['Config:', props.join(', ')]);
@@ -53,12 +56,16 @@ export default class ApiProgressLogStream extends stream.LogUpdateStream {
   _configProps(config = {}) {
     const { sink = {}, extra = {} } = config;
     const { dryRun, async, params } = sink;
+    const { lenient } = extra;
     const props = [];
     if (dryRun) {
       props.push('dry-run');
     }
     if (async) {
       props.push('async');
+    }
+    if (lenient) {
+      props.push('lenient');
     }
     if (params && Object.keys(params).length) {
       props.push(`params = ${JSON.stringify(params)}`);

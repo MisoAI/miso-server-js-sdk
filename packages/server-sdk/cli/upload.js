@@ -1,6 +1,6 @@
 import split2 from 'split2';
 import { log, stream } from '@miso.ai/server-commons';
-import { MisoClient, logger } from '../src/index.js';
+import { MisoClient, logger, normalize } from '../src/index.js';
 
 function build(yargs) {
   return yargs
@@ -11,6 +11,10 @@ function build(yargs) {
     .option('dry-run', {
       alias: ['dry'],
       describe: 'Dry run mode',
+    })
+    .option('lenient', {
+      describe: 'Accept some enient record schema',
+      type: 'boolean',
     })
     .option('records-per-request', {
       alias: ['rpr'],
@@ -56,6 +60,7 @@ const run = type => async ({
   param: params,
   async,
   ['dry-run']: dryRun,
+  lenient,
   ['records-per-request']: recordsPerRequest,
   ['bytes-per-request']: bytesPerRequest,
   ['bytes-per-second']: bytesPerSecond,
@@ -73,7 +78,10 @@ const run = type => async ({
 
   const client = new MisoClient({ key, server });
 
+  const uploadStreamObjectMode = lenient;
+
   const uploadStream = client.createUploadStream(type, {
+    objectMode: uploadStreamObjectMode,
     legacy,
     name,
     async, 
@@ -85,6 +93,9 @@ const run = type => async ({
     bytesPerRequest,
     bytesPerSecond,
     experimentId,
+    extra: {
+      lenient,
+    },
   });
 
   const logStream = logger.createLogStream({
@@ -95,9 +106,17 @@ const run = type => async ({
     format: logFormat,
   });
 
+  // standard: stdin -> split2 -> upload -> log
+  // lenient: stdin -> split2 -> parse -> normalize -> upload -> log
+  // notice that the output of split2 are strings, while input/output of normalize are objects
+
   await stream.pipeline(
     process.stdin,
     split2(),
+    ...(lenient ? [
+      stream.parse(),
+      new normalize.Stream(type),
+    ] : []),
     uploadStream,
     logStream,
   );

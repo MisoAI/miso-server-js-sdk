@@ -20,6 +20,7 @@ export default class UploadStream extends stream.BufferedWriteStream {
     // buffer
     recordsPerRequest,
     bytesPerRequest,
+    extra,
   } = {}) {
     super({
       name,
@@ -27,6 +28,7 @@ export default class UploadStream extends stream.BufferedWriteStream {
       version,
       objectMode,
       heartbeatInterval,
+      extra,
     });
 
     this._client = client;
