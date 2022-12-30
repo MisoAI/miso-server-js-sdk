@@ -41,11 +41,6 @@ function build(yargs) {
       alias: ['name'],
       describe: 'Stream name that shows up in log messages',
     })
-    .option('legacy', {
-      type: 'boolean',
-      default: false,
-    })
-    .hide('legacy')
     .option('log-level', {
       describe: 'Log level',
     })
@@ -68,7 +63,6 @@ const run = type => async ({
   debug,
   progress,
   ['stream-name']: name,
-  legacy,
   ['log-level']: loglevel,
   ['log-format']: logFormat,
 }) => {
@@ -82,7 +76,6 @@ const run = type => async ({
 
   const uploadStream = client.createUploadStream(type, {
     objectMode: uploadStreamObjectMode,
-    legacy,
     name,
     async, 
     dryRun,
@@ -101,7 +94,6 @@ const run = type => async ({
   const logStream = logger.createLogStream({
     api: 'upload',
     type,
-    legacy,
     level: loglevel,
     format: logFormat,
   });
