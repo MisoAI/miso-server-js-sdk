@@ -1,4 +1,5 @@
 import ApiSink from './api-sink.js';
+import { upload } from '../api/helpers.js';
 
 class UploadSink extends ApiSink {
 
@@ -23,7 +24,7 @@ class UploadSink extends ApiSink {
 
   async _execute(payload) {
     const { type, async, dryRun, params } = this._options;
-    const response = await this._client.upload(type, payload, { async, dryRun, params });
+    const response = await upload(this._client, type, payload, { async, dryRun, params });
     return response.data;
   }
 
@@ -84,7 +85,7 @@ class ExperimentEventUploadSink extends UploadSink {
 
   async _execute(payload) {
     const { experimentId } = this._options;
-    const response = await this._client.uploadExperimentEvent(experimentId, payload);
+    const response = await this._client.api.experiments.uploadEvent(experimentId, payload);
     return response.data;
   }
 

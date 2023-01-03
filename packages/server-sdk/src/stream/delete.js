@@ -1,7 +1,7 @@
 import { stream, buffer } from '@miso.ai/server-commons';
 import version from '../version.js';
 import DeleteSink from './delete-sink.js';
-import DeletionStats from './deletion-state.js';
+import DeletionStats from './deletion-stats.js';
 
 export default class DeleteStream extends stream.BufferedWriteStream {
 

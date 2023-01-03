@@ -5,6 +5,7 @@ import axios from 'axios';
 import version from './version.js';
 import UploadStream from './stream/upload.js';
 import DeleteStream from './stream/delete.js';
+import Api from './api/index.js';
 
 export default class MisoClient {
 
@@ -13,6 +14,7 @@ export default class MisoClient {
   constructor(options) {
     this._options = normalizeOptions(options);
     this.version = version;
+    this.api = new Api(this);
   }
 
   async upload(type, records, options) {

@@ -1,4 +1,5 @@
 import ApiSink from './api-sink.js';
+import { batchDelete } from '../api/helpers.js';
 
 export default class DeleteSink extends ApiSink {
 
@@ -19,8 +20,7 @@ export default class DeleteSink extends ApiSink {
 
   async _execute(payload) {
     const { type, params } = this._options;
-    const response = await this._client._delete(type, payload, { params });
-    return response.data;
+    return batchDelete(this._client, type, payload, { params });
   }
 
 }
