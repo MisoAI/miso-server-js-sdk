@@ -9,7 +9,7 @@ export default class Experiments {
 
   async uploadEvent(experimentId, record) {
     // TODO: support non-string record
-    const url = buildUrl(this, `experiments/${experimentId}/events`);
+    const url = buildUrl(this._client, `experiments/${experimentId}/events`);
     // TODO: make content type header global
     const headers = { 'Content-Type': 'application/json' };
     const response = await axios.post(url, record, { headers });

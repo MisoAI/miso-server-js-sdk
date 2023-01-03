@@ -5,7 +5,7 @@ import { Buffer } from 'buffer';
 export async function upload(client, type, records, options = {}) {
   const url = buildUrl(client, type, options);
   const payload = buildUploadPayload(records);
-  return await axios.post(url, payload);
+  return axios.post(url, payload);
 }
 
 export async function batchDelete(client, type, ids, options = {}) {

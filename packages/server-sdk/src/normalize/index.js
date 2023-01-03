@@ -1,19 +1,42 @@
 import { Transform } from 'stream';
+import { trimObj } from '@miso.ai/server-commons';
+import * as shim from './shim.js';
 
-export function products(record) {
-  return record;
+export function products({
+  cover_image,
+  url,
+  ...record
+}) {
+  // category -> assume single, categories -> assume multiple
+  return trimObj({
+    cover_image: shim.url(cover_image),
+    url: shim.url(url),
+    ...record,
+  });
 }
 
-export function users(record) {
-  return record;
+export function users({
+  ...record
+}) {
+  return trimObj({
+    ...record,
+  });
 }
 
-export function interactions(record) {
-  return record;
+export function interactions({
+  ...record
+}) {
+  return trimObj({
+    ...record,
+  });
 }
 
-export function experimentEvents(record) {
-  return record;
+export function experimentEvents({
+  ...record
+}) {
+  return trimObj({
+    ...record,
+  });
 }
 
 function getTransformFunction(type) {

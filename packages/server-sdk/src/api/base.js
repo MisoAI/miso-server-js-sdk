@@ -3,6 +3,21 @@ import { upload, batchDelete, buildUrl } from './helpers.js';
 import UploadStream from '../stream/upload.js';
 import DeleteStream from '../stream/delete.js';
 
+export class Queries {
+
+  constructor(client, group) {
+    this._client = client;
+    this._group = group;
+  }
+
+  async _run(path, payload, options) {
+    // TODO: options
+    const url = buildUrl(this._client, `${this._group}/${path}`);
+    return (await axios.post(url, payload)).data.data;
+  }
+
+}
+
 export class Writable {
 
   constructor(client, type) {
