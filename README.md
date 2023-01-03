@@ -37,23 +37,56 @@ npm i --save @miso.ai/server-sdk
 
 ### JavaScript
 
+Search or autocomplete with Miso:
+```js
+import { MisoClient } from '@miso.ai/server-sdk';
+
+const key = `${your_api_key}`;
+const client = new MisoClient({ key });
+const { products } = await client.api.search.search({
+  user_id: `${user_id}`,
+  q: `${keywords}`
+});
+// or
+const { completions } = await client.api.search.autocomplete({
+  user_id: `${user_id}`,
+  q: `${input}`
+});
+```
+
+Recommendation APIs:
+```js
+import { MisoClient } from '@miso.ai/server-sdk';
+
+const key = `${your_api_key}`;
+const client = new MisoClient({ key });
+const { products } = await client.api.recommendation.userToProducts({
+  user_id: `${user_id}`
+});
+// or
+const { products } = await client.api.recommendation.productToProducts({
+  user_id: `${user_id}`,
+  product_id: `${product_id}`
+});
+```
+
 Upload with API:
-```JS
+```js
 import { MisoClient } from '@miso.ai/server-sdk';
 
 const key = `{{your_api_key}}`;
 const client = new MisoClient({ key });
 const records = [/*...*/];
 const options = {};
-const result = await client.upload('products', records, options);
+const result = await client.api.products.upload(records, options);
 ```
 
 Upload by Node.js stream:
-```JS
+```js
 import { MisoClient } from '@miso.ai/server-sdk';
 import { pipeline } from 'node:stream';
 
-const key = `{{your_api_key}}`;
+const key = `${your_api_key}`;
 const client = new MisoClient({ key });
 const records = [/*...*/];
 const options = {};
@@ -61,7 +94,7 @@ const options = {};
 const recordStream = ...; // your record readable stream
 
 // a transform stream which takes record objects and outputs log objects
-const uploadStream = client.createUploadStream('products', options);
+const uploadStream = client.api.products.uploadStream(options);
 
 const logHandlingStream =  ...; // your log handling writable stream
 
