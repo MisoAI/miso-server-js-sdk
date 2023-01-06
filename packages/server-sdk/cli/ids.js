@@ -1,10 +1,12 @@
 import { Readable } from 'stream';
 import { stream } from '@miso.ai/server-commons';
 import { MisoClient } from '../src/index.js';
+import diff from './ids-diff.js';
 
-function build(yargs) {
-  return yargs;
-}
+const build = type => yargs => {
+  return yargs
+    .command(diff(type));
+};
 
 const run = type => async ({
   key,
@@ -26,7 +28,7 @@ export default function(type) {
   return {
     command: 'ids',
     description: false,
-    builder: build,
+    builder: build(type),
     handler: run(type),
   };
 }
