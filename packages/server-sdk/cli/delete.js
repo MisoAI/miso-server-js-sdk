@@ -51,7 +51,7 @@ const run = type => async ({
 
   const client = new MisoClient({ key, server });
 
-  const deleteStream = client.createDeleteStream(type, {
+  const deleteStream = client.api[type].deleteStream({
     name,
     params,
     heartbeatInterval: logFormat === logger.FORMAT.PROGRESS ? 250 : false,

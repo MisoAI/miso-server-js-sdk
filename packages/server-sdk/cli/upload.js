@@ -74,10 +74,10 @@ const run = type => async ({
 
   const uploadStreamObjectMode = lenient;
 
-  const uploadStream = client.createUploadStream(type, {
+  const uploadStream = client.api[type].uploadStream({
     objectMode: uploadStreamObjectMode,
     name,
-    async, 
+    async,
     dryRun,
     params,
     heartbeatInterval: logFormat === logger.FORMAT.PROGRESS ? 250 : false,
