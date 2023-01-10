@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { yargs } from '@miso.ai/server-commons';
+import { MisoClient } from '../src/index.js';
 import upload from './upload.js';
 import del from './delete.js';
 import ids from './ids.js';
 import transform from './transform.js';
-import version from '../src/version.js';
 
 const interactions = {
   command: 'interactions',
@@ -58,7 +58,7 @@ yargs.build(yargs => {
     .command(users)
     .command(experiments)
     .command(transform)
-    .version(version);
+    .version(MisoClient.version);
 });
 
 

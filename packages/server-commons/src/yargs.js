@@ -2,7 +2,7 @@ import 'dotenv/config';
 import _yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 
-function hasDefaultCommand(args) {
+function isDefaultCommand(args) {
   let args0 = args[0];
   const command = typeof args0 === 'object' ? args0.command : typeof args0 === 'string' ? args0 : undefined;
   if (!command) {
@@ -16,38 +16,35 @@ function hasDefaultCommand(args) {
   return false;
 }
 
-class Tracker {
-
-  constructor() {}
-
-  get hasDefaultCommand() {
-    return !!this._hasDefaultCommand;
+function shim(yargs) {
+  let hasDefaultCommand = false;
+  // command(): track whether a default command is registered
+  const _command = yargs.command;
+  yargs.command = (...args) => {
+    if (isDefaultCommand(args)) {
+      hasDefaultCommand = true;
+    }
+    return _command.apply(yargs, args);
+  };
+  // get hasDefaultCommand
+  Object.defineProperty(yargs, 'hasDefaultCommand', {
+    get: () => hasDefaultCommand,
+  });
+  // showHelpOnZeroCommand()
+  yargs.showHelpOnZeroCommand = function() {
+    return this.command('*', false, () => {}, () => this.showHelp());
   }
-
-  shim(yargs) {
-    const _command = yargs.command;
-    yargs.command = (...args) => {
-      if (hasDefaultCommand(args)) {
-        this._hasDefaultCommand = true;
-      }
-      return _command.apply(yargs, args);
-    };
-    return yargs;
-  }
-
+  return yargs;
 }
 
 export function build(fn) {
   handleEpipe();
-  const yargs = _yargs(hideBin(process.argv));
-
-  const tracker = new Tracker();
-  tracker.shim(yargs);
+  const yargs = shim(_yargs(hideBin(process.argv)));
 
   fn(yargs);
 
-  if (!tracker.hasDefaultCommand) {
-    yargs.command('*', '', () => {}, () => yargs.showHelp())
+  if (!yargs.hasDefaultCommand) {
+    yargs.showHelpOnZeroCommand();
   }
 
   return yargs
