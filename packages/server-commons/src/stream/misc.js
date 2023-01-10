@@ -1,12 +1,21 @@
 import { Transform, pipeline as _pipeline } from 'stream';
 
-export function parse() {
+export function parse({ lenient }) {
+  const parsnFn = lenient ? parseJsonIfPossible : JSON.parse;
   return new Transform({
     transform(chunk, _, callback) {
-      callback(null, JSON.parse(chunk));
+      callback(null, parsnFn(chunk));
     },
     readableObjectMode: true,
   });
+}
+
+function parseJsonIfPossible(chunk) {
+  try {
+    return JSON.parse(chunk);
+  } catch(_) {
+    return undefined;
+  }
 }
 
 export function stringify() {
