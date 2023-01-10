@@ -1,6 +1,6 @@
 import { Transform, pipeline as _pipeline } from 'stream';
 
-export function parse({ lenient }) {
+export function parse({ lenient } = {}) {
   const parsnFn = lenient ? parseJsonIfPossible : JSON.parse;
   return new Transform({
     transform(chunk, _, callback) {
