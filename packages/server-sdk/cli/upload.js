@@ -13,7 +13,7 @@ function build(yargs) {
       describe: 'Dry run mode',
     })
     .option('lenient', {
-      describe: 'Accept some enient record schema',
+      describe: 'Accept some lenient record schema',
       type: 'boolean',
     })
     .option('records-per-request', {
