@@ -1,4 +1,4 @@
-import { asArray } from '@miso.ai/server-commons';
+import { asArray, computeIfAbsent } from '@miso.ai/server-commons';
 import axios from 'axios';
 import { Buffer } from 'buffer';
 
@@ -6,6 +6,39 @@ export async function upload(client, type, records, options = {}) {
   const url = buildUrl(client, type, options);
   const payload = buildUploadPayload(records);
   return axios.post(url, payload);
+}
+
+const RE_422_MSG_LINE = /^\s*data\.(\d+)(?:\.(\S+))?\s+is\s+invalid\.\s+(.*)$/;
+
+export function process422ResponseBody(payload, { data } = {}) {
+  const records = extractUploadPayload(payload);
+  const unrecognized = [];
+  const groupsMap = new Map();
+  for (const line of data) {
+    const m = line.match(RE_422_MSG_LINE);
+    if (!m) {
+      unrecognized.push(line);
+      continue;
+    }
+    let [_, index, path, message] = m;
+    index = Number(index);
+    const { violations } = computeIfAbsent(groupsMap, index, index => ({
+      index,
+      violations: [],
+      record: records[index],
+    }));
+    violations.push({
+      path,
+      message,
+    });
+  }
+  const groups = [...groupsMap.keys()]
+    .sort((a, b) => a - b)
+    .map(groupsMap.get.bind(groupsMap));
+  return {
+    groups,
+    unrecognized,
+  };
 }
 
 export async function batchDelete(client, type, ids, options = {}) {
@@ -40,7 +73,23 @@ export function buildUrl(client, path, { async, dryRun, params: extraParams } = 
 export function buildUploadPayload(records) {
   return typeof records === 'string' ? records :
     Buffer.isBuffer(records) ? records.toString() :
-    { data: Array.isArray(records)? records : [records] };
+    { data: Array.isArray(records) ? records : [records] };
+}
+
+export function extractUploadPayload(records) {
+  if (Buffer.isBuffer(records)) {
+    records = records.toString();
+  }
+  if (typeof records === 'string') {
+    records = JSON.parse(records);
+  }
+  if (records.data) {
+    records = records.data;
+  }
+  if (!Array.isArray(records)) {
+    records = [records];
+  }
+  return records;
 }
 
 export function buildBatchDeletePayload(type, ids) {

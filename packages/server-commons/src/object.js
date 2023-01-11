@@ -43,6 +43,15 @@ export function asNumber(value) {
   return isNaN(value) ? undefined : value;
 }
 
+export function computeIfAbsent(map, key, fn) {
+  if (map.has(key)) {
+    return map.get(key);
+  }
+  const value = fn(key);
+  map.set(key, value);
+  return value;
+}
+
 /**
  * Assign values on target object with Object.defineProperties() from source object.
  */

@@ -2,6 +2,7 @@ import { stream } from '@miso.ai/server-commons';
 import version from '../version.js';
 import createSink from './upload-sink.js';
 import createBuffer from './upload-buffer.js';
+import { process422ResponseBody } from '../api/helpers.js';
 
 export default class UploadStream extends stream.BufferedWriteStream {
 
@@ -65,8 +66,14 @@ export default class UploadStream extends stream.BufferedWriteStream {
     const output = super._output(message, args);
 
     // if upload fails, emit extracted payload at response event
-    if (message.event === 'response' && args.response && args.response.errors && args.payload) {
-      output.payload = JSON.parse(args.payload);
+    if (message.event === 'response') {
+      const { response, payload } = args;
+      if (response && response.errors && payload) {
+        output.payload = JSON.parse(payload); // TODO: call extractUploadPayload
+        if (response.status === 422) {
+          output.issues = process422ResponseBody(payload, response);
+        }
+      }
     }
 
     // add upload stats

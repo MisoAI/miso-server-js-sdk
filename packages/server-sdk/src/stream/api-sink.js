@@ -45,9 +45,12 @@ export default class ApiSink extends sink.BpsSink {
       if (!error.response) {
         throw error;
       }
+      const status = error.response.status;
       data = error.response.data;
       if (typeof data !== 'object') {
-        data = trimObj({ errors: true, cause: data });
+        data = trimObj({ status, errors: true, cause: data });
+      } else if (status) {
+        data = { status, ...data };
       }
     }
 
