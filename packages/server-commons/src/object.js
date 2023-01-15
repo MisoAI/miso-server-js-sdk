@@ -43,6 +43,9 @@ export function asNumber(value) {
   return isNaN(value) ? undefined : value;
 }
 
+/**
+ * Get value from a Map if available, compute and set it otherwise.
+ */
 export function computeIfAbsent(map, key, fn) {
   if (map.has(key)) {
     return map.get(key);

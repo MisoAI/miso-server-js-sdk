@@ -1,4 +1,4 @@
-import { asArray, computeIfAbsent } from '@miso.ai/server-commons';
+import { asArray, trimObj, computeIfAbsent } from '@miso.ai/server-commons';
 import axios from 'axios';
 import { Buffer } from 'buffer';
 
@@ -35,10 +35,10 @@ export function process422ResponseBody(payload, { data } = {}) {
   const groups = [...groupsMap.keys()]
     .sort((a, b) => a - b)
     .map(groupsMap.get.bind(groupsMap));
-  return {
+  return trimObj({
     groups,
-    unrecognized,
-  };
+    unrecognized: unrecognized.length ? unrecognized : undefined,
+  });
 }
 
 export async function batchDelete(client, type, ids, options = {}) {
