@@ -43,6 +43,7 @@ export default class Core {
       link,
     } = headers;
     const pageInfo = parseLink(link);
+    //this.debug({ path, params, status, pageInfo, callLimit, link });
     return trimObj({ data, pageInfo, callLimit });
   }
 
@@ -57,8 +58,10 @@ export default class Core {
   }
 
   debug(v) {
-    const elapsed = (Date.now() - this._start) / 1000;
-    this._options.debug && console.error(`[${elapsed}]`, v);
+    if (this._options.debug) {
+      const elapsed = (Date.now() - this._start) / 1000;
+      console.error(`[${elapsed}]`, v);
+    }
   }
 
 }
@@ -69,7 +72,7 @@ function parseLink(link) {
   }
   return link.split(',').reduce((acc, line) => {
     try {
-      const [url, rel] = line.split('; rel=');
+      const [url, rel] = line.trim().split('; rel=');
       if (rel) {
         const pageInfo = new URL(url.slice(1, -1)).searchParams.get('page_info');
         if (pageInfo) {
@@ -81,6 +84,7 @@ function parseLink(link) {
   }, {});
 }
 
+// TODO: move to server-commons
 class FlatmapStream extends Transform {
 
   constructor() {
@@ -98,7 +102,7 @@ class FlatmapStream extends Transform {
 
 class ShopifyStoreResourceStream extends Readable {
 
-  constructor(core, resource, { limit, pageSize = 200, debug }) {
+  constructor(core, resource, { limit, pageSize = 200 }) {
     super({ objectMode: true });
     this._core = core;
     this._resource = resource;
@@ -136,6 +140,10 @@ class ShopifyStoreResourceStream extends Readable {
       records = records.slice(0, limit); // just in case
     }
     this.push(size > 0 ? records : null);
+  }
+
+  _debug(...args) {
+    this._core.debug(...args);
   }
 
 }

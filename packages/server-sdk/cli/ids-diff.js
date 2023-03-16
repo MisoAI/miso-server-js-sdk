@@ -34,7 +34,7 @@ const run = type => async ({
   output = output || (plus ? 'plus' : minus ? 'minus' : undefined);
 
   const client = new MisoClient({ key, server });
-  const misoIds = await client.ids(type);
+  const misoIds = await client.api[type].ids();
 
   const diffStream = new stream.DiffStream(misoIds, { output });
   const outputStream = new stream.OutputStream({ objectMode: false });
