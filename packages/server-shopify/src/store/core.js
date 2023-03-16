@@ -48,8 +48,7 @@ export default class Core {
   }
 
   async count(resource) {
-    const { count } = await this.fetch(`/${resource}/count.json`);
-    return count;
+    return (await this.fetch(`/${resource}/count.json`)).data.count;
   }
 
   stream(resource, options) {
