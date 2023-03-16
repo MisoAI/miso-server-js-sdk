@@ -1,0 +1,23 @@
+{
+  "name": "@miso.ai/server-shopify",
+  "description": "Miso Shopify API data tools",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "miso-shopify": "cli/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {},
+  "repository": "MisoAI/miso-server-js-sdk",
+  "license": "MIT",
+  "contributors": [
+    "simonpai <simon.pai@askmiso.com>"
+  ],
+  "dependencies": {
+    "@miso.ai/server-commons": "file:packages/server-commons",
+    "axios": "^0.27.2",
+    "axios-retry": "^3.3.1"
+  }
+}

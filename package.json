@@ -5,6 +5,7 @@
     "packages/server-commons",
     "packages/server-csv",
     "packages/server-sdk",
+    "packages/server-shopify",
     "packages/server-wordpress"
   ],
   "scripts": {

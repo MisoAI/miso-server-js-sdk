@@ -1,0 +1,1 @@
+export { default as ShopifyStoreAdminClient } from './client.js';

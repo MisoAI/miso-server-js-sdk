@@ -27,7 +27,7 @@ async function run({ file }) {
     objectMode: transform.readableObjectMode,
   }));
 
-  await stream.pipeline(streams);
+  await stream.pipeline(...streams);
 }
 
 async function getTransformStream(loc) {
