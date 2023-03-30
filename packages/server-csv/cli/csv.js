@@ -23,7 +23,7 @@ function build(yargs) {
 
 // https://csv.js.org/parse/options/escape/
 const PARSE_OPTIONS = [
-  'delimiter', 'delimiter-tab', 'encoding', 'escape'
+  'delimiter', 'delimiter-tab', 'encoding', 'escape', 'relax_quotes'
 ];
 
 async function run({ object, ...options }) {
@@ -34,6 +34,7 @@ async function run({ object, ...options }) {
     delete parseOptions['delimiter-tab'];
     parseOptions.delimiter = '\t';
   }
+  parseOptions.relax_quotes = true;
   const transforms = object ? [new CsvTransformObjectStream()] : [];
   await stream.pipelineToStdout(
     process.stdin,
