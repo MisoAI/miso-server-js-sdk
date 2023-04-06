@@ -12,11 +12,22 @@ function build(yargs) {
       alias: 'n',
       describe: 'Limit number of products to fetch',
       type: 'number',
+    })
+    .option('ids', {
+      describe: 'Retrieve products by IDs',
+    })
+    .array('ids')
+    .coerce('ids', value => value.flatMap(v => `${v}`.split(',').map(v => v.trim())))
+    .option('explain', {
+      describe: 'Explain the query',
+      type: 'boolean',
     });
 }
 
-async function run({ count, ...options }) {
-  if (count) {
+async function run({ explain, count, ...options }) {
+  if (explain) {
+    await runExplain({ count, ...options });
+  } else if (count) {
     await runCount(options);
   } else {
     await runList(options);
@@ -37,6 +48,11 @@ async function runList(options) {
       objectMode: true,
     }),
   );
+}
+
+async function runExplain(options) {
+  const client = new ShopifyStoreAdminClient(options);
+  console.log(await client.products.explain(options));
 }
 
 export default {

@@ -4,6 +4,10 @@ export default class Products {
     this._core = core;
   }
   
+  async explain(options) {
+    return this._core.explain('products', options);
+  }
+
   async count() {
     return this._core.count('products');
   }

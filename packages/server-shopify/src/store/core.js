@@ -1,7 +1,7 @@
 import { Readable, Transform } from 'stream';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import { stream, defineValues, trimObj } from '@miso.ai/server-commons';
+import { defineValues, trimObj } from '@miso.ai/server-commons';
 
 // const STREAM_OPTIONS = ['limit'];
 
@@ -47,6 +47,18 @@ export default class Core {
     return trimObj({ data, pageInfo, callLimit });
   }
 
+  async explain(resource, { count, ids } = {}) {
+    const { baseURL, headers = {} } = this._axios.defaults;
+    const path = count ? `/${resource}/count.json` : `/${resource}.json`;
+    const params = trimObj({
+      ids: encodeIds(ids),
+    });
+    const headersOptions = Object.entries(headers).map(([k, v]) => typeof v === 'string' ? ` -H '${k}: ${v}'` : '').join('');
+    const paramsStr = `${new URLSearchParams(params)}`;
+    const url = `${baseURL}${path}${paramsStr ? `?${paramsStr}` : ''}`;
+    return `curl${headersOptions} '${url}'`;
+  }
+
   async count(resource) {
     return (await this.fetch(`/${resource}/count.json`)).data.count;
   }
@@ -83,6 +95,10 @@ function parseLink(link) {
   }, {});
 }
 
+function encodeIds(ids) {
+  return ids && ids.map(s => s.trim()).join(',');
+}
+
 // TODO: move to server-commons
 class FlatmapStream extends Transform {
 
@@ -101,12 +117,15 @@ class FlatmapStream extends Transform {
 
 class ShopifyStoreResourceStream extends Readable {
 
-  constructor(core, resource, { limit, pageSize = 200 }) {
+  constructor(core, resource, { ids, limit, pageSize = 200 }) {
     super({ objectMode: true });
     this._core = core;
     this._resource = resource;
     this._pageSize = pageSize;
     this._remaining = limit;
+    this._params = trimObj({
+      ids: encodeIds(ids),
+    });
   }
 
   async _read() {
@@ -115,10 +134,11 @@ class ShopifyStoreResourceStream extends Readable {
       return;
     }
     const limit = this._remaining !== undefined ? Math.min(this._remaining, this._pageSize) : this._pageSize;
-    const params = { limit };
-    if (this._pageInfo) {
-      params.page_info = this._pageInfo;
-    }
+    const params = trimObj({
+      ...this._params,
+      limit,
+      page_info: this._pageInfo,
+    });
     const { data, pageInfo } = await this._core.fetch(`/${this._resource}.json`, { params });
     if (pageInfo && pageInfo.next) {
       this._pageInfo = pageInfo.next;
