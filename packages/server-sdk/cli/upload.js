@@ -4,10 +4,6 @@ import { MisoClient, logger, normalize } from '../src/index.js';
 
 function build(yargs) {
   return yargs
-    .option('async', {
-      alias: ['a'],
-      describe: 'Asynchrnous mode',
-    })
     .option('dry-run', {
       alias: ['dry'],
       describe: 'Dry run mode',
@@ -53,7 +49,6 @@ const run = type => async ({
   key,
   server,
   param: params,
-  async,
   ['dry-run']: dryRun,
   lenient,
   ['records-per-request']: recordsPerRequest,
@@ -77,7 +72,6 @@ const run = type => async ({
   const uploadStream = client.api[type].uploadStream({
     objectMode: uploadStreamObjectMode,
     name,
-    async,
     dryRun,
     params,
     heartbeatInterval: logFormat === logger.FORMAT.PROGRESS ? 250 : false,

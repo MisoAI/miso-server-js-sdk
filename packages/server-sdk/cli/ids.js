@@ -13,7 +13,13 @@ const run = type => async ({
   server,
 }) => {
   const client = new MisoClient({ key, server });
-  const ids = await client.api[type].ids();
+  let ids;
+  try {
+    ids = await client.api[type].ids();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 
   const readStream = Readable.from(ids);
   const outputStream = new stream.OutputStream();

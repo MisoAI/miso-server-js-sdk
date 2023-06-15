@@ -55,14 +55,11 @@ export default class ApiProgressLogStream extends stream.LogUpdateStream {
 
   _configProps(config = {}) {
     const { sink = {}, extra = {} } = config;
-    const { dryRun, async, params } = sink;
+    const { dryRun, params } = sink;
     const { lenient } = extra;
     const props = [];
     if (dryRun) {
       props.push('dry-run');
-    }
-    if (async) {
-      props.push('async');
     }
     if (lenient) {
       props.push('lenient');

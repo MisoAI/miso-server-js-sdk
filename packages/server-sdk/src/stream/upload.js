@@ -12,7 +12,6 @@ export default class UploadStream extends stream.BufferedWriteStream {
     objectMode,
     heartbeatInterval,
     // sink
-    async,
     dryRun,
     params,
     experimentId,
@@ -36,7 +35,6 @@ export default class UploadStream extends stream.BufferedWriteStream {
     this._type = type;
 
     this._sink = createSink(client, type, {
-      async, 
       dryRun,
       params,
       experimentId,

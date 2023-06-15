@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Buffer } from 'buffer';
 
 export async function upload(client, type, records, options = {}) {
-  const url = buildUrl(client, type, options);
+  const url = buildUrl(client, type, { ...options, async: true });
   const payload = buildUploadPayload(records);
   return axios.post(url, payload);
 }
@@ -42,7 +42,7 @@ export function process422ResponseBody(payload, { data } = {}) {
 }
 
 export async function batchDelete(client, type, ids, options = {}) {
-  const url = buildUrl(client, `${type}/_delete`, options);
+  const url = buildUrl(client, `${type}/_delete`, { ...options, async: true });
   const payload = buildBatchDeletePayload(type, ids);
   // TODO: organize axios
   const { data } = await axios.post(url, payload, {
@@ -56,10 +56,11 @@ export async function batchDelete(client, type, ids, options = {}) {
 export function buildUrl(client, path, { async, dryRun, params: extraParams } = {}) {
   let { server, key } = client._options;
   let params = `?api_key=${key}`;
+  if (async) {
+    params += '&async=1';
+  }
   if (dryRun) {
     params += '&dry_run=1';
-  } else if (async) {
-    params += '&async=1';
   }
   if (extraParams) {
     for (const key in extraParams) {

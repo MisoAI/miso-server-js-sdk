@@ -125,7 +125,6 @@ cat records.jsonl | npx miso products upload -p -k "your_api_key"
 ### Upload Stream Options
 | name | CLI switch | env variable | |
 | --- | --- | --- | --- |
-| async | -a, --async | MISO_ASYNC | Async mode |
 | dryRun | --dry, --dry-run | MISO_DRY_RUN | Dry run mode |
 | recordsPerRequest | -rpr, --records-per-request | MISO_RECORDS_PER_REQUEST | Max records per API call |
 | bytesPerRequest | -bps, --bytes-per-request | MISO_BYTES_PER_REQUEST | Max bytes per API call |
