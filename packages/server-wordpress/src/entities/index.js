@@ -1,3 +1,4 @@
+import { Transform } from 'stream';
 import { asArray, stream } from '@miso.ai/server-commons';
 import EntityIndex from './entity-index.js';
 import EntityTransformStream from './transform.js';
@@ -14,6 +15,7 @@ export default class Entities {
   }
   
   async stream({ resolve = false, transform, ...options } = {}) {
+    // TODO: when after/before is used and fields are specified, we need to retain only fields that user wants
     if (!resolve && !transform) {
       return this._client._helpers.stream(this.name, options);
     }
@@ -51,6 +53,21 @@ export default class Entities {
 
     return (await this._client._helpers.stream(this.name, { ...options, onLoad }))
       .pipe(transformStream);
+  }
+
+  async ids(options = {}) {
+    const { before, after, u } = options;
+    const fields = ['id'];
+    if (before || after) {
+      fields.push('modified_gmt');
+    }
+    return (await this._client._helpers.stream(this.name, { ...options, fields }))
+      .pipe(new Transform({
+        objectMode: true,
+        transform({ id }, _, callback) {
+          callback(null, id);
+        },
+      }));
   }
 
   async getAll(options) {

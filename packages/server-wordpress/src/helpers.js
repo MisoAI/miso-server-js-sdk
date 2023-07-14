@@ -135,6 +135,7 @@ class Url {
   // https://make.wordpress.org/core/2021/02/23/rest-api-changes-in-wordpress-5-7/
   async append(url, options = {}) {
     const { after, before, order, orderBy, page, pageSize, offset, include, exclude } = options;
+    let { fields } = options;
     const params = [];
 
     // TODO: support single id
@@ -153,6 +154,12 @@ class Url {
     has(offset) && params.push(`offset=${offset}`);
     has(include) && include.length && params.push(`include=${joinIds(include)}`);
     has(exclude) && exclude.length && params.push(`exclude=${joinIds(exclude)}`);
+    if (has(fields) && fields.length) {
+      if (has(before) && !fields.includes('modified_gmt')) {
+        fields = [...fields, 'modified_gmt'];
+      }
+      params.push(`_fields=${fields.join(',')}`);
+    }
 
     const head = params.length === 0 ? '' : url.indexOf('?') < 0 ? '?' : '&';
     return `${url}${head}${params.join('&')}`;
