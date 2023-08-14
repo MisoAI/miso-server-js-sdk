@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { yargs } from '@miso.ai/server-commons';
 import version from '../src/version.js';
-import profile from './profile.js';
+import { profile, init } from './profile.js';
 import taxonomies from './taxonomies.js';
 import entities from './entities.js';
 
@@ -21,6 +21,7 @@ yargs.build(yargs => {
       default: false,
     })
     .hide('debug')
+    .command(init)
     .command(profile)
     .command(taxonomies)
     .command(entities)

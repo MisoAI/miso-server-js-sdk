@@ -11,7 +11,7 @@ function build(yargs) {
     });
 }
 
-async function run({ generate, ...options }) {
+async function runProfile({ generate, ...options }) {
   if (generate) {
     await runGenerate(options);
   } else {
@@ -38,9 +38,19 @@ async function runView(options) {
   console.log(JSON.stringify(client.profile, undefined, 2));
 }
 
-export default {
+async function runInit(options) {
+  await runGenerate(options);
+}
+
+export const profile = {
   command: 'profile',
   desc: 'WordPress site profile management',
   builder: build,
-  handler: run,
+  handler: runProfile,
+};
+
+export const init = {
+  command: 'init <site>',
+  desc: 'Initialize WordPress site profile',
+  handler: runInit,
 };
