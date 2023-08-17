@@ -24,10 +24,6 @@ function build(yargs) {
       alias: ['bps'],
       describe: 'How many bytes to send per second',
     })
-    .option('debug', {
-      describe: 'Set log level to debug',
-      type: 'boolean',
-    })
     .option('progress', {
       alias: ['p'],
       describe: 'Set log format progress',
@@ -75,7 +71,6 @@ const run = type => async ({
     dryRun,
     params,
     heartbeatInterval: logFormat === logger.FORMAT.PROGRESS ? 250 : false,
-    //heartbeat: logFormat === logger.FORMAT.PROGRESS ? 250 : undefined,
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,

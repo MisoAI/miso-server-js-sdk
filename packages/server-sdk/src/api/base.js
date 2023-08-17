@@ -59,4 +59,9 @@ export class Entities extends Writable {
     return new DeleteStream(this._client, this._type, options);
   }
 
+  async status(taskId) {
+    const url = buildUrl(this._client, `${this._type}/_status/${taskId}`);
+    return (await axios.get(url)).data;
+  }
+
 }

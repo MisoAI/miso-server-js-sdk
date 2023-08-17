@@ -36,8 +36,8 @@ class ExperimentEventUploadSink extends UploadSink {
 
   async _execute(payload) {
     const { experimentId } = this._options;
-    const response = await this._client.api.experiments.uploadEvent(experimentId, payload);
-    return response.data;
+    const { data } = await this._client.api.experiments.uploadEvent(experimentId, payload);
+    return data;
   }
 
 }

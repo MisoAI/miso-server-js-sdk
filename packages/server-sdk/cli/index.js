@@ -5,6 +5,7 @@ import upload from './upload.js';
 import del from './delete.js';
 import ids from './ids.js';
 import transform from './transform.js';
+import status from './status.js';
 
 const interactions = {
   command: 'interactions',
@@ -21,7 +22,8 @@ const products = {
   builder: yargs => _buildForApi(yargs)
     .command(upload('products'))
     .command(del('products'))
-    .command(ids('products')),
+    .command(ids('products'))
+    .command(status('products')),
 };
 
 const users = {
@@ -31,7 +33,8 @@ const users = {
   builder: yargs => _buildForApi(yargs)
     .command(upload('users'))
     .command(del('users'))
-    .command(ids('users')),
+    .command(ids('users'))
+    .command(status('users')),
 };
 
 const experiments = {
@@ -79,6 +82,10 @@ function _buildForApi(yargs) {
       describe: 'Extra URL parameters',
       type: 'array',
       coerce: yargs.coerceToArray,
+    })
+    .option('debug', {
+      describe: 'Set log level to debug',
+      type: 'boolean',
     })
     .demandOption(['key'], 'API key is required.');
 }

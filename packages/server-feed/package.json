@@ -1,0 +1,23 @@
+{
+  "name": "@miso.ai/server-feed",
+  "description": "Miso RSS/Atom feed data tools",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "miso-feed": "cli/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {},
+  "repository": "MisoAI/miso-server-js-sdk",
+  "license": "MIT",
+  "contributors": [
+    "simonpai <simon.pai@askmiso.com>"
+  ],
+  "dependencies": {
+    "@miso.ai/server-commons": "file:packages/server-commons",
+    "feedparser": "^2.2.10",
+    "node-fetch": "^3.3.2"
+  }
+}
