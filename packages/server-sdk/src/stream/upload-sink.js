@@ -23,6 +23,10 @@ class UploadSink extends ApiSink {
   async _execute(payload) {
     const { type, dryRun, params } = this._options;
     const { data } = await upload(this._client, type, payload, { dryRun, params });
+    const { task_id } = data.data || {};
+    if (task_id) {
+      data.task = await this._client.api[type].status(task_id);
+    }
     return data;
   }
 
