@@ -2,6 +2,7 @@ import axios from 'axios';
 import { upload, batchDelete, buildUrl } from './helpers.js';
 import UploadStream from '../stream/upload.js';
 import DeleteStream from '../stream/delete.js';
+import StatusStream from '../stream/status.js';
 
 export class Queries {
 
@@ -62,6 +63,10 @@ export class Entities extends Writable {
   async status(taskId) {
     const url = buildUrl(this._client, `${this._type}/_status/${taskId}`);
     return (await axios.get(url)).data;
+  }
+
+  statusStream() {
+    return new StatusStream(this._client, this._type);
   }
 
 }
