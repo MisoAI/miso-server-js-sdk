@@ -2,6 +2,7 @@ import { Transform } from 'stream';
 import { asArray, stream } from '@miso.ai/server-commons';
 import EntityIndex from './entity-index.js';
 import EntityTransformStream from './transform.js';
+import EntityPresenceStream from './presence.js';
 import defaultTransform from './transform-default.js';
 import legacyTransform from './transform-legacy.js';
 
@@ -80,6 +81,10 @@ export default class Entities {
 
   async terms(options) {
     return this._client._helpers.terms(this.name, options);
+  }
+
+  presence(options) {
+    return new EntityPresenceStream(this._client, this.name, options);
   }
 
   get index() {

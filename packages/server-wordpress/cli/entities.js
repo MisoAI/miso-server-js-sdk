@@ -1,4 +1,5 @@
 import { Transform } from 'stream';
+import split2 from 'split2';
 import { stream, parseDuration } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
 import { normalizeOptions, normalizeTransform, parseDate } from './utils.js';
@@ -76,6 +77,12 @@ async function run({ subcmd, count, terms, update, name, ...options }) {
     case 'count':
       await runCount(client, name, options);
       return;
+    case 'absence':
+      await runPresence(client, name, { present: false });
+      return;
+    case 'presence':
+      await runPresence(client, name, { present: true });
+      return;
   }
   if (count) {
     await runCount(client, name, options);
@@ -133,6 +140,17 @@ export async function runUpdate(client, name, update, options) {
   await stream.pipeline(
     await buildUpdateStream(client, name, update, options),
     new stream.OutputStream(),
+  );
+}
+
+export async function runPresence(client, name, options) {
+  await stream.pipeline(
+    process.stdin,
+    split2(),
+    client.entities(name).presence(options),
+    new stream.OutputStream({
+      objectMode: false,
+    }),
   );
 }
 

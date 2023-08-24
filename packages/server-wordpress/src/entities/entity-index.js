@@ -2,7 +2,7 @@ import { asArray, Resolution } from '@miso.ai/server-commons';
 
 export default class EntityIndex {
 
-  constructor(entities, { process, value } = {}) {
+  constructor(entities, { process, value, fields } = {}) {
     this._entities = entities;
     if (process) {
       this._process = process;
@@ -10,6 +10,7 @@ export default class EntityIndex {
     if (value) {
       this._value = (en => en && value(en)); // null-safe
     }
+    this._fields = fields;
     this.name = entities.name;
     this._index = new Map();
     this._notFound = new Set();
@@ -66,7 +67,7 @@ export default class EntityIndex {
     if (idsToFetch.length > 0) {
       (async () => {
         const idsFetchSet = new Set(idsToFetch);
-        const stream = await this._entities.stream({ ids: idsToFetch });
+        const stream = await this._entities.stream({ ids: idsToFetch, fields: this._fields });
         for await (const entity of stream) {
            const { id } = entity;
            this._index.set(id, this._process(entity));
