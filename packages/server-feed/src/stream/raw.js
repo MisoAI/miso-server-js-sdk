@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 import fetch, { Headers } from 'node-fetch';
 import FeedParser from 'feedparser';
 
-export default async function stream(url, { fetch: fetchOptions, parse: parseOptions } = {}) {
+export default async function rawFeedStream(url, { fetch: fetchOptions, parse: parseOptions } = {}) {
   const { status, body } = await fetch(url, buildFetchOptions(fetchOptions));
   if (status !== 200) {
     throw new Error(`Failed to fetch ${url}: ${status}`);

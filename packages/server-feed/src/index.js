@@ -1,1 +1,2 @@
-export { default as stream } from './stream.js';
+export * from './stream/index.js';
+export { default as version } from './version.js';

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { yargs, stream } from '@miso.ai/server-commons';
-import version from '../src/version.js';
-import { stream as createFeedStream } from '../src/index.js';
+import { version, feedStream } from '../src/index.js';
 
 yargs.build(yargs => {
   yargs
@@ -10,8 +9,20 @@ yargs.build(yargs => {
       type: 'string',
     })
     .option('auth', {
-      alias: 'u',
       type: 'string',
+    })
+    .option('after', {
+      alias: 'a',
+      describe: 'Only include records after this time',
+    })
+    .option('update', {
+      alias: 'u',
+      describe: 'Only include records modified in given duration (3h, 2d, etc.)',
+    })
+    .option('transform', {
+      alias: 't',
+      type: 'boolean',
+      default: false,
     })
     .option('debug', {
       type: 'boolean',
@@ -26,9 +37,9 @@ yargs.build(yargs => {
     .version(version);
 });
 
-async function run({ url, auth } = {}) {
+async function run({ url, auth, after, update, transform } = {}) {
   await stream.pipeline(
-    await createFeedStream(url, { fetch: { auth } }),
+    await feedStream(url, { fetch: { auth }, after, update, transform }),
     new stream.OutputStream(),
   );
 }
