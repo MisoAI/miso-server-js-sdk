@@ -134,17 +134,19 @@ class Url {
   // modifiedAfter, modifiedBefore is supported since WordPress 5.7
   // https://make.wordpress.org/core/2021/02/23/rest-api-changes-in-wordpress-5-7/
   async append(url, options = {}) {
-    const { after, before, order, orderBy, page, pageSize, offset, include, exclude } = options;
+    const { after, before, modifiedAfter, modifiedBefore, order, orderBy, page, pageSize, offset, include, exclude } = options;
     let { fields } = options;
     const params = [];
 
     // TODO: support single id
 
     // The date is compared against site's local time, not UTC, so we have to work on timezone offset
-    if (has(after) || has(before)) {
+    if (has(after) || has(before) || has(modifiedAfter) || has(modifiedBefore)) {
       const utcOffset = await this._helpers.utcOffsetInMs();
       has(after) && params.push(`after=${toISOString(after, utcOffset)}`);
       has(before) && params.push(`before=${toISOString(before, utcOffset)}`);
+      has(modifiedAfter) && params.push(`modified_after=${toISOString(modifiedAfter, utcOffset)}`);
+      has(modifiedBefore) && params.push(`modified_before=${toISOString(modifiedBefore, utcOffset)}`);
     }
 
     has(order) && params.push(`order=${order}`);
