@@ -3,14 +3,16 @@ import FeedParser from 'feedparser';
 import DateFilterStream from './date-filter.js';
 import ArticleTransformStream from './transform.js';
 
-export default function feedStream({ parse, after, update, transform } = {}) {
+export default function feedStreams({ parse, after, update, transform } = {}) {
   const threshold = update ? (Date.now() - parseDuration(update)) : startOfDate(after);
-  let stream = new FeedParser(parse);
+  const streams = [
+    new FeedParser(parse),
+  ];
   if (threshold) {
-    stream = stream.pipe(new DateFilterStream(threshold));
+    streams.push(new DateFilterStream(threshold));
   }
   if (transform) {
-    stream = stream.pipe(new ArticleTransformStream());
+    streams.push(new ArticleTransformStream());
   }
-  return stream;
+  return streams;
 }
