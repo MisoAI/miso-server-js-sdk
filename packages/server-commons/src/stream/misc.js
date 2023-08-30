@@ -32,9 +32,7 @@ export function stringify() {
 }
 
 export async function pipeline(...streams) {
-  return new Promise((resolve, reject) =>
-    _pipeline(...streams, err => err ? reject(err) : resolve())
-  );
+  return new Promise((resolve, reject) => _pipeline(...streams.filter(s => s), err => err ? reject(err) : resolve()));
 }
 
 export async function pipelineToStdout(...streams) {

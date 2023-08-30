@@ -11,12 +11,12 @@ export default class DateFilterStream extends Transform {
     try {
       const timestamp = Date.parse(record.date);
       if (timestamp < this._threshold) {
-        this.end();
+        //this.end();
         return;
       }
     } catch (err) {
       console.error(err);
-      this.end();
+      //this.end();
       return;
     }
     this.push(record);
