@@ -1,11 +1,11 @@
 import { parseDuration, startOfDate } from '@miso.ai/server-commons';
-import rawFeedStream from './raw.js';
+import FeedParser from 'feedparser';
 import DateFilterStream from './date-filter.js';
 import ArticleTransformStream from './transform.js';
 
-export default async function feedStream(url, { fetch, parse, after, update, transform } = {}) {
-  let stream = await rawFeedStream(url, { fetch, parse });
+export default function feedStream({ parse, after, update, transform } = {}) {
   const threshold = update ? (Date.now() - parseDuration(update)) : startOfDate(after);
+  let stream = new FeedParser(parse);
   if (threshold) {
     stream = stream.pipe(new DateFilterStream(threshold));
   }

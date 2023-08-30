@@ -5,12 +5,6 @@ import { version, feedStream } from '../src/index.js';
 yargs.build(yargs => {
   yargs
     .env('MISO_FEED')
-    .option('url', {
-      type: 'string',
-    })
-    .option('auth', {
-      type: 'string',
-    })
     .option('after', {
       alias: 'a',
       describe: 'Only include records after this time',
@@ -30,16 +24,17 @@ yargs.build(yargs => {
     })
     .hide('debug')
     .command({
-      command: '* [url]',
-      description: 'Read items from feed',
+      command: '*',
+      description: 'Parse items from feed content',
       handler: run,
     })
     .version(version);
 });
 
-async function run({ url, auth, after, update, transform } = {}) {
+async function run(options) {
   await stream.pipeline(
-    await feedStream(url, { fetch: { auth }, after, update, transform }),
+    process.stdin,
+    feedStream(options),
     new stream.OutputStream(),
   );
 }
