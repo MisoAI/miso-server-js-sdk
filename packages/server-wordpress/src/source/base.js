@@ -40,6 +40,9 @@ export default class WordPressDataSource {
       // out of bound, so there is no more data
       return { data: [], terminate: true };
     }
+    if (!Array.isArray(data)) {
+      throw new Error(`Unexpected response from WordPress API on ${this._resource}. Expected an array of objects: ${data}`);
+    }
     if (!this._options.preserveLinks) {
       data = data.map(this._helpers.removeLinks);
     }

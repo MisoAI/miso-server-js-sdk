@@ -27,12 +27,17 @@ export default class Entities {
     // we need taxonomy fetched so we know whether it's hierarchical
     const taxonomies = await client._helpers.findAssociatedTaxonomies(this.name);
 
+    // TODO: omit specific indicies by config
     // prepare entity indicies
+    const { resources = {} } = client._profile || {};
+    const ignored = new Set(resources.ignore || []);
+
     const indicies = [
       client.users.index,
       client.media.index,
       ...taxonomies.map(({ rest_base }) => client.entities(rest_base).index),
-    ];
+    ].filter(index => !ignored.has(index.name));
+
     await Promise.all(indicies.map(index => index.ready()));
     for (const index of indicies) {
       if (index.hierarchical) {
