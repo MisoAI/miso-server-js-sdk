@@ -14,14 +14,14 @@ export default function transform({
   modified_gmt,
   guid: {
     rendered: guid,
-  },
+  } = {},
   slug,
   title: {
     rendered: title,
-  },
+  } = {},
   content: {
     rendered: html,
-  },
+  } = {},
   link: url,
   status,
   sticky,
@@ -42,6 +42,7 @@ export default function transform({
     product_id,
     type,
     created_at,
+    published_at: created_at,
     updated_at,
     title,
     cover_image,

@@ -32,16 +32,16 @@ export default class WordPressDataSource {
     this._debug(`[WordPressDataSource] request ${url}`);
     const response =  await this._axiosGet(url);
     this._debug(`[WordPressDataSource] response ${response.status} ${url}`);
-    return this._process(response);
+    return this._process(response, { url });
   }
 
-  _process({ status, data }) {
+  _process({ status, data }, { url }) {
     if (status >= 400 && status < 500 && data.code === 'rest_post_invalid_page_number') {
       // out of bound, so there is no more data
       return { data: [], terminate: true };
     }
     if (!Array.isArray(data)) {
-      throw new Error(`Unexpected response from WordPress API on ${this._resource}. Expected an array of objects: ${data}`);
+      throw new Error(`Unexpected response from WordPress API for ${url}. Expected an array of objects: ${data}`);
     }
     if (!this._options.preserveLinks) {
       data = data.map(this._helpers.removeLinks);

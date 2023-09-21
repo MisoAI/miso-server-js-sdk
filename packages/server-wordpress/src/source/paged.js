@@ -50,8 +50,8 @@ export default class PagedWordPressDataSource extends WordPressDataSource {
     return total;
   }
 
-  _process({ status, data, headers }) {
-    const result = super._process({ status, data, headers });
+  _process({ status, data, headers }, meta) {
+    const result = super._process({ status, data, headers }, meta);
     const total = asNumber(headers['x-wp-total']);
     if (total !== undefined) {
       result.total = total;
