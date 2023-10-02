@@ -1,5 +1,4 @@
 import { Transform } from 'stream';
-import axios from '../axios.js';
 
 export default class EntityPresenceStream extends Transform {
 
@@ -95,7 +94,7 @@ export default class EntityPresenceStream extends Transform {
 
   async _fetch(ids) {
     const url = await this._client._helpers.url.build(this._name, { include: ids, fields: ['id'] });
-    const { data } = await axios.get(url);
+    const { data } = await this._client._helpers.axios.get(url);
     const presences = new Set();
     for (const { id } of data) {
       presences.add(`${id}`);

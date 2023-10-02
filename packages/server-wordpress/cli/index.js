@@ -16,6 +16,9 @@ yargs.build(yargs => {
       alias: 'p',
       describe: 'Site profile file location',
     })
+    .option('auth', {
+      describe: 'Authentication string',
+    })
     .option('debug', {
       type: 'boolean',
       default: false,

@@ -178,6 +178,14 @@ async function buildUpdateStream(client, name, update, {
         ...options,
         transform,
         orderBy: 'modified',
+        modifiedAfter: threshold,
+        before: threshold,
+      }),
+      /*
+      entities.stream({
+        ...options,
+        transform,
+        orderBy: 'modified',
         before: threshold,
         pageSize: 20,
         strategy: {
@@ -186,6 +194,7 @@ async function buildUpdateStream(client, name, update, {
           terminate: entity => parseDate(entity.modified_gmt) < threshold,
         },
       })
+      */
     ])
   );
 }

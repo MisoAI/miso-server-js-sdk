@@ -1,5 +1,3 @@
-import axios from '../axios.js';
-
 export default class WordPressDataSource {
 
   constructor(helpers, resource, options = {}) {
@@ -61,7 +59,7 @@ export default class WordPressDataSource {
 
   async _axiosGet(url) {
     try {
-      return await axios.get(url);
+      return await this._helpers.axios.get(url);
     } catch(error) {
       if (error.response) {
         return error.response;

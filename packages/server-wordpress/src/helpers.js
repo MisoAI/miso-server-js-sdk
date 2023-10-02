@@ -1,19 +1,47 @@
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import { asNumber, splitObj, stream } from '@miso.ai/server-commons';
-import axios from './axios.js';
 import DataSource from './source/index.js';
+import version from './version.js';
 
 const MS_PER_HOUR = 1000 * 60 * 60;
 
 const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'transform', 'onLoad'];
+
+function createAxios(client) {
+  const { auth } = client._options || {};
+  const headers = {
+    'User-Agent': `MisoWordPressTool/${version}`,
+  };
+  if (auth) {
+    if (typeof auth === 'object' && auth.username && auth.password) {
+      auth = `${auth.username}:${auth.password}`;
+    }
+    if (typeof auth !== 'string') {
+      throw new TypeError(`Invalid auth: must me a string or an object.`);
+    }
+    headers['Authorization'] = 'Basic ' + Buffer.from(auth).toString('base64');
+  }
+  const instance = axios.create({
+    headers,
+  });
+  axiosRetry(instance, { retries: 5, retryDelay: count => count * 300 });
+  return instance;
+}
 
 export default class Helpers {
 
   constructor(client) {
     this._start = Date.now();
     this._client = client;
+    this._axios = createAxios(client);
     this.url = new Url(this);
     this._samples = {};
     this.debug = this.debug.bind(this);
+  }
+
+  get axios() {
+    return this._axios;
   }
 
   async stream(resource, options) {
@@ -32,7 +60,7 @@ export default class Helpers {
 
   async _fetchSample(resource) {
     const url = await this.url.build(resource, { page: 0, pageSize: 1 });
-    const { data, headers } = await axios.get(url);
+    const { data, headers } = await this.axios.get(url);
     if (!data.length) {
       throw new Error(`No record of ${resource} avaliable`);
     }
@@ -71,7 +99,7 @@ export default class Helpers {
 
   async _fetchTaxonomies() {
     const url = await this.url.build('taxonomies');
-    const { data } = await axios.get(url);
+    const { data } = await this.axios.get(url);
     this.debug(`Fetched taxonomies.`);
     return Object.values(data);
   }
@@ -82,7 +110,7 @@ export default class Helpers {
 
   async count(resource, { offset: _, ...options } = {}) {
     const url = await this.url.build(resource, { ...options, page: 0, pageSize: 1 });
-    const { headers } = await axios.get(url);
+    const { headers } = await this.axios.get(url);
     return asNumber(headers['x-wp-total']);
   }
 
@@ -92,7 +120,7 @@ export default class Helpers {
 
   async countUrl(url) {
     url = await this.url.append(url, { page: 0, pageSize: 1 });
-    const { headers } = await axios.get(url);
+    const { headers } = await this.axios.get(url);
     return asNumber(headers['x-wp-total']);
   }
 
