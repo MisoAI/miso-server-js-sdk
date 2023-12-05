@@ -3,8 +3,9 @@ import { startOfDate, endOfDate } from '@miso.ai/server-commons';
 
 const PWD = process.env.PWD;
 
-export function normalizeOptions({ date, after, before, ids, ...options }) {
+export function normalizeOptions({ date, after, before, ids, include, ...options }) {
   [after, before] = [startOfDate(date || after), endOfDate(date || before)];
+  // TODO: rely on yargs to coerce to array
   ids = ids ? `${ids}`.split(',').map(s => s.trim()) : ids;
   return { ...options, after, before, ids };
 }

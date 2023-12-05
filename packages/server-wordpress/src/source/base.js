@@ -53,7 +53,7 @@ export default class WordPressDataSource {
 
   async _buildBaseUrl() {
     // exclude parameters meant to be dealt with state
-    const { page, ...options } = this._options;
+    const { page, ids, ...options } = this._options;
     return this._helpers.url.build(this._resource, options);
   }
 

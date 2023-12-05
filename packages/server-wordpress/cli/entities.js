@@ -2,7 +2,7 @@ import { Transform } from 'stream';
 import split2 from 'split2';
 import { stream, parseDuration } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
-import { normalizeOptions, normalizeTransform, parseDate } from './utils.js';
+import { normalizeOptions, normalizeTransform } from './utils.js';
 
 export function buildForEntities(yargs) {
   // TODO: make them mutually exclusive
@@ -34,7 +34,7 @@ export function buildForEntities(yargs) {
     })
     .option('ids', {
       alias: 'include',
-      describe: 'Specify post ids'
+      describe: 'Specify post ids',
     })
     .option('fields', {
       describe: 'Specify which record fields are retrieved',

@@ -11,7 +11,7 @@ const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'transform', 'o
 function createAxios(client) {
   const { auth } = client._options || {};
   const headers = {
-    'User-Agent': `MisoWordPressTool/${version}`,
+    'User-Agent': `MisoBot/${version}`,
   };
   if (auth) {
     if (typeof auth === 'object' && auth.username && auth.password) {
