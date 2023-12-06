@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { Transform } from 'stream';
 import { asArray, stream } from '@miso.ai/server-commons';
 import EntityIndex from './entity-index.js';
@@ -20,9 +21,8 @@ export default class Entities {
     if (!resolve && !transform) {
       return this._client._helpers.stream(this.name, options);
     }
-    transform = getTransformFn(transform);
-
     const client = this._client;
+    transform = await getTransformFn(client, this.name, transform);
 
     // we need taxonomy fetched so we know whether it's hierarchical
     const taxonomies = await client._helpers.findAssociatedTaxonomies(this.name);
@@ -115,8 +115,26 @@ function aggregateIds(records, propName) {
   }, new Set()));
 }
 
-function getTransformFn(transform) {
-  return typeof transform === 'function' ? post => transform(post, { defaultTransform }) :
-    (transform === true || transform === 'default') ? defaultTransform :
-    transform === 'legacy' ? legacyTransform : undefined;
+async function getTransformFn(client, name, transform) {
+  switch (transform) {
+    case 'default':
+      return defaultTransform;
+    case 'legacy':
+      return legacyTransform;
+  }
+  if (transform === true) {
+    const { defaults } = client._profile || {};
+    if (!defaults || !defaults.transform || !defaults.transform[name]) {
+      return defaultTransform;
+    }
+    transform = defaults.transform[name];
+  }
+  if (typeof transform === 'string') {
+    // try as file path
+    transform = (await import(join(process.env.PWD, transform))).default;
+  }
+  if (typeof transform === 'function') {
+    return post => transform(post, { defaultTransform });
+  }
+  return undefined;
 }

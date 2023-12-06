@@ -6,7 +6,7 @@ import version from './version.js';
 
 const MS_PER_HOUR = 1000 * 60 * 60;
 
-const STREAM_OPTIONS = ['offset', 'limit', 'strategy', 'filter', 'transform', 'onLoad'];
+const STREAM_OPTIONS = ['offset', 'strategy', 'filter', 'transform', 'onLoad'];
 
 function createAxios(client) {
   const { auth } = client._options || {};

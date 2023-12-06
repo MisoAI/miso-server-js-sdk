@@ -14,7 +14,7 @@ export default class PagedWordPressDataSource extends WordPressDataSource {
     if (pageSize > MAX_PAGE_SIZE) {
       throw new Error(`Page size cannot be greater than ${MAX_PAGE_SIZE}: ${pageSize}`);
     }
-    // TODO: limit
+    this._limit = limit;
     this._pageSize = options.pageSize = pageSize;
     this._page = 0;
   }
@@ -25,10 +25,13 @@ export default class PagedWordPressDataSource extends WordPressDataSource {
 
   request() {
     const page = this._page++;
-    const records = this._pageSize;
-    const total = this._totalValue;
+    let records = this._pageSize;
+    const limit = combineLimit(this._totalValue, this._limit);
     // if we know total, we know when the data is exhausted
-    const exhaust = total !== undefined && ((page + 1) * this._pageSize > total + 10); // 10 for a buffer
+    const exhaust = limit !== undefined && ((page + 1) * this._pageSize > limit);
+    if (exhaust && this._limit !== undefined) {
+      records = this._limit - (page * this._pageSize);
+    }
     return exhaust ? { records, page, exhaust } : { records, page };
   }
 
@@ -36,9 +39,18 @@ export default class PagedWordPressDataSource extends WordPressDataSource {
     return this._totalPromise || (this._totalPromise = this._fetchTotal());
   }
 
-  async _url(baseUrl, { page }) {
+  async _url(baseUrl, { records, page }) {
     const head = baseUrl.indexOf('?') < 0 ? '?' : '&';
-    return `${baseUrl}${head}page=${page + 1}`;
+    let url = `${baseUrl}${head}page=${page + 1}`;
+    // optimize: if limit < page size we can save much bandwidth
+    if (page === 0 && records < this._pageSize) {
+      if (url.indexOf('per_page=') > -1) {
+        url = url.replace(/per_page=\d+/, `per_page=${records}`);
+      } else {
+        url += `&per_page=${records}`;
+      }
+    }
+    return url;
   }
 
   async _fetchTotal() {
@@ -62,4 +74,10 @@ export default class PagedWordPressDataSource extends WordPressDataSource {
     return result;
   }
 
+}
+
+const TOTAL_BUFFER = 10;
+
+function combineLimit(total, limit) {
+  return total === undefined ? limit : limit === undefined ? total + TOTAL_BUFFER : Math.min(total + TOTAL_BUFFER, limit);
 }

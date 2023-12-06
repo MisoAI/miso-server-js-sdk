@@ -2,62 +2,7 @@ import { Transform } from 'stream';
 import split2 from 'split2';
 import { stream, parseDuration } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
-import { normalizeOptions, normalizeTransform } from './utils.js';
-
-export function buildForEntities(yargs) {
-  // TODO: make them mutually exclusive
-  return yargs
-    .option('terms', {
-      describe: 'Display terms associated with this type of resource',
-      type: 'boolean',
-    })
-    .option('count', {
-      alias: 'c',
-      describe: 'Return the total number of records',
-      type: 'boolean',
-    })
-    .option('date', {
-      alias: 'd',
-      describe: 'Only include records in this year/month/day',
-    })
-    .option('after', {
-      alias: 'a',
-      describe: 'Only include records after this time',
-    })
-    .option('before', {
-      alias: 'b',
-      describe: 'Only include records before this time',
-    })
-    .option('update', {
-      alias: 'u',
-      describe: 'Only include records modified in given duration (3h, 2d, etc.)',
-    })
-    .option('ids', {
-      alias: 'include',
-      describe: 'Specify post ids',
-    })
-    .option('fields', {
-      describe: 'Specify which record fields are retrieved',
-      type: 'array',
-      coerce: yargs.coerceToArray,
-    })
-    .option('resolve', {
-      alias: 'r',
-      describe: 'Attach resolved entities (author, catagories) linked with the subjects',
-      type: 'boolean',
-    })
-    .option('transform', {
-      alias: 't',
-      describe: 'Apply transform function to the entities',
-    });
-    /*
-    .option('limit', {
-      alias: 'n',
-      describe: 'Limit the amount of records',
-      type: 'number',
-    })
-    */
-}
+import { normalizeOptions, buildForEntities } from './utils.js';
 
 function build(yargs) {
   return buildForEntities(yargs)
@@ -110,7 +55,7 @@ export async function runGet(client, name, { transform, ...options }) {
   await stream.pipelineToStdout(
     await client.entities(name).stream({
       ...options,
-      transform: await normalizeTransform(transform),
+      transform,
     }),
     stream.stringify(),
   );
@@ -160,7 +105,6 @@ async function buildUpdateStream(client, name, update, {
   ...options
 }) {
   // TODO: move the logic into client itself
-  transform = await normalizeTransform(transform);
   const now = Date.now();
   update = parseDuration(update);
   const threshold = now - update;

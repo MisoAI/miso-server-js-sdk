@@ -10,8 +10,12 @@ export default class Posts extends Entities {
     super(client, RESOURCE_NAME);
   }
   
-  async getAll() {
-    throw new Error(`Getting all posts is not supported.`);
+  async getAll(options = {}) {
+    if (!options.ids && !options.limit) {
+      // TODO: should be more tolerant
+      throw new Error(`Getting all posts is not supported.`);
+    }
+    return super.getAll(options);
   }
 
   async index() {

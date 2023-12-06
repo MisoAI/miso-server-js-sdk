@@ -70,7 +70,7 @@ export default class WordPressClient {
 
 }
 
-const SITE_PROFILE_PROPS = ['site', 'utcOffset', 'resources'];
+const SITE_PROFILE_PROPS = ['site', 'utcOffset', 'resources', 'defaults'];
 
 class SiteProfile {
 
