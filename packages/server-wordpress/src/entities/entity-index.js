@@ -50,7 +50,7 @@ export default class EntityIndex {
     if (this.hierarchical) {
       return; // already all fetched
     }
-    ids = asArray(ids);
+    ids = asArray(ids).filter(id => id); // discard 0, null, undefined
 
     const promises = []
     const idsToFetch = [];
@@ -85,8 +85,11 @@ export default class EntityIndex {
   }
 
   _resolveFetch(id) {
-    this._fetching.get(id).resolve();
-    this._fetching.delete(id);
+    const res = this._fetching.get(id);
+    if (res) {
+      res.resolve();
+      this._fetching.delete(id);
+    }
   }
 
   async get(id) {
@@ -96,13 +99,14 @@ export default class EntityIndex {
   }
 
   async getAll(ids) {
+    ids = ids.filter(id => id); // discard 0, null, undefined
     await this._dataReady();
     await this.fetch(ids);
     return ids.map(id => this._index.get(id));
   }
 
   async getValue(id) {
-    if (id === undefined) {
+    if (!id) { // 0, null, undefined
       return undefined;
     }
     return this._value(await this.get(id));
