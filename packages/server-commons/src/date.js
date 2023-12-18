@@ -29,6 +29,10 @@ export function parseDuration(expr, unit) {
   return value * ts;
 }
 
+export function getYear(dateStr) {
+  return new Date(dateStr).getFullYear();
+}
+
 export function startOfDate(expr) {
   if (expr === undefined) {
     return undefined;

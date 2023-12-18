@@ -1,6 +1,5 @@
-import { startOfDate, endOfDate } from '@miso.ai/server-commons';
+import { startOfDate, endOfDate, getYear } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
-import { getYear } from './utils.js';
 
 function build(yargs) {
   return yargs;

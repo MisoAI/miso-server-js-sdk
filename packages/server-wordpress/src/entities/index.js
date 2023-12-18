@@ -1,12 +1,11 @@
 import { join } from 'path';
 import { Transform } from 'stream';
-import { asArray, stream } from '@miso.ai/server-commons';
+import { asArray, stream, getYear } from '@miso.ai/server-commons';
 import EntityIndex from './entity-index.js';
 import EntityTransformStream from './transform.js';
 import EntityPresenceStream from './presence.js';
 import defaultTransform from './transform-default.js';
 import legacyTransform from './transform-legacy.js';
-import { getFirstPostDate, getLastPostDate, getYear } from './utils.js';
 
 export default class Entities {
 
@@ -95,8 +94,8 @@ export default class Entities {
   async dateRange() {
     // TODO: options?
     return Promise.all([
-      getFirstPostDate(this._client),
-      getLastPostDate(this._client),
+      getPostDate(this._client, 'asc'),
+      getPostDate(this._client, 'desc'),
     ]);
   }
 
@@ -116,15 +115,6 @@ export default class Entities {
     return await this._client._helpers.findTaxonomyByResourceName(this.name, options);
   }
 
-}
-
-function aggregateIds(records, propName) {
-  return Array.from(records.reduce((idSet, record) => {
-    for (const id of asArray(record[propName])) {
-      idSet.add(id);
-    }
-    return idSet;
-  }, new Set()));
 }
 
 async function getTransformFn(client, name, transform) {
@@ -149,4 +139,17 @@ async function getTransformFn(client, name, transform) {
     return post => transform(post, { defaultTransform });
   }
   return undefined;
+}
+
+function aggregateIds(records, propName) {
+  return Array.from(records.reduce((idSet, record) => {
+    for (const id of asArray(record[propName])) {
+      idSet.add(id);
+    }
+    return idSet;
+  }, new Set()));
+}
+
+async function getPostDate(client, order, options = {}) {
+  return (await client.posts.getAll({ ...options, limit: 1, order, fields: ['date_gmt'] }))[0].date_gmt;
 }

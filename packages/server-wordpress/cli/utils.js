@@ -1,19 +1,18 @@
 import { startOfDate, endOfDate } from '@miso.ai/server-commons';
 
 export function normalizeOptions({ date, after, before, ids, include, ...options }) {
+  // TODO: should be able to turn this off, as it's covered by helper
   [after, before] = [startOfDate(date || after), endOfDate(date || before)];
   // TODO: rely on yargs to coerce to array
   ids = ids ? `${ids}`.split(',').map(s => s.trim()) : ids;
   return { ...options, after, before, ids };
 }
 
+/*
 export function parseDate(value) {
   return Date.parse(`${value}Z`);
 }
-
-export function getYear(dateStr) {
-  return new Date(dateStr).getFullYear();
-}
+*/
 
 export function buildForEntities(yargs) {
   // TODO: make them mutually exclusive

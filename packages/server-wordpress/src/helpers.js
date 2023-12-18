@@ -1,6 +1,6 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import { asNumber, splitObj, stream } from '@miso.ai/server-commons';
+import { asNumber, splitObj, stream, startOfDate, endOfDate } from '@miso.ai/server-commons';
 import DataSource from './source/index.js';
 import version from './version.js';
 
@@ -161,12 +161,26 @@ class Url {
 
   // modifiedAfter, modifiedBefore is supported since WordPress 5.7
   // https://make.wordpress.org/core/2021/02/23/rest-api-changes-in-wordpress-5-7/
-  async append(url, options = {}) {
-    const { after, before, modifiedAfter, modifiedBefore, order, orderBy, page, pageSize, offset, include, exclude } = options;
-    let { fields } = options;
+  async append(url, {
+    date,
+    after,
+    before,
+    modifiedAfter,
+    modifiedBefore,
+    order,
+    orderBy,
+    page,
+    pageSize,
+    offset,
+    include,
+    exclude,
+    fields,
+  } = {}) {
     const params = [];
 
     // TODO: support single id
+
+    [after, before] = [startOfDate(date || after), endOfDate(date || before)];
 
     // The date is compared against site's local time, not UTC, so we have to work on timezone offset
     if (has(after) || has(before) || has(modifiedAfter) || has(modifiedBefore)) {
