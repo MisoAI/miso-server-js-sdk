@@ -64,7 +64,7 @@ export async function runGet(client, name, { transform, ...options }) {
 export async function runIds(client, name, { update, transform, resolve, fields, ...options }) {
   if (update) {
     await stream.pipeline(
-      await buildUpdateStream(client, name, update, { ...options, fields: ['id', 'modified_gmt'] }),
+      await buildUpdateStream(client, name, update, { ...options, fields: ['id'] }),
       new Transform({
         objectMode: true,
         transform({ id }, _, callback) {

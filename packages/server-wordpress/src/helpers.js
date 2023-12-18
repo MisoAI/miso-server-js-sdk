@@ -185,6 +185,7 @@ class Url {
     has(include) && include.length && params.push(`include=${joinIds(include)}`);
     has(exclude) && exclude.length && params.push(`exclude=${joinIds(exclude)}`);
     if (has(fields) && fields.length) {
+      // TODO: is this unused?
       if (has(before) && !fields.includes('modified_gmt')) {
         fields = [...fields, 'modified_gmt'];
       }

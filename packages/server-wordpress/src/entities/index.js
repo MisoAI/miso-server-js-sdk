@@ -62,12 +62,7 @@ export default class Entities {
   }
 
   async ids(options = {}) {
-    const { before, after, u } = options;
-    const fields = ['id'];
-    if (before || after) {
-      fields.push('modified_gmt');
-    }
-    return (await this._client._helpers.stream(this.name, { ...options, fields }))
+    return (await this._client._helpers.stream(this.name, { ...options, fields: ['id'] }))
       .pipe(new Transform({
         objectMode: true,
         transform({ id }, _, callback) {
