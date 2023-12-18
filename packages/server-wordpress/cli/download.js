@@ -3,7 +3,7 @@ import { access, mkdir } from 'fs/promises';
 import { createGzip } from 'zlib';
 import { startOfDate, endOfDate, stream } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
-import { getFirstPostDate, getLastPostDate, getYear, buildForEntities } from './utils.js';
+import { buildForEntities } from './utils.js';
 
 function build(yargs) {
   return buildForEntities(yargs);
@@ -16,12 +16,7 @@ async function run({
 } = {}) {
   const client = new WordPressClient(options);
 
-  const [firstPostDate, lastPostDate] = await Promise.all([
-    getFirstPostDate(client),
-    getLastPostDate(client),
-  ]);
-  const firstPostYear = getYear(firstPostDate);
-  const lastPostYear = getYear(lastPostDate);
+  const  [firstPostYear, lastPostYear] = await client.posts.yearRange();
 
   // divide into batches
   const batches = [];

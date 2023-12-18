@@ -1,6 +1,6 @@
 import { startOfDate, endOfDate } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
-import { getFirstPostDate, getLastPostDate, getYear } from './utils.js';
+import { getYear } from './utils.js';
 
 function build(yargs) {
   return yargs;
@@ -8,10 +8,9 @@ function build(yargs) {
 
 async function run({ ...options } = {}) {
   const client = new WordPressClient(options);
-  const [total, firstPostDate, lastPostDate] = await Promise.all([
+  const [total, [firstPostDate, lastPostDate]] = await Promise.all([
     client.posts.count(options),
-    getFirstPostDate(client),
-    getLastPostDate(client),
+    client.posts.dateRange(),
   ]);
   const totalStrLength = `${total}`.length;
   console.log();

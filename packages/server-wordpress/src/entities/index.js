@@ -6,6 +6,7 @@ import EntityTransformStream from './transform.js';
 import EntityPresenceStream from './presence.js';
 import defaultTransform from './transform-default.js';
 import legacyTransform from './transform-legacy.js';
+import { getFirstPostDate, getLastPostDate, getYear } from './utils.js';
 
 export default class Entities {
 
@@ -72,6 +73,10 @@ export default class Entities {
   }
 
   async getAll(options) {
+    return this.all(options);
+  }
+
+  async all(options) {
     return stream.collect(await this.stream(options));
   }
 
@@ -85,6 +90,18 @@ export default class Entities {
 
   presence(options) {
     return new EntityPresenceStream(this._client, this.name, options);
+  }
+
+  async dateRange() {
+    // TODO: options?
+    return Promise.all([
+      getFirstPostDate(this._client),
+      getLastPostDate(this._client),
+    ]);
+  }
+
+  async yearRange() {
+    return (await this.dateRange()).map(getYear);
   }
 
   get index() {
