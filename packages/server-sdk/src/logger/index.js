@@ -11,7 +11,7 @@ export function createLogStream({
   format,
   out,
   err,
-}) {
+} = {}) {
   switch (format || FORMAT.JSON) {
     case FORMAT.PROGRESS:
       switch (api) {
