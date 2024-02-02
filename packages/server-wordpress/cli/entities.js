@@ -1,4 +1,5 @@
 import { Transform } from 'stream';
+import  { pipeline } from 'stream/promises';
 import split2 from 'split2';
 import { stream, parseDuration } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
@@ -52,12 +53,12 @@ export async function runTerms(client, name, options) {
 }
 
 export async function runGet(client, name, { transform, ...options }) {
-  await stream.pipelineToStdout(
+  await pipeline(
     await client.entities(name).stream({
       ...options,
       transform,
     }),
-    stream.stringify(),
+    new stream.OutputStream(),
   );
 }
 

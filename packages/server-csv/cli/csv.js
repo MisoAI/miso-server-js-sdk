@@ -36,11 +36,11 @@ async function run({ object, ...options }) {
   }
   parseOptions.relax_quotes = true;
   const transforms = object ? [new CsvTransformObjectStream()] : [];
-  await stream.pipelineToStdout(
+  await stream.pipeline(
     process.stdin,
     new Parser(parseOptions),
     ...transforms,
-    stream.stringify(),
+    new stream.OutputStream(),
   );
 }
 

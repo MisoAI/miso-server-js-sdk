@@ -35,13 +35,6 @@ export async function pipeline(...streams) {
   return new Promise((resolve, reject) => _pipeline(...streams.filter(s => s), err => err ? reject(err) : resolve()));
 }
 
-export async function pipelineToStdout(...streams) {
-  return new Promise((resolve, reject) => 
-    _pipeline(...streams, err => err ? reject(err) : resolve())
-      .pipe(process.stdout, { end: false })
-  );
-}
-
 export async function collect(stream) {
   const records = [];
   for await (const record of stream) {
