@@ -24,12 +24,13 @@ export default class BufferedReadStream extends Readable {
     this._strategy.initialize(this, source);
   }
 
-  async _construct() {
+  async _construct(done) {
     if (this._source.init) {
       this._debug(`[BufferedReadStream] init source start`);
       await this._source.init();
       this._debug(`[BufferedReadStream] init source done`);
     }
+    done();
   }
 
   async _read() {
