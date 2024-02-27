@@ -52,12 +52,9 @@ export async function runTerms(client, name, options) {
   }
 }
 
-export async function runGet(client, name, { transform, ...options }) {
+export async function runGet(client, name, options) {
   await pipeline(
-    await client.entities(name).stream({
-      ...options,
-      transform,
-    }),
+    await client.entities(name).stream(options),
     new stream.OutputStream(),
   );
 }

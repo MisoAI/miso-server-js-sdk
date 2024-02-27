@@ -44,9 +44,9 @@ export default class Helpers {
     return this._axios;
   }
 
-  async stream(resource, options) {
+  async stream(resource, options = {}) {
     const [streamOptions, sourceOptions] = splitObj(options, STREAM_OPTIONS);
-    const source = new DataSource(this, resource, sourceOptions);
+    const source = options.source || new DataSource(this, resource, sourceOptions);
     return new stream.BufferedReadStream(source, { ...streamOptions, debug: this.debug });
   }
 
