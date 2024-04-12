@@ -76,10 +76,11 @@ export default class BufferedWriteStream extends Transform {
     done();
   }
 
-  async _transform(record, _) {
+  async _transform(record, _, next) {
     this._pushStartEventIfNecessary();
     this._dispatchAll(this._buffer.push(record));
     await this._pauseIfNecessary();
+    next();
   }
 
   async _flush(done) {

@@ -10,7 +10,7 @@ export default class StatusStream extends Transform {
     this._type = type;
   }
 
-  async _transform(task_id, _) {
+  async _transform(task_id, _, next) {
     try {
       this.push({
         task_id,
@@ -23,6 +23,7 @@ export default class StatusStream extends Transform {
         error: summarizeError(err),
       });
     }
+    next();
   }
 
 }

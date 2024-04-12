@@ -8,7 +8,7 @@ export default class ArticleTransformStream extends Transform {
     this._after = after;
   }
 
-  async _transform({
+  _transform({
     title,
     description,
     summary,
@@ -20,7 +20,7 @@ export default class ArticleTransformStream extends Transform {
     image,
     author,
     categories,
-  }, _) {
+  }, _, next) {
     if (this._after !== undefined) {
       try {
         const timestamp = Date.parse(date);
@@ -56,6 +56,7 @@ export default class ArticleTransformStream extends Transform {
         summary,
       }),
     }));
+    next();
   }
 
 }

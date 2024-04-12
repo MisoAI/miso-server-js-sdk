@@ -6,6 +6,7 @@ import del from './delete.js';
 import ids from './ids.js';
 import transform from './transform.js';
 import status from './status.js';
+import get from './get.js';
 
 const interactions = {
   command: 'interactions',
@@ -23,6 +24,7 @@ const products = {
     .command(upload('products'))
     .command(del('products'))
     .command(ids('products'))
+    .command(get('products'))
     .command(status('products')),
 };
 
@@ -34,6 +36,7 @@ const users = {
     .command(upload('users'))
     .command(del('users'))
     .command(ids('users'))
+    .command(get('users'))
     .command(status('users')),
 };
 

@@ -106,7 +106,7 @@ class FlatmapStream extends Transform {
     super({ objectMode: true });
   }
 
-  async _transform(records, _, next) {
+  _transform(records, _, next) {
     for (const record of records) {
       this.push(record);
     }

@@ -22,7 +22,7 @@ export default class EntityPresenceStream extends Transform {
     this._done = false;
   }
 
-  async _transform(id, _, next) {
+  _transform(id, _, next) {
     id = `${id}`; // buffer -> string
     if (id) {
       this._inputs.push(id);

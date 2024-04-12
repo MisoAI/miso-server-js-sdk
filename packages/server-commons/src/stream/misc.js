@@ -65,7 +65,7 @@ export function take(n, { transform: _, ...options } = {}) {
   let count = 0;
   return new Transform({
     ...options,
-    transform (chunk, _, next) {
+    transform(chunk, _, next) {
       if (count > n) {
         next(undefined);
         this.end();

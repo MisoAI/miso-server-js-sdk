@@ -63,7 +63,7 @@ export class Stream extends Transform {
     this._transformFn = getTransformFunction(type);
   }
 
-  async _transform(record, _, next) {
+  _transform(record, _, next) {
     try {
       next(undefined, this._transformFn(record));
     } catch (error) {

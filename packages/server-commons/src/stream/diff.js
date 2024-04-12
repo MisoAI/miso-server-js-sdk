@@ -49,13 +49,14 @@ export default class DiffStream extends Transform {
     }
   }
 
-  async _transform(value, _) {
+  _transform(value, _, next) {
     if (value instanceof Buffer) {
       value = value.toString();
     }
     // dedupe
     const input = this._inputDataSet;
     if (input.has(value)) {
+      next();
       return;
     }
     input.add(value);
@@ -66,6 +67,7 @@ export default class DiffStream extends Transform {
     } else {
       this._output(true, value);
     }
+    next();
   }
 
   async _flush(done) {

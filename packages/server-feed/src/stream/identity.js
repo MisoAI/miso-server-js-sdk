@@ -6,8 +6,8 @@ export default class IdentityStream extends Transform {
     super({ objectMode: true });
   }
 
-  async _transform(record, _) {
-    this.push(record);
+  _transform(record, _, next) {
+    next(undefined, record);
   }
 
 }
