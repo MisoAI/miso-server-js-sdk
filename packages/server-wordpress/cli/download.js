@@ -16,7 +16,8 @@ async function run({
 } = {}) {
   const client = new WordPressClient(options);
 
-  const  [firstPostYear, lastPostYear] = await client.posts.yearRange();
+  // TODO: respect --after and --before
+  const [firstPostYear, lastPostYear] = await client.posts.yearRange();
 
   // divide into batches
   const batches = [];

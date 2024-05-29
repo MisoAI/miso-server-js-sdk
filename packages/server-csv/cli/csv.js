@@ -35,6 +35,7 @@ async function run({ object, ...options }) {
     parseOptions.delimiter = '\t';
   }
   parseOptions.relax_quotes = true;
+  parseOptions.relax_column_count = true;
   const transforms = object ? [new CsvTransformObjectStream()] : [];
   await stream.pipeline(
     process.stdin,
