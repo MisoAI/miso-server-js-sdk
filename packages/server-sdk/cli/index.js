@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { yargs } from '@miso.ai/server-commons';
 import { MisoClient } from '../src/index.js';
+import { buildForApi } from './utils.js';
+import merge from './merge.js';
 import upload from './upload.js';
 import del from './delete.js';
 import ids from './ids.js';
@@ -12,7 +14,7 @@ const interactions = {
   command: 'interactions',
   aliases: ['interaction', 'i'],
   description: 'Interaction commands',
-  builder: yargs => _buildForApi(yargs)
+  builder: yargs => buildForApi(yargs)
     .command(upload('interactions')),
 };
 
@@ -20,11 +22,12 @@ const products = {
   command: 'products',
   aliases: ['product', 'p', 'catalog'],
   description: 'Product commands',
-  builder: yargs => _buildForApi(yargs)
+  builder: yargs => buildForApi(yargs)
     .command(upload('products'))
     .command(del('products'))
     .command(ids('products'))
     .command(get('products'))
+    .command(merge('products'))
     .command(status('products')),
 };
 
@@ -32,11 +35,12 @@ const users = {
   command: 'users',
   aliases: ['user', 'u'],
   description: 'User commands',
-  builder: yargs => _buildForApi(yargs)
+  builder: yargs => buildForApi(yargs)
     .command(upload('users'))
     .command(del('users'))
     .command(ids('users'))
     .command(get('users'))
+    .command(merge('users'))
     .command(status('users')),
 };
 
@@ -44,7 +48,7 @@ const experiments = {
   command: 'experiments',
   aliases: ['experiment'],
   description: 'Experiment commands',
-  builder: yargs => _buildForApi(yargs)
+  builder: yargs => buildForApi(yargs)
     .option('experiment-id', {
       alias: ['exp-id'],
       describe: 'Experiment ID for experiment API',
@@ -66,29 +70,3 @@ yargs.build(yargs => {
     .command(transform)
     .version(MisoClient.version);
 });
-
-
-
-// helpers //
-function _buildForApi(yargs) {
-  return yargs
-    .option('key', {
-      alias: ['k', 'api-key'],
-      describe: 'API key',
-    })
-    .option('server', {
-      alias: ['api-server'],
-      describe: 'API server',
-    })
-    .option('param', {
-      alias: ['v', 'var'],
-      describe: 'Extra URL parameters',
-      type: 'array',
-      coerce: yargs.coerceToArray,
-    })
-    .option('debug', {
-      describe: 'Set log level to debug',
-      type: 'boolean',
-    })
-    .demandOption(['key'], 'API key is required.');
-}

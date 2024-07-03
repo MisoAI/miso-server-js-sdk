@@ -1,8 +1,10 @@
 import axios from 'axios';
-import { upload, batchDelete, buildUrl } from './helpers.js';
+import { asArray } from '@miso.ai/server-commons';
+import { upload, merge, batchDelete, buildUrl } from './helpers.js';
 import UploadStream from '../stream/upload.js';
 import DeleteStream from '../stream/delete.js';
 import StatusStream from '../stream/status.js';
+import MergeStream from '../stream/merge.js';
 
 export class Queries {
 
@@ -67,6 +69,15 @@ export class Entities extends Writable {
 
   statusStream() {
     return new StatusStream(this._client, this._type);
+  }
+
+  async merge(records, options = {}) {
+    records = asArray(records);
+    return await Promise.all(records.map(record => merge(this._client, this._type, record, options)));
+  }
+
+  mergeStream(options = {}) {
+    return new MergeStream(this._client, this._type, options);
   }
 
 }

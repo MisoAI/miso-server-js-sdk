@@ -8,6 +8,46 @@ export async function upload(client, type, records, options = {}) {
   return axios.post(url, payload);
 }
 
+export async function merge(client, type, record, { mergeFn = defaultMerge } = {}) {
+  let idProp;
+  switch (type) {
+    case 'products':
+      idProp = 'product_id';
+      break;
+    case 'users':
+      idProp = 'user_id';
+      break;
+    default:
+      throw new Error(`Unsupported type: ${type}`);
+  }
+  const id = record[idProp];
+  if (!id) {
+    throw new Error(`Record missing ${idProp}.`);
+  }
+  const base = shimRecordForMerging(await client.api[type].get(id));
+  return await mergeFn(base, record);
+}
+
+function defaultMerge(base, patch) {
+  return {
+    ...base,
+    ...patch,
+    custom_attributes: {
+      ...base.custom_attributes,
+      ...patch.custom_attributes,
+    },
+  };
+}
+
+function shimRecordForMerging(record) {
+  for (const key in record) {
+    if (key === 'product_group_id_or_product_id' || key.startsWith('category_path_')) {
+      delete record[key];
+    }
+  }
+  return record;
+}
+
 const RE_422_MSG_LINE = /^\s*data\.(\d+)(?:\.(\S+))?\s+is\s+invalid\.\s+(.*)$/;
 
 export function process422ResponseBody(payload, { data } = {}) {
