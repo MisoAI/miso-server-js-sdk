@@ -1,24 +1,22 @@
-import { Transform } from 'stream';
+import { stream } from '@miso.ai/server-commons';
 import { merge } from '../api/helpers.js';
 
-export default class MergeStream extends Transform {
+export default class MergeStream extends stream.ParallelTransform {
 
   constructor(client, type, {
     mergeFn,
   } = {}) {
     super({
+      transform: (record) => merge(client, type, record, { mergeFn }),
+      controls: {
+        throttle: 100,
+      },
       objectMode: true,
     });
-    this._client = client;
-    this._type = type;
-    this._mergeFn = mergeFn;
   }
 
-  async _transform(record, _, next) {
-    record = await merge(this._client, this._type, record, { mergeFn: this._mergeFn });
-    // TODO: respect return value
-    this.push(record);
-    next();
+  _error(error) {
+    console.error(error);
   }
 
 }
