@@ -24,22 +24,36 @@ export async function merge(client, type, record, { mergeFn = defaultMerge } = {
   if (!id) {
     throw new Error(`Record missing ${idProp}.`);
   }
-  const base = shimRecordForMerging(await client.api[type].get(id));
+  let base;
+  try {
+    base = shimRecordForMerging(await client.api[type].get(id));
+  } catch (e) {}
   return await mergeFn(base, record);
 }
 
-function defaultMerge(base, patch) {
-  return {
+export function defaultMerge(base, patch) {
+  return trimObj({
     ...base,
     ...patch,
-    custom_attributes: {
-      ...base.custom_attributes,
-      ...patch.custom_attributes,
-    },
-  };
+    custom_attributes: trimObj({
+      ...(base && base.custom_attributes),
+      ...(patch && patch.custom_attributes),
+    }),
+  });
 }
 
-function shimRecordForMerging(record) {
+export function getIdProperty(type) {
+  switch (type) {
+    case 'products':
+      return 'product_id';
+    case 'users':
+      return 'user_id';
+    default:
+      throw new Error(`Unsupported type: ${type}`);
+  }
+}
+
+export function shimRecordForMerging(record) {
   for (const key in record) {
     if (key === 'product_group_id_or_product_id' || key.startsWith('category_path_')) {
       delete record[key];

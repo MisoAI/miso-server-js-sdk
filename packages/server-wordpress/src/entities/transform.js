@@ -24,9 +24,8 @@ export default class EntityTransformStream extends Transform {
     return PROP_NAME_OVERRIDES[resource] || resource;
   }
 
-  constructor(client, indicies, { transform } = {}) {
+  constructor(indicies, { transform } = {}) {
     super({ objectMode: true });
-    this._client = client;
     this._indicies = indicies;
     this._transformFn = transform;
   }

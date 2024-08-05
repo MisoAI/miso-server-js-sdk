@@ -7,7 +7,9 @@ import EntityPresenceStream from './presence.js';
 import defaultTransform from './transform-default.js';
 import legacyTransform from './transform-legacy.js';
 
-export default class Entities {
+export { EntityTransformStream };
+
+export class Entities {
 
   constructor(client, name) {
     this._client = client;
@@ -22,7 +24,7 @@ export default class Entities {
       return this._client._helpers.stream(this.name, options);
     }
     const client = this._client;
-    transform = await getTransformFn(client, this.name, transform);
+    transform = await _getTransformFn(client, this.name, transform);
 
     // we need taxonomy fetched so we know whether it's hierarchical
     const taxonomies = await client._helpers.findAssociatedTaxonomies(this.name);
@@ -55,7 +57,7 @@ export default class Entities {
     };
 
     // transform stream
-    const transformStream = new EntityTransformStream(this._client, indicies, { transform });
+    const transformStream = new EntityTransformStream(indicies, { transform });
 
     return (await this._client._helpers.stream(this.name, { ...options, onLoad }))
       .pipe(transformStream);
@@ -117,7 +119,11 @@ export default class Entities {
 
 }
 
-async function getTransformFn(client, name, transform) {
+export async function getEntityTransformFunction(transform) {
+  return _getTransformFn(undefined, undefined, transform === true ? 'default' : transform);
+}
+
+async function _getTransformFn(client, name, transform) {
   switch (transform) {
     case 'default':
       return defaultTransform;

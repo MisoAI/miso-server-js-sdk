@@ -6,6 +6,7 @@ import taxonomies from './taxonomies.js';
 import entities from './entities.js';
 import summarize from './summarize.js';
 import download from './download.js';
+import xml from './xml.js';
 
 yargs.build(yargs => {
   yargs
@@ -28,6 +29,7 @@ yargs.build(yargs => {
     .hide('debug')
     .command(init)
     .command(profile)
+    .command(xml)
     .command(summarize)
     .command(download)
     .command(taxonomies)

@@ -1,4 +1,4 @@
-import Entities from '../entities/index.js';
+import { Entities } from '../entities/index.js';
 
 const RESOURCE_NAME = 'posts';
 

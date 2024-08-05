@@ -3,7 +3,7 @@ import { constants } from 'fs';
 import Helpers from './helpers.js';
 import Media from './media.js';
 import Posts from './posts/index.js';
-import Entities from './entities/index.js';
+import { Entities } from './entities/index.js';
 
 const DEFAULT_PROFILE = './wordpress.json';
 
