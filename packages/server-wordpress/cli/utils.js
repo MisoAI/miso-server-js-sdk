@@ -51,6 +51,11 @@ export function buildForEntities(yargs) {
       type: 'array',
       coerce: yargs.coerceToArray,
     })
+    .option('params', {
+      describe: 'Specify additional query parameters in the form of key=value',
+      type: 'array',
+      coerce: yargs.coerceToArray,
+    })
     .option('resolve', {
       alias: 'r',
       describe: 'Attach resolved entities (author, catagories) linked with the subjects',

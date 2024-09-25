@@ -175,6 +175,7 @@ class Url {
     include,
     exclude,
     fields,
+    params: extraParams,
   } = {}) {
     const params = [];
 
@@ -198,6 +199,12 @@ class Url {
     has(offset) && params.push(`offset=${offset}`);
     has(include) && include.length && params.push(`include=${joinIds(include)}`);
     has(exclude) && exclude.length && params.push(`exclude=${joinIds(exclude)}`);
+    if (has(extraParams)) {
+      for (const str of extraParams) {
+        const [key, value] = str.split('=', 2);
+        params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      }
+    }
     if (has(fields) && fields.length) {
       // TODO: is this unused?
       if (has(before) && !fields.includes('modified_gmt')) {
