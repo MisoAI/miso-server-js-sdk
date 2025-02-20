@@ -157,5 +157,5 @@ function aggregateIds(records, propName) {
 }
 
 async function getPostDate(client, order, options = {}) {
-  return (await client.posts.getAll({ ...options, limit: 1, order, fields: ['date_gmt'] }))[0].date_gmt;
+  return (await client.posts.getAll({ ...options, after: 1, limit: 1, order, fields: ['date_gmt'] }))[0].date_gmt;
 }
