@@ -266,7 +266,12 @@ Default: <code>false</code>.
 <h4 id="return-value" tabindex="-1">Return value</h4>
 <p>A <code>Promise</code> without value.</p>
 <h4 id="examples" tabindex="-1">Examples</h4>
-<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> user <span class="token operator">=</span> <span class="token punctuation">{</span><br>  <span class="token literal-property property">user_id</span><span class="token operator">:</span> <span class="token string">'u01'</span><span class="token punctuation">,</span><br>  <span class="token literal-property property">custom_attributes</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">;</span><br><span class="token keyword">await</span> client<span class="token punctuation">.</span>api<span class="token punctuation">.</span>users<span class="token punctuation">.</span><span class="token function">upload</span><span class="token punctuation">(</span><span class="token punctuation">[</span>user<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<pre class="language-js"><code class="language-js"><span class="token keyword">const</span> user <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">user_id</span><span class="token operator">:</span> <span class="token string">'u01'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">custom_attributes</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword">await</span> client<span class="token punctuation">.</span>api<span class="token punctuation">.</span>users<span class="token punctuation">.</span><span class="token function">upload</span><span class="token punctuation">(</span><span class="token punctuation">[</span>user<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 <h4 id="learn-more" tabindex="-1">Learn more</h4>
 <p>For more information, see <a href="https://api.askmiso.com/#tag/Product-Content-APIs/operation/content_write_api_v1_products_post" target="_blank" rel="noopener">REST API</a>.</p>
 
