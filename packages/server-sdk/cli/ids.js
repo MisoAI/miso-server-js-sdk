@@ -4,18 +4,30 @@ import { MisoClient } from '../src/index.js';
 import diff from './ids-diff.js';
 
 const build = type => yargs => {
-  return yargs
+  yargs = yargs
     .command(diff(type));
+  // only works for products
+  if (type === 'products') {
+    yargs = yargs
+      .option('type', {
+        alias: ['t'],
+        describe: 'Only include record of given type',
+        type: 'string',
+      });
+  }
+  return yargs;
 };
 
 const run = type => async ({
   key,
   server,
+  type: recordType,
 }) => {
   const client = new MisoClient({ key, server });
   let ids;
   try {
-    ids = await client.api[type].ids();
+    const options = recordType ? { type: recordType } : {};
+    ids = await client.api[type].ids(options);
   } catch (err) {
     console.error(err);
     throw err;

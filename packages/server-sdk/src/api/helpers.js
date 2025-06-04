@@ -118,8 +118,7 @@ export function buildUrl(client, path, { async, dryRun, params: extraParams } = 
   }
   if (extraParams) {
     for (const key in extraParams) {
-      // TODO: deal with encodeURIComponent
-      params += `&${key}=${extraParams[key]}`;
+      params += `&${encodeURIComponent(key)}=${encodeURIComponent(extraParams[key])}`;
     }
   }
   return `${server}/v1/${path}${params}`;

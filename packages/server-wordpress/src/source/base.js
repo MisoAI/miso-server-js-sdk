@@ -28,7 +28,7 @@ export default class WordPressDataSource {
     this._debug(`[WordPressDataSource] get ${JSON.stringify(request)}`);
     const url = await this.url(request);
     this._debug(`[WordPressDataSource] request ${url}`);
-    const response =  await this._axiosGet(url);
+    const response = await this._axiosGet(url);
     this._debug(`[WordPressDataSource] response ${response.status} ${url}`);
     return this._process(response, { request, url });
   }

@@ -49,8 +49,9 @@ export class Entities extends Writable {
     return (await axios.get(url)).data.data;
   }
 
-  async ids() {
-    const url = buildUrl(this._client, `${this._type}/_ids`);
+  async ids({ type } = {}) {
+    const options = type ? { params: { type } } : {};
+    const url = buildUrl(this._client, `${this._type}/_ids`, options);
     return (await axios.get(url)).data.data.ids;
   }
 
