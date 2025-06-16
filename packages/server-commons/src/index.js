@@ -14,3 +14,4 @@ export * as yargs from './yargs.js';
 export { default as Resolution } from './resolution.js';
 export { default as TaskQueue } from './task-queue.js';
 export { default as RateLimitingQueue } from './rate-limiting-queue.js';
+export { default as HashStore } from './store.js';

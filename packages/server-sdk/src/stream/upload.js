@@ -66,11 +66,11 @@ export default class UploadStream extends stream.BufferedWriteStream {
     // if upload fails, emit extracted payload at response event
     if (message.event === 'response') {
       const { response, payload } = args;
-      if (response && response.errors && payload) {
-        output.payload = JSON.parse(payload); // TODO: call extractUploadPayload
-        if (response.status === 422) {
-          output.issues = process422ResponseBody(payload, response);
-        }
+      if (payload) {
+        output.payload = JSON.parse(payload);
+      }
+      if (response && response.status === 422) {
+        output.issues = process422ResponseBody(payload, response);
       }
     }
 

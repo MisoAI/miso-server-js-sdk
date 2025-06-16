@@ -31,6 +31,7 @@ export default class StandardLogStream extends Writable {
     }
     if (!this._debug) {
       delete record.state;
+      delete record.payload;
     }
     (log.isError(level) ? this._err : this._out).write(this._formatter(record) + '\n');
     next();
