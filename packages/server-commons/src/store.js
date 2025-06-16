@@ -1,5 +1,6 @@
 import { resolve } from 'path';
 import fs from 'fs/promises';
+import { Transform } from 'stream';
 
 const DEFAULT_FLUSH_THRESHOLD = 100;
 
