@@ -16,7 +16,7 @@ export default class HashStore {
     this._file = file;
     this._hashFn = hashFn;
     this._flushThreshold = flushThreshold;
-    this._hashes = undefined;
+    this._hashes = new Set();
     this._pending = [];
   }
 
@@ -39,6 +39,8 @@ export default class HashStore {
 
   async load() {
     this._hashes = new Set(await this._read());
+    this._pending = [];
+    return this;
   }
 
   get() {
