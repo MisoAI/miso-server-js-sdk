@@ -68,7 +68,7 @@ export default class DeleteStream extends stream.BufferedWriteStream {
     const output = super._output(message, args);
 
     // if upload fails, emit extracted payload at response event
-    if (message.event === 'response' && args.response && args.response.errors && args.payload) {
+    if (message.event === 'response' && args.payload) {
       output.payload = JSON.parse(args.payload);
     }
 

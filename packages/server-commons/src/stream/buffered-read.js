@@ -85,6 +85,7 @@ export default class BufferedReadStream extends Readable {
     const request = this._state.request(this._source.request());
 
     this._debug(`[BufferedReadStream] Load request: ${request}`);
+    // TODO: racing here! we need to somehow keep the order of loads
     const { data, ...info } = await this._source.get(request);
     const response = new Response(request, info);
     this._debug(`[BufferedReadStream] Load response: ${JSON.stringify(response)} => data = ${data && data.length}`);
