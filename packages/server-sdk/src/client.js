@@ -6,9 +6,9 @@ export default class MisoClient {
 
   static version = version;
 
-  constructor({ axios, ...options } = {}) {
-    this._options = normalizeOptions(options);
-    this._axios = createAxios({ ...axios }); // TODO: pass onRetry() for debug message
+  constructor(options = {}) {
+    this._options = options = normalizeOptions(options);
+    this._axios = createAxios(options.axios); // TODO: pass onRetry() for debug message
     this.version = version;
     this.api = new Api(this);
   }

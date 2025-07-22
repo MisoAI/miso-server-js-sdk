@@ -61,7 +61,7 @@ export function shimRecordForMerging(record) {
   return record;
 }
 
-const RE_422_MSG_LINE = /^\s*data\.(\d+)(?:\.(\S+))?\s+is\s+invalid\.\s+(.*)$/;
+const RE_422_MSG_LINE = /^\s*data\.(\d+)(?:\.(\S+))?\s+(?:\(([^)]*)\))?\s+is\s+invalid\.\s+(.*)$/;
 
 export function process422ResponseBody(payload, { data } = {}) {
   const records = extractUploadPayload(payload);
@@ -73,7 +73,7 @@ export function process422ResponseBody(payload, { data } = {}) {
       unrecognized.push(line);
       continue;
     }
-    let [_, index, path, message] = m;
+    let [_, index, path, value, message] = m;
     index = Number(index);
     const { violations } = computeIfAbsent(groupsMap, index, index => ({
       index,
@@ -82,6 +82,7 @@ export function process422ResponseBody(payload, { data } = {}) {
     }));
     violations.push({
       path,
+      value,
       message,
     });
   }
