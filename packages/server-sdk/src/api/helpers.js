@@ -1,11 +1,10 @@
 import { asArray, trimObj, computeIfAbsent } from '@miso.ai/server-commons';
-import axios from 'axios';
 import { Buffer } from 'buffer';
 
 export async function upload(client, type, records, options = {}) {
   const url = buildUrl(client, type, { ...options, async: true });
   const payload = buildUploadPayload(records);
-  return axios.post(url, payload);
+  return client._axios.post(url, payload);
 }
 
 export async function merge(client, type, record, { mergeFn = defaultMerge } = {}) {
@@ -98,12 +97,7 @@ export function process422ResponseBody(payload, { data } = {}) {
 export async function batchDelete(client, type, ids, options = {}) {
   const url = buildUrl(client, `${type}/_delete`, { ...options, async: true });
   const payload = buildBatchDeletePayload(type, ids);
-  // TODO: organize axios
-  const { data } = await axios.post(url, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const { data } = await client._axios.post(url, payload);
   return data;
 }
 

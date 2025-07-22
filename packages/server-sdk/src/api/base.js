@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { asArray } from '@miso.ai/server-commons';
 import { upload, merge, batchDelete, buildUrl } from './helpers.js';
 import UploadStream from '../stream/upload.js';
@@ -16,7 +15,7 @@ export class Queries {
   async _run(path, payload, options) {
     // TODO: options
     const url = buildUrl(this._client, `${this._group}/${path}`);
-    return (await axios.post(url, payload)).data.data;
+    return (await this._client._axios.post(url, payload)).data.data;
   }
 
 }
@@ -46,13 +45,13 @@ export class Entities extends Writable {
 
   async get(id) {
     const url = buildUrl(this._client, `${this._type}/${id}`);
-    return (await axios.get(url)).data.data;
+    return (await this._client._axios.get(url)).data.data;
   }
 
   async ids({ type } = {}) {
     const options = type ? { params: { type } } : {};
     const url = buildUrl(this._client, `${this._type}/_ids`, options);
-    return (await axios.get(url)).data.data.ids;
+    return (await this._client._axios.get(url)).data.data.ids;
   }
 
   async delete(ids, options = {}) {
@@ -65,7 +64,7 @@ export class Entities extends Writable {
 
   async status(taskId) {
     const url = buildUrl(this._client, `${this._type}/_status/${taskId}`);
-    return (await axios.get(url)).data;
+    return (await this._client._axios.get(url)).data;
   }
 
   statusStream() {

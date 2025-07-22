@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { buildUrl } from './helpers.js';
 
 export default class Experiments {
@@ -12,7 +11,7 @@ export default class Experiments {
     const url = buildUrl(this._client, `experiments/${experimentId}/events`);
     // TODO: make content type header global
     const headers = { 'Content-Type': 'application/json' };
-    const response = await axios.post(url, record, { headers });
+    const response = await this._client._axios.post(url, record, { headers });
     // 200 response body does not have .data layer
     return response.data ? response : { data: response };
   }

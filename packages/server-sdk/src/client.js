@@ -1,12 +1,14 @@
 import version from './version.js';
 import Api from './api/index.js';
+import { createAxios } from './axios.js';
 
 export default class MisoClient {
 
   static version = version;
 
-  constructor(options) {
+  constructor({ axios, ...options } = {}) {
     this._options = normalizeOptions(options);
+    this._axios = createAxios({ ...axios }); // TODO: pass onRetry() for debug message
     this.version = version;
     this.api = new Api(this);
   }

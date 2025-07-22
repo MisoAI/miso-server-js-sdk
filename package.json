@@ -10,7 +10,10 @@
     "packages/server-wordpress"
   ],
   "scripts": {
-    "test": "echo 'later'",
+    "test": "npm run test --workspaces --if-present",
     "version": "node ./bin/version.mjs"
+  },
+  "devDependencies": {
+    "uvu": "^0.5.6"
   }
 }
