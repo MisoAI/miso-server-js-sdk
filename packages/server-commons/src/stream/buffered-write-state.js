@@ -120,6 +120,14 @@ export default class State {
     category.records += request.records;
     category.bytes += request.bytes;
 
+    if (response.errors && response.recovered && response.recovered.records > 0) {
+      this._failed.records -= response.recovered.records;
+      this._failed.bytes -= response.recovered.bytes; // not so accurate, but close enough
+      this._successful.requests++;
+      this._successful.records += response.recovered.records;
+      this._successful.bytes += response.recovered.bytes;
+    }
+
     this._time.addWrite(response.timestamp - request.timestamp);
 
     this._resolutions.get(request).resolve();

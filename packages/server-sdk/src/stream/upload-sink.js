@@ -22,7 +22,7 @@ class UploadSink extends ApiSink {
 
   async _execute(payload) {
     const { type, dryRun, params } = this._options;
-    const { data } = await upload(this._client, type, payload, { dryRun, params });
+    const { data } = await upload(this._client, type, payload, { recoverValidRecordsOn422: true, dryRun, params });
     return data;
   }
 

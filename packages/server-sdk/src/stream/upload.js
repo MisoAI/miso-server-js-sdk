@@ -65,12 +65,13 @@ export default class UploadStream extends stream.BufferedWriteStream {
 
     // if upload fails, emit extracted payload at response event
     if (message.event === 'response') {
+      // TODO: we can do these near recoverValidRecords()
       const { response, payload } = args;
       if (payload) {
         output.payload = JSON.parse(payload);
-      }
-      if (response && response.status === 422) {
-        output.issues = process422ResponseBody(payload, response);
+        if (response && response.status === 422) {
+          output.issues = process422ResponseBody(payload, response);
+        }
       }
     }
 

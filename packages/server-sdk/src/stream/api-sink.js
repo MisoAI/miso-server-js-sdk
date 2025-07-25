@@ -52,9 +52,13 @@ export default class ApiSink extends sink.BpsSink {
       } else if (status) {
         data = { status, ...data };
       }
+      if (error.response.recovered) {
+        data.recovered = error.response.recovered;
+      }
     }
 
     // keep track of service stats on successful calls
+    // TODO: handle recovered records?
     if (!data.errors) {
       this._serviceStats.track({ records, bytes, took: data.took });
     }

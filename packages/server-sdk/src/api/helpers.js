@@ -2,9 +2,44 @@ import { asArray, trimObj, computeIfAbsent } from '@miso.ai/server-commons';
 import { Buffer } from 'buffer';
 
 export async function upload(client, type, records, options = {}) {
-  const url = buildUrl(client, type, { ...options, async: true });
+  const url = buildUrl(client, type, options);
   const payload = buildUploadPayload(records);
-  return client._axios.post(url, payload);
+  try {
+    // await to catch errors
+    return await client._axios.post(url, payload);
+  } catch (error) {
+    await recoverValidRecords(client, type, records, options, error.response);
+    throw error;
+  }
+}
+
+async function recoverValidRecords(client, type, records, options, response) {
+  if (!response || response.status !== 422 || !options.recoverValidRecordsOn422) {
+    return;
+  }
+  records = extractRecordsFromUploadPayload(records);
+  // try to collect valid records and resend them, which should pass the validation
+  const { groups = [], unrecognized = [] } = process422ResponseBody(records, response.data); // it takes records too
+  if (groups.length === 0 || groups.length === records.length || unrecognized.length > 0) {
+    // if there are unrecognized messages, it's hard to tell which records are valid
+    return;
+  }
+  const invalidIndices = new Set(groups.map(group => group.index));
+  const validRecords = records.filter((_, index) => !invalidIndices.has(index));
+  if (validRecords.length === 0) {
+    return; // should not be, just in case
+  }
+  const url = buildUrl(client, type, options);
+  const validPayload = buildUploadPayload(validRecords);
+  try {
+    await client._axios.post(url, validPayload);
+  } catch (_) {
+    return; // still fail, never mind...
+  }
+  response.recovered = {
+    records: validRecords.length,
+    bytes: validPayload.length * 2,
+  };
 }
 
 export async function merge(client, type, record, { mergeFn = defaultMerge } = {}) {
@@ -61,10 +96,10 @@ export function shimRecordForMerging(record) {
   return record;
 }
 
-const RE_422_MSG_LINE = /^\s*data\.(\d+)(?:\.(\S+))?\s+(?:\(([^)]*)\))?\s+is\s+invalid\.\s+(.*)$/;
+const RE_422_MSG_LINE = /^\s*data\.(\d+)(?:\.(\S+))?\s+(?:\(([^)]*)\)\s+)?is\s+invalid\.\s+(.*)$/;
 
 export function process422ResponseBody(payload, { data } = {}) {
-  const records = extractUploadPayload(payload);
+  const records = extractRecordsFromUploadPayload(payload);
   const unrecognized = [];
   const groupsMap = new Map();
   for (const line of data) {
@@ -122,10 +157,10 @@ export function buildUrl(client, path, { async, dryRun, params: extraParams } = 
 export function buildUploadPayload(records) {
   return typeof records === 'string' ? records :
     Buffer.isBuffer(records) ? records.toString() :
-    { data: Array.isArray(records) ? records : [records] };
+    JSON.stringify({ data: Array.isArray(records) ? records : [records] });
 }
 
-export function extractUploadPayload(records) {
+export function extractRecordsFromUploadPayload(records) {
   if (Buffer.isBuffer(records)) {
     records = records.toString();
   }
