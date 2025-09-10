@@ -104,6 +104,21 @@ export default class Helpers {
     return Object.values(data);
   }
 
+  async types({ noCache = false } = {}) {
+    if (noCache || !this._types) {
+      // don't await, save the promise
+      this._types = this._fetchTypes();
+    }
+    return this._types;
+  }
+
+  async _fetchTypes() {
+    const url = await this.url.build('types');
+    const { data } = await this.axios.get(url);
+    this.debug(`Fetched types.`);
+    return Object.values(data);
+  }
+
   extractTerms(data) {
     return data._links['wp:term'] || [];
   }

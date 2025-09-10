@@ -52,6 +52,10 @@ export default class WordPressClient {
     return this._helpers.taxonomies(options);
   }
 
+  types(options) {
+    return this._helpers.types(options);
+  }
+
   get posts() {
     return this.entities('posts');
   }

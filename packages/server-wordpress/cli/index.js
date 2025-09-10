@@ -4,6 +4,7 @@ import version from '../src/version.js';
 import { profile, init } from './profile.js';
 import taxonomies from './taxonomies.js';
 import entities from './entities.js';
+import types from './types.js';
 import summarize from './summarize.js';
 import download from './download.js';
 import xml from './xml.js';
@@ -33,6 +34,7 @@ yargs.build(yargs => {
     .command(summarize)
     .command(download)
     .command(taxonomies)
+    .command(types)
     .command(entities)
     .version(version);
 });
