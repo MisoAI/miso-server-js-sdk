@@ -20,3 +20,26 @@ export function buildForApi(yargs) {
     })
     .demandOption(['key'], 'API key is required.');
 }
+
+export function buildForSearch(yargs) {
+  return yargs
+    .option('fq', {
+      type: 'string',
+      describe: 'Filter query',
+    })
+    .option('fl', {
+      type: 'array',
+      coerce: yargs.coerceToArray,
+      describe: 'Fields to return',
+    })
+    .option('rows', {
+      alias: ['n'],
+      type: 'number',
+      describe: 'Number of rows to return',
+    })
+    .option('start', {
+      alias: ['s'],
+      type: 'number',
+      describe: 'Start index',
+    });
+}

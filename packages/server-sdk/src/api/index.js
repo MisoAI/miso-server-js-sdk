@@ -2,6 +2,7 @@ import Products from './products.js';
 import Users from './users.js';
 import Interactions from './interactions.js';
 import Experiments from './experiments.js';
+import Ask from './ask.js';
 import Search from './search.js';
 import Recommendation from './recommendation.js';
 
@@ -12,6 +13,7 @@ export default class Api {
     this.users = new Users(client);
     this.interactions = new Interactions(client);
     this.experiments = new Experiments(client);
+    this.ask = new Ask(client);
     this.search = new Search(client);
     this.recommendation = new Recommendation(client);
   }

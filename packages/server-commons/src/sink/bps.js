@@ -12,7 +12,7 @@ export default class BpsSink {
 
   _normalizeOptions({
     recordsPerSecord = 100000,
-    bytesPerSecond = 10 * 1024 * 1024,
+    bytesPerSecond = 100 * 1024 * 1024,
     ...options
   } = {}) {
     return {

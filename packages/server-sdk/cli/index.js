@@ -9,6 +9,8 @@ import ids from './ids.js';
 import transform from './transform.js';
 import status from './status.js';
 import get from './get.js';
+import search from './search.js';
+import hybridSearch from './hybrid-search.js';
 
 const interactions = {
   command: 'interactions',
@@ -68,5 +70,7 @@ yargs.build(yargs => {
     .command(users)
     .command(experiments)
     .command(transform)
+    .command(search)
+    .command(hybridSearch)
     .version(MisoClient.version);
 });

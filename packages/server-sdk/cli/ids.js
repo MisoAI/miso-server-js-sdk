@@ -45,7 +45,7 @@ const run = type => async ({
 export default function(type) {
   return {
     command: 'ids',
-    description: false,
+    description: `Get all ids in the catalog`,
     builder: build(type),
     handler: run(type),
   };
