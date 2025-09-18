@@ -27,11 +27,12 @@ const run = type => async ({
   server,
   file,
   base,
+  debug,
   ...options
 }) => {
   const mergeFn = await getMergeFn(file);
   const records = await buildBaseRecords(base);
-  const client = new MisoClient({ key, server });
+  const client = new MisoClient({ key, server, debug });
   const mergeStream = client.api[type].mergeStream({ ...options, mergeFn, records });
   const outputStream = new stream.OutputStream({ objectMode: true });
   await stream.pipeline(

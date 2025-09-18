@@ -22,8 +22,9 @@ const run = type => async ({
   key,
   server,
   type: recordType,
+  debug,
 }) => {
-  const client = new MisoClient({ key, server });
+  const client = new MisoClient({ key, server, debug });
   let ids;
   try {
     const options = recordType ? { type: recordType } : {};

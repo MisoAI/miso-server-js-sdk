@@ -9,7 +9,7 @@ const run = type => async ({
   id,
   debug,
 }) => {
-  const client = new MisoClient({ key, server });
+  const client = new MisoClient({ key, server, debug });
   try {
     const entity = await client.api[type].get(id);
     console.log(JSON.stringify(entity));

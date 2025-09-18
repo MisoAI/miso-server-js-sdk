@@ -11,17 +11,33 @@ const DEFAULT_RETRY_OPTIONS = {
   },
 };
 
-export function createAxios(options = {}) {
+export function createAxios(options = {}, debug = false) {
   if (typeof options.get === 'function' && typeof options.post === 'function') {
     return options; // assume this is an axios instance already
   }
   const { retry } = options;
   const instance = axios.create({
     headers: {
-      'User-Agent': `MisoNodeJSSDK/${version}`,
+      'User-Agent': `MisoNodeSDK/${version}`,
       'Content-Type': 'application/json',
     },
   });
   axiosRetry(instance, { ...DEFAULT_RETRY_OPTIONS, ...retry });
+  if (debug) {
+    instance.interceptors.request.use(config => {
+      explainAsCurl(config);
+      return config;
+    });
+  }
   return instance;
+}
+
+function explainAsCurl(config) {
+  // format into a curl command
+  const { method, url, data } = config;
+  let command = `curl -X ${method.toUpperCase()} '${url}'`;
+  if (data) {
+    command += ` -d '${JSON.stringify(data)}'`;
+  }
+  console.log(JSON.stringify({ command }));
 }

@@ -8,7 +8,7 @@ export default class MisoClient {
 
   constructor(options = {}) {
     this._options = options = normalizeOptions(options);
-    this._axios = createAxios(options.axios); // TODO: pass onRetry() for debug message
+    this._axios = createAxios(options.axios, options.debug); // TODO: pass onRetry() for debug message
     this.version = version;
     this.api = new Api(this);
   }

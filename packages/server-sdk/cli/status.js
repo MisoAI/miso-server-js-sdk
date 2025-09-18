@@ -10,8 +10,9 @@ const run = type => async ({
   key,
   server,
   taskId,
+  debug,
 }) => {
-  const client = new MisoClient({ key, server });
+  const client = new MisoClient({ key, server, debug });
   if (taskId) {
     runOne(client, type, taskId);
   } else {

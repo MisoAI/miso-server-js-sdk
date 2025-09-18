@@ -10,8 +10,8 @@ function build(yargs) {
     });
 }
 
-async function run({ query, fq, fl, rows, key, server }) {
-  const client = new MisoClient({ key, server });
+async function run({ query, fq, fl, rows, key, server, debug }) {
+  const client = new MisoClient({ key, server, debug });
   const records = await client.api.search.search({ q: query, fq, fl, rows });
   const readStream = Readable.from(records);
   const outputStream = new stream.OutputStream();

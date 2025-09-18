@@ -61,7 +61,7 @@ const run = type => async ({
   loglevel = (debug || progress) ? log.DEBUG : loglevel;
   logFormat = progress ? logger.FORMAT.PROGRESS : logFormat;
 
-  const client = new MisoClient({ key, server });
+  const client = new MisoClient({ key, server, debug });
 
   const uploadStreamObjectMode = lenient;
 
