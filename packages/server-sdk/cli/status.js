@@ -21,7 +21,7 @@ const run = type => async ({
 
 async function runOne(client, type, taskId) {
   try {
-    console.log(await client.api[type].status(taskId));
+    console.log(JSON.stringify(await client.api[type].status(taskId)));
   } catch (err) {
     console.error(err);
     throw err;

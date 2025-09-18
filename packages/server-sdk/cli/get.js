@@ -1,4 +1,5 @@
 import { MisoClient } from '../src/index.js';
+import { formatError } from './utils.js';
 
 const build = yargs => yargs;
 
@@ -9,8 +10,12 @@ const run = type => async ({
   debug,
 }) => {
   const client = new MisoClient({ key, server });
-  const entity = await client.api[type].get(id);
-  console.log(JSON.stringify(entity));
+  try {
+    const entity = await client.api[type].get(id);
+    console.log(JSON.stringify(entity));
+  } catch (err) {
+    console.error(formatError(err));
+  }
 };
 
 export default function(type) {

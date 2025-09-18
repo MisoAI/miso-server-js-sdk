@@ -43,3 +43,12 @@ export function buildForSearch(yargs) {
       describe: 'Start index',
     });
 }
+
+export function formatError(err) {
+  const { response } = err;
+  if (response) {
+    const { data, status } = response;
+    return { errors: true, status, ...data };
+  }
+  return { errors: true, message: err.message };
+}
