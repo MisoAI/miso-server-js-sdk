@@ -37,7 +37,7 @@ function explainAsCurl(config) {
   const { method, url, data } = config;
   let command = `curl -X ${method.toUpperCase()} '${url}'`;
   if (data) {
-    command += ` -d '${JSON.stringify(data)}'`;
+    command += ` -d '${typeof data === 'string' ? data : JSON.stringify(data)}'`;
   }
-  console.log(JSON.stringify({ command }));
+  console.log(`[Explain] ${command}`);
 }
