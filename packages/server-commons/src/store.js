@@ -1,6 +1,7 @@
 import { resolve } from 'path';
 import fs from 'fs/promises';
 import { Transform } from 'stream';
+import { readFileAsLines } from './file.js';
 
 const DEFAULT_FLUSH_THRESHOLD = 100;
 
@@ -88,8 +89,7 @@ export default class HashStore {
 
   async _read() {
     try {
-      const content = await fs.readFile(this._file, 'utf-8');
-      return content.split('\n').map(v => v.trim()).filter(v => v);
+      return await readFileAsLines(this._file);
     } catch (err) {
       if (err.code !== 'ENOENT') {
         throw err;
