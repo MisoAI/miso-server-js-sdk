@@ -1,0 +1,21 @@
+{
+  "name": "@miso.ai/server-jobs",
+  "description": "Miso job tools",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "miso-jobs": "cli/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {},
+  "repository": "MisoAI/miso-server-js-sdk",
+  "license": "MIT",
+  "contributors": [
+    "simonpai <simon.pai@askmiso.com>"
+  ],
+  "dependencies": {
+    "@miso.ai/server-commons": "file:packages/server-commons"
+  }
+}
