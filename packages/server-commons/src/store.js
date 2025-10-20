@@ -69,9 +69,10 @@ export default class HashStore {
     if (this._pending.length === 0) {
       return;
     }
-    await this._mkdir();
-    await fs.appendFile(this._file, this._pending.join('\n') + '\n');
+    const pending = this._pending;
     this._pending = [];
+    await this._mkdir();
+    await fs.appendFile(this._file, pending.join('\n') + '\n');
   }
 
   exclusionStream() {

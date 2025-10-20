@@ -6,6 +6,7 @@ const LOG_LEVELS = [
   logLevel('fatal', 0),
   logLevel('error', 5),
   logLevel('warn', 10),
+  logLevel('report', 10),
   logLevel('info', 15),
   logLevel('debug', 20),
 ];
