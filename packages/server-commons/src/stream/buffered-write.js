@@ -183,6 +183,7 @@ export default class BufferedWriteStream extends Transform {
       result: failed ? 'failed' : 'successful',
       index: request.index,
       records: request.records,
+      recovered: response.recovered || { records: 0, bytes: 0 },
       bytes: request.bytes,
       time: response.timestamp - request.timestamp,
     });
