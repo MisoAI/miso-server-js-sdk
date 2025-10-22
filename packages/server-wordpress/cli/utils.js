@@ -1,4 +1,4 @@
-import { startOfDate, endOfDate } from '@miso.ai/server-commons';
+import { startOfDate, endOfDate, yargs as _yargs } from '@miso.ai/server-commons';
 
 export function normalizeOptions({ date, after, before, ids, include, ...options }) {
   // TODO: should be able to turn this off, as it's covered by helper
@@ -49,12 +49,12 @@ export function buildForEntities(yargs) {
     .option('fields', {
       describe: 'Specify which record fields are retrieved',
       type: 'array',
-      coerce: yargs.coerceToArray,
+      coerce: _yargs.coerceToArray,
     })
     .option('params', {
       describe: 'Specify additional query parameters in the form of key=value',
       type: 'array',
-      coerce: yargs.coerceToArray,
+      coerce: _yargs.coerceToArray,
     })
     .option('resolve', {
       alias: 'r',

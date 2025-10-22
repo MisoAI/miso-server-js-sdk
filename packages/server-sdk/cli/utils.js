@@ -1,3 +1,5 @@
+import { yargs as _yargs } from '@miso.ai/server-commons';
+
 export function buildForApi(yargs) {
   return yargs
     .option('key', {
@@ -12,7 +14,7 @@ export function buildForApi(yargs) {
       alias: ['v', 'var'],
       describe: 'Extra URL parameters',
       type: 'array',
-      coerce: yargs.coerceToArray,
+      coerce: _yargs.coerceToArray,
     })
     .option('debug', {
       describe: 'Set log level to debug',
@@ -28,8 +30,8 @@ export function buildForSearch(yargs) {
       describe: 'Filter query',
     })
     .option('fl', {
-      type: 'array',
-      coerce: yargs.coerceToArray,
+      type: 'string',
+      coerce: _yargs.coerceToArray,
       describe: 'Fields to return',
     })
     .option('rows', {

@@ -73,6 +73,6 @@ export function handleFail(msg, err) {
 
 export function coerceToArray(arg) {
   return Array.isArray(arg) ? arg :
-    typeof arg === 'string' ? arg.split(',') :
+    typeof arg === 'string' ? arg.split(',').map(s => s.trim()) :
     arg === undefined || arg === null ? [] : [arg];
 }
