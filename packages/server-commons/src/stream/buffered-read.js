@@ -193,12 +193,13 @@ class Strategy {
 
   constructor({
     highWatermark = 1000,
+    maxPendingLoads = 100,
     eagerLoad = false,
     initialize,
     shallLoad,
     terminate,
   } = {}) {
-    this.options = Object.freeze({ highWatermark, eagerLoad });
+    this.options = Object.freeze({ highWatermark, maxPendingLoads, eagerLoad });
     // overwrite methods
     Object.assign(this, trimObj({ initialize, shallLoad, terminate }));
   }
@@ -211,7 +212,7 @@ class Strategy {
 
   shallLoad(state) {
     // TODO: we can have a slower start
-    return state.watermark < this.options.highWatermark;
+    return state.pendingLoads < this.options.maxPendingLoads && state.watermark < this.options.highWatermark;
   }
 
   terminate(record, state) {
