@@ -3,11 +3,15 @@ import axiosRetry from 'axios-retry';
 import version from './version.js';
 
 const DEFAULT_RETRY_OPTIONS = {
-  retries: 3,
-  retryDelay: count => count * 300,
+  retries: 5,
+  retryDelay: count => count * 500,
   retryCondition: (error) => {
-    // Only retry on 5xx server errors
-    return error.response && error.response.status >= 500 && error.response.status < 600;
+    if (!error.response) {
+      return false;
+    }
+    const { status } = error.response;
+    // Only retry on 5xx or 429 server errors
+    return (status >= 500 && status < 600) || status === 429;
   },
 };
 

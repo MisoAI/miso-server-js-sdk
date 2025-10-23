@@ -11,11 +11,13 @@ export default class BpsSink {
   }
 
   _normalizeOptions({
+    writesPerSecond = 5,
     recordsPerSecord = 100000,
     bytesPerSecond = 100 * 1024 * 1024,
     ...options
   } = {}) {
     return {
+      writesPerSecond,
       recordsPerSecord,
       bytesPerSecond,
       ...options,
@@ -62,9 +64,10 @@ export default class BpsSink {
     const elapsed = now - this._firstWriteAt;
     const targetBps = this._targetBps(now);
     const targetRps = this._targetRps(now);
+    const targetWps = this._targetWps(now);
 
     const { started } = this._stats;
-    const shallElapsed = Math.max(started.records / targetRps, started.bytes / targetBps) * 1000;
+    const shallElapsed = Math.max(started.records / targetRps, started.bytes / targetBps, started.count / targetWps) * 1000;
 
     const blockedTime = shallElapsed - elapsed;
     if (blockedTime <= 1000) {
@@ -84,6 +87,10 @@ export default class BpsSink {
 
   _targetRps(timestamp) {
     return this._options.recordsPerSecord;
+  }
+
+  _targetWps(timestamp) {
+    return this._options.writesPerSecord;
   }
 
 }
