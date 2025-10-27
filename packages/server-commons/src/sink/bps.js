@@ -90,7 +90,7 @@ export default class BpsSink {
   }
 
   _targetWps(timestamp) {
-    return this._options.writesPerSecord;
+    return this._options.writesPerSecond;
   }
 
 }
