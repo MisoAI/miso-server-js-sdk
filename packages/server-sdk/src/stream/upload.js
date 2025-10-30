@@ -15,6 +15,7 @@ export default class UploadStream extends stream.BufferedWriteStream {
     dryRun,
     params,
     experimentId,
+    requestsPerSecond,
     recordsPerSecond,
     bytesPerSecond,
     // buffer
@@ -38,6 +39,7 @@ export default class UploadStream extends stream.BufferedWriteStream {
       dryRun,
       params,
       experimentId,
+      requestsPerSecond,
       recordsPerSecond,
       bytesPerSecond,
     });

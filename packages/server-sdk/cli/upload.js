@@ -12,6 +12,10 @@ function build(yargs) {
       describe: 'Accept some lenient record schema',
       type: 'boolean',
     })
+    .option('requests-per-second', {
+      alias: ['rps'],
+      describe: 'How many requests to send per second',
+    })
     .option('records-per-request', {
       alias: ['rpr'],
       describe: 'How many records to send in a request',
@@ -47,6 +51,7 @@ const run = type => async ({
   param: params,
   ['dry-run']: dryRun,
   lenient,
+  ['requests-per-second']: requestsPerSecond,
   ['records-per-request']: recordsPerRequest,
   ['bytes-per-request']: bytesPerRequest,
   ['bytes-per-second']: bytesPerSecond,
@@ -71,6 +76,7 @@ const run = type => async ({
     dryRun,
     params,
     heartbeatInterval: logFormat === logger.FORMAT.PROGRESS ? 250 : false,
+    requestsPerSecond,
     recordsPerRequest,
     bytesPerRequest,
     bytesPerSecond,

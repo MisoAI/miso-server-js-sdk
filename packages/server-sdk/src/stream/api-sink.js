@@ -1,10 +1,17 @@
 import { sink, trimObj } from '@miso.ai/server-commons';
 import ServiceStats from './service-stats.js';
 
+function shimOptions({ requestsPerSecond, ...options }) {
+  return {
+    ...options,
+    writesPerSecond: requestsPerSecond,
+  };
+}
+
 export default class ApiSink extends sink.BpsSink {
 
   constructor(client, options) {
-    super(options);
+    super(shimOptions(options));
     this._client = client;
     this._serviceStats = new ServiceStats();
   }
