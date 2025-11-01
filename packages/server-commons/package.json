@@ -6,7 +6,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "npx uvu test -i 'ignored'"
+  },
   "repository": "MisoAI/miso-server-js-sdk",
   "license": "MIT",
   "contributors": [
