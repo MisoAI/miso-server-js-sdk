@@ -36,57 +36,142 @@ const RE_DATE_EXPR = /^(?:\d{4})|(?:\d{4}-[Qq\d]\d)|(?:\d{4}-\d{2}-[Ww\d]\d)$/;
 // TODO: support hour, minute
 
 export function startOfDate(expr) {
-  if (expr === undefined) {
-    return undefined;
-  }
-  const parsed = parseDateExpr(expr);
-  switch (parsed.type) {
-    case 'ts':
-      return parsed.ts;
-    case 'year':
-      return Date.UTC(parsed.year);
-    case 'quarter':
-      return Date.UTC(parsed.year, (parsed.quarter - 1) * 3);
-    case 'month':
-      return Date.UTC(parsed.year, parsed.month - 1);
-    case 'week':
-      return Date.UTC(parsed.year, parsed.month - 1, (parsed.week - 1) * 7 + 1);
-    case 'day':
-      return Date.UTC(parsed.year, parsed.month - 1, parsed.day);
-    default:
-      throw new Error(`Unrecognized date: ${expr}`);
-  }
-}
-
-export function nextOfDate(expr) {
-  if (expr === undefined) {
-    return undefined;
-  }
-  const parsed = parseDateExpr(expr);
-  switch (parsed.type) {
-    case 'ts':
-      return parsed.ts + 1;
-    case 'year':
-      return Date.UTC(parsed.year + 1);
-    case 'quarter':
-      return Date.UTC(parsed.year, parsed.quarter * 3);
-    case 'month':
-      return Date.UTC(parsed.year, parsed.month);
-    case 'week':
-      // roll over to 1st of next month if week is 4
-      return Date.UTC(parsed.year, parsed.week < 4 ? parsed.month - 1 : parsed.month, (parsed.week % 4) * 7 + 1);
-    case 'day':
-      return Date.UTC(parsed.year, parsed.month - 1, parsed.day + 1);
-    default:
-      throw new Error(`Unrecognized date: ${expr}`);
-  }
+  return floorDate(expr);
 }
 
 export function endOfDate(expr) {
   if (expr === undefined) {
     return undefined;
   }
-  return nextOfDate(expr) - 1000; // 1 sec
+  return nextDate(expr) - 1000; // 1 sec
+}
+
+export function floorDate(expr, unit) {
+  validateUnit(unit);
+  if (expr === undefined) {
+    return undefined;
+  }
+  const [_unit, ts] = parseDateExpr(expr);
+  if (unit === undefined || !isGranular(unit, _unit)) {
+    return ts;
+  }
+  return floorTimestamp(ts, unit);
+}
+
+function floorTimestamp(ts, unit) {
+  switch (unit) {
+    case 'millisecond':
+      return ts;
+    case 'second':
+      return ts - ts % TS_PER_UNIT.s;
+    case 'minute':
+      return ts - ts % TS_PER_UNIT.m;
+    case 'hour':
+      return ts - ts % TS_PER_UNIT.h;
+    case 'day':
+      return ts - ts % TS_PER_UNIT.d;
+  }
+  const d = new Date(ts);
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+  switch (unit) {
+    case 'week':
+      return Date.UTC(year, month - 1, day > 21 ? 22 : day - (day - 1) % 7);
+    case 'month':
+      return Date.UTC(year, month - 1);
+    case 'quarter':
+      return Date.UTC(year, month - month % 3);
+    case 'year':
+      return Date.UTC(year);
+    default:
+      throw new Error(`Unrecognized unit: ${unit}`);
+  }
+}
+
+export function ceilDate(expr, unit) {
+  validateUnit(unit);
+  if (expr === undefined) {
+    return undefined;
+  }
+  const [_unit, ts] = parseDateExpr(expr);
+  return ceilTimestamp(ts, unit || _unit);
+}
+
+function ceilTimestamp(ts, unit) {
+  switch (unit) {
+    case 'millisecond':
+      return ts;
+    case 'second':
+      return ts + TS_PER_UNIT.s - ts % TS_PER_UNIT.s;
+    case 'minute':
+      return ts + TS_PER_UNIT.m - ts % TS_PER_UNIT.m;
+    case 'hour':
+      return ts + TS_PER_UNIT.h - ts % TS_PER_UNIT.h;
+    case 'day':
+      return ts + TS_PER_UNIT.d - ts % TS_PER_UNIT.d;
+  }
+  const d = new Date(ts);
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+  switch (unit) {
+    case 'week':
+      return day > 21 ? Date.UTC(year, month, 1) : Date.UTC(year, month - 1, day - (day - 1) % 7 + 7);
+    case 'month':
+      return Date.UTC(year, month, 1);
+    case 'quarter':
+      return Date.UTC(year, month - month % 3 + 3);
+    case 'year':
+      return Date.UTC(year + 1);
+    default:
+      throw new Error(`Unrecognized unit: ${unit}`);
+  }
+}
+
+export function nextDate(expr, unit) {
+  validateUnit(unit);
+  if (expr === undefined) {
+    return undefined;
+  }
+  const [_unit, ts] = parseDateExpr(expr);
+  return ceilTimestamp(ts + 1, unit || _unit);
+}
+
+export function prevDate(expr, unit) {
+  validateUnit(unit);
+  if (expr === undefined) {
+    return undefined;
+  }
+  const [_unit, ts] = parseDateExpr(expr);
+  return floorTimestamp(ts - 1, unit || _unit);
+}
+
+
+
+const UNIT_GRANULARITY = {
+  'millisecond': 10,
+  'second': 9,
+  'minute': 8,
+  'hour': 7,
+  'day': 6,
+  'week': 5,
+  'month': 4,
+  'quarter': 3,
+  'year': 2,
+};
+
+function validateUnit(unit) {
+  if (unit === undefined) {
+    return;
+  }
+  if (typeof unit !== 'string' || !UNIT_GRANULARITY[unit]) {
+    throw new Error(`Unrecognized unit: ${unit}`);
+  }
+}
+
+function isGranular(unit0, unit1) {
+  return UNIT_GRANULARITY[unit0] > UNIT_GRANULARITY[unit1];
 }
 
 function parseDateExpr(expr) {
@@ -95,7 +180,7 @@ function parseDateExpr(expr) {
       if (expr < 100) {
         throw new Error(`Unrecognized date: ${expr}`);
       }
-      return expr < 10000 ? { type: 'year', year: expr } : { type: 'ts', ts: expr };
+      return expr < 10000 ? ['year', Date.UTC(expr)] : ['millisecond', expr];
     case 'string':
       expr = expr.trim();
       const len = expr.length;
@@ -107,28 +192,28 @@ function parseDateExpr(expr) {
         throw new Error(`Unrecognized date: ${expr}`);
       }
       if (len === 4) {
-        return { type: 'year', year };
+        return ['year', Date.UTC(year)];
       }
       if (len === 7 && (expr.charAt(5) === 'Q' || expr.charAt(5) === 'q')) {
         const quarter = parseInt(expr.charAt(6), 10);
         if (isNaN(quarter) || quarter < 1 || quarter > 4) {
           throw new Error(`Unrecognized date: ${expr}`);
         }
-        return { type: 'quarter', year, quarter };
+        return ['quarter', Date.UTC(year, (quarter - 1) * 3)];
       }
       const month = parseInt(expr.slice(5, 7), 10);
       if (isNaN(month) || month < 1 || month > 12) {
         throw new Error(`Unrecognized date: ${expr}`);
       }
       if (len === 7) {
-        return { type: 'month', year, month };
+        return ['month', Date.UTC(year, month - 1)];
       }
       if (expr.charAt(8) === 'W' || expr.charAt(8) === 'w') {
         const week = parseInt(expr.charAt(9), 10);
         if (isNaN(week) || week < 1 || week > 4) {
           throw new Error(`Unrecognized date: ${expr}`);
         }
-        return { type: 'week', year, month, week };
+        return ['week', Date.UTC(year, month - 1, week * 7 - 6)];
       }
       let date;
       try {
@@ -137,7 +222,7 @@ function parseDateExpr(expr) {
       } catch (_) {
         throw new Error(`Unrecognized date: ${expr}`);
       }
-      return { type: 'day', year, month, day: date.getUTCDate() };
+      return ['day', Date.UTC(year, month - 1, date.getUTCDate())];
     default:
       throw new Error(`Unrecognized date: ${expr}`);
   }
