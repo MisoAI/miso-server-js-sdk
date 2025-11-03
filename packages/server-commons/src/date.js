@@ -81,7 +81,7 @@ function floorTimestamp(ts, unit) {
     case 'month':
       return Date.UTC(year, month - 1);
     case 'quarter':
-      return Date.UTC(year, month - month % 3);
+      return Date.UTC(year, month - month % 3 - 3);
     case 'year':
       return Date.UTC(year);
     default:
@@ -95,10 +95,21 @@ export function ceilDate(expr, unit) {
     return undefined;
   }
   const [_unit, ts] = parseDateExpr(expr);
-  return ceilTimestamp(ts, unit || _unit);
+  unit = unit || _unit;
+  const floored = floorTimestamp(ts, unit);
+  return floored === ts ? floored : nextTimestamp(floored, unit);
 }
 
-function ceilTimestamp(ts, unit) {
+export function nextDate(expr, unit) {
+  validateUnit(unit);
+  if (expr === undefined) {
+    return undefined;
+  }
+  const [_unit, ts] = parseDateExpr(expr);
+  return nextTimestamp(ts + 1, unit || _unit);
+}
+
+function nextTimestamp(ts, unit) {
   switch (unit) {
     case 'millisecond':
       return ts;
@@ -127,15 +138,6 @@ function ceilTimestamp(ts, unit) {
     default:
       throw new Error(`Unrecognized unit: ${unit}`);
   }
-}
-
-export function nextDate(expr, unit) {
-  validateUnit(unit);
-  if (expr === undefined) {
-    return undefined;
-  }
-  const [_unit, ts] = parseDateExpr(expr);
-  return ceilTimestamp(ts + 1, unit || _unit);
 }
 
 export function prevDate(expr, unit) {
