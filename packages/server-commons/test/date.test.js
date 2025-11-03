@@ -6,6 +6,10 @@ function testDateFn(fn, input, output) {
   assert.equal(new Date(fn(input)).toISOString(), output, `${fn.name}(${input})`);
 }
 
+function testDateFnWithUnit(fn, input, unit, output) {
+  assert.equal(new Date(fn(input, unit)).toISOString(), output, `${fn.name}(${input}, ${unit})`);
+}
+
 test('startOfDate', () => {
   testDateFn(startOfDate, '2025', '2025-01-01T00:00:00.000Z');
   testDateFn(startOfDate, '2025-Q1', '2025-01-01T00:00:00.000Z');
@@ -42,6 +46,13 @@ test('floorDate', () => {
   testDateFn(floorDate, '2025-02-W1', '2025-02-01T00:00:00.000Z');
   testDateFn(floorDate, '2025-02-w2', '2025-02-08T00:00:00.000Z');
   testDateFn(floorDate, '2025-02-03', '2025-02-03T00:00:00.000Z');
+
+  const ts = Date.parse('2025-05-10T04:05:06Z');
+  testDateFnWithUnit(floorDate, ts, 'day', '2025-05-10T00:00:00.000Z');
+  testDateFnWithUnit(floorDate, ts, 'week', '2025-05-08T00:00:00.000Z');
+  testDateFnWithUnit(floorDate, ts, 'month', '2025-05-01T00:00:00.000Z');
+  testDateFnWithUnit(floorDate, ts, 'quarter', '2025-04-01T00:00:00.000Z');
+  testDateFnWithUnit(floorDate, ts, 'year', '2025-01-01T00:00:00.000Z');
 });
 
 test('ceilDate', () => {
@@ -82,6 +93,19 @@ test('prevDate', () => {
   testDateFn(prevDate, '2025-02-W3', '2025-02-08T00:00:00.000Z');
   testDateFn(prevDate, '2025-02-w4', '2025-02-15T00:00:00.000Z');
   testDateFn(prevDate, '2025-02-03', '2025-02-02T00:00:00.000Z');
+
+  const ts = Date.parse('2025-05-10T04:05:06Z');
+  testDateFnWithUnit(prevDate, ts, 'day', '2025-05-10T00:00:00.000Z');
+  testDateFnWithUnit(prevDate, ts, 'week', '2025-05-08T00:00:00.000Z');
+  testDateFnWithUnit(prevDate, ts, 'month', '2025-05-01T00:00:00.000Z');
+  testDateFnWithUnit(prevDate, ts, 'quarter', '2025-04-01T00:00:00.000Z');
+  testDateFnWithUnit(prevDate, ts, 'year', '2025-01-01T00:00:00.000Z');
+
+  testDateFnWithUnit(prevDate, '2025', 'day', '2024-12-31T00:00:00.000Z');
+  testDateFnWithUnit(prevDate, '2025', 'week', '2024-12-22T00:00:00.000Z');
+  testDateFnWithUnit(prevDate, '2025', 'month', '2024-12-01T00:00:00.000Z');
+  testDateFnWithUnit(prevDate, '2025', 'quarter', '2024-10-01T00:00:00.000Z');
+  
 });
 
 test.run();

@@ -52,7 +52,8 @@ export function floorDate(expr, unit) {
     return undefined;
   }
   const [_unit, ts] = parseDateExpr(expr);
-  if (unit === undefined || !isGranular(unit, _unit)) {
+  //console.error('floorDate', expr, unit, _unit, ts, unit === undefined || !isGranular(unit, _unit));
+  if (unit === undefined || isGranular(unit, _unit)) {
     return ts;
   }
   return floorTimestamp(ts, unit);
@@ -81,7 +82,7 @@ function floorTimestamp(ts, unit) {
     case 'month':
       return Date.UTC(year, month - 1);
     case 'quarter':
-      return Date.UTC(year, month - month % 3 - 3);
+      return Date.UTC(year, month - 1 - (month - 1) % 3);
     case 'year':
       return Date.UTC(year);
     default:
