@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "packages/server-commons",
-    "packages/server-csv",
+    "packages/server-data",
     "packages/server-feed",
     "packages/server-jobs",
     "packages/server-sdk",

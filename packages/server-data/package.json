@@ -1,10 +1,10 @@
 {
-  "name": "@miso.ai/server-csv",
-  "description": "Miso CSV data tools",
+  "name": "@miso.ai/server-data",
+  "description": "Miso assorted data tools",
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "miso-csv": "cli/index.js"
+    "miso-csv": "cli/csv.js"
   },
   "publishConfig": {
     "access": "public"

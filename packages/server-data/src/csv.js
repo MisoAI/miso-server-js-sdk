@@ -1,6 +1,6 @@
 import { Transform } from 'stream';
 
-export default class CsvTransformObjectStream extends Transform {
+export class CsvTransformObjectStream extends Transform {
 
   constructor({} = {}) {
     super({

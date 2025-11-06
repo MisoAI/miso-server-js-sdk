@@ -1,6 +1,20 @@
+#!/usr/bin/env node
+import { yargs } from '@miso.ai/server-commons';
+import version from '../src/version.js';
 import { Parser } from 'csv-parse';
 import { splitObj, stream } from '@miso.ai/server-commons';
 import { CsvTransformObjectStream } from '../src/index.js';
+
+yargs.build(yargs => {
+  yargs
+    .command({
+      command: '*',
+      description: 'Interpret lines as CSV records',
+      builder: build,
+      handler: run,
+    })
+    .version(version);
+});
 
 function build(yargs) {
   return yargs
@@ -44,9 +58,3 @@ async function run({ object, ...options }) {
     new stream.OutputStream(),
   );
 }
-
-export default {
-  description: 'Interpret lines as CSV records',
-  builder: build,
-  handler: run,
-};
