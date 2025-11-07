@@ -49,7 +49,7 @@ function proxy(model) {
       if (prop in target) {
         return target[prop];
       }
-      if (prop.charAt(0) !== '_') {
+      if (typeof prop === 'string' && prop.charAt(0) !== '_') {
         return target.get(prop);
       }
       return undefined;
@@ -308,6 +308,14 @@ class PluralModel {
     return this._members.map(fn);
   }
 
+  filter(fn) {
+    return PluralModel.create(this._members.filter(fn));
+  }
+
+  [Symbol.iterator]() {
+    return this._members[Symbol.iterator]();
+  }
+
   get textValues() {
     return this.map(m => m.textValue);
   }
@@ -389,5 +397,5 @@ function testStatement(myValue, operator, selectorValue) {
 }
 
 function toKeyFormat(str) {
-  return str.replace(/[-_:]([0-9A-Za-z])/g, ([_, letter]) => letter.toUpperCase());
+  return str.replace(/[-_:.]([0-9A-Za-z])/g, ([_, letter]) => letter.toUpperCase());
 }
