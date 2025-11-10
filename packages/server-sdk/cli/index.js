@@ -7,6 +7,7 @@ import upload from './upload.js';
 import del from './delete.js';
 import ids from './ids.js';
 import transform from './transform.js';
+import mergeLocal from './merge-local.js';
 import status from './status.js';
 import get from './get.js';
 import search from './search.js';
@@ -70,6 +71,7 @@ yargs.build(yargs => {
     .command(users)
     .command(experiments)
     .command(transform)
+    .command(mergeLocal)
     .command(search)
     .command(hybridSearch)
     .version(MisoClient.version);
