@@ -308,6 +308,10 @@ class PluralModel {
     return this._members.map(fn);
   }
 
+  reduce(fn, initialValue) {
+    return this._members.reduce(fn, initialValue);
+  }
+
   filter(fn) {
     return PluralModel.create(this._members.filter(fn));
   }
