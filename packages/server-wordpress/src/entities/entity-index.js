@@ -50,7 +50,7 @@ export default class EntityIndex {
     if (this.hierarchical) {
       return; // already all fetched
     }
-    ids = asArray(ids).filter(id => id); // discard 0, null, undefined
+    ids = asArray(ids).filter(id => id && Number.isInteger(Number(id))); // discard 0, null, undefined, non-integer
 
     const promises = []
     const idsToFetch = [];
