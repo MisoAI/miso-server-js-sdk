@@ -39,7 +39,7 @@ export default class WordPressDataSource {
       return { data: [], terminate: true };
     }
     if (!Array.isArray(data)) {
-      throw new Error(`Unexpected response from WordPress API for ${url}. Expected an array of objects: ${data}`);
+      throw new Error(`Unexpected response from WordPress API for ${url}. Expected an array of objects: ${typeof data === 'object' ? JSON.stringify(data) : data}`);
     }
     const { records } = request;
     if (records) {
