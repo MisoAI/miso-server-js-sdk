@@ -24,6 +24,9 @@ export class Entities {
       return this._client._helpers.stream(this.name, options);
     }
     const client = this._client;
+    if (transform === true) {
+      transform = (this._client._options.transforms || {})[this.name] || transform;
+    }
     transform = await _getTransformFn(client, this.name, transform);
 
     // we need taxonomy fetched so we know whether it's hierarchical

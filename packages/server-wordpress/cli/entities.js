@@ -123,20 +123,6 @@ async function buildUpdateStream(client, name, update, {
         modifiedAfter: threshold,
         before: threshold,
       }),
-      /*
-      entities.stream({
-        ...options,
-        transform,
-        orderBy: 'modified',
-        before: threshold,
-        pageSize: 20,
-        strategy: {
-          highWatermark: 100,
-          eagerLoad: true,
-          terminate: entity => parseDate(entity.modified_gmt) < threshold,
-        },
-      })
-      */
     ])
   );
 }
