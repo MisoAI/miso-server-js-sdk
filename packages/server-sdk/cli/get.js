@@ -4,12 +4,13 @@ import { formatError } from './utils.js';
 const build = yargs => yargs;
 
 const run = type => async ({
+  env,
   key,
   server,
   id,
   debug,
 }) => {
-  const client = new MisoClient({ key, server, debug });
+  const client = new MisoClient({ env, key, server, debug });
   try {
     const entity = await client.api[type].get(id);
     console.log(JSON.stringify(entity));

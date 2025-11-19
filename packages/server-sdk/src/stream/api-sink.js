@@ -65,7 +65,6 @@ export default class ApiSink extends sink.BpsSink {
     }
 
     // keep track of service stats on successful calls
-    // TODO: handle recovered records?
     if (!data.errors) {
       this._serviceStats.track({ records, bytes, took: data.took });
     }

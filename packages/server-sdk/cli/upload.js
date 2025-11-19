@@ -46,6 +46,7 @@ function build(yargs) {
 }
 
 const run = type => async ({
+  env,
   key,
   server,
   param: params,
@@ -66,7 +67,7 @@ const run = type => async ({
   loglevel = (debug || progress) ? log.DEBUG : loglevel;
   logFormat = progress ? logger.FORMAT.PROGRESS : logFormat;
 
-  const client = new MisoClient({ key, server, debug });
+  const client = new MisoClient({ env, key, server, debug });
 
   const uploadStreamObjectMode = lenient;
 

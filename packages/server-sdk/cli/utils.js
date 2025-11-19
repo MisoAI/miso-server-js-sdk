@@ -6,6 +6,10 @@ export function buildForApi(yargs) {
       alias: ['k', 'api-key'],
       describe: 'API key',
     })
+    .option('env', {
+      describe: 'Environment',
+      type: 'string',
+    })
     .option('server', {
       alias: ['api-server'],
       describe: 'API server',

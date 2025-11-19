@@ -28,10 +28,18 @@ function normalizeOptions(options) {
   if (typeof options === 'string') {
     options = { key: options };
   }
+  options.key = getApiKeyFromEnv(options.env, options.key);
   if (!options.key || typeof options.key !== 'string') {
     throw new Error(`API key is required.`);
   }
   options.server = options.server || 'https://api.askmiso.com'
 
   return options;
+}
+
+function getApiKeyFromEnv(env, key) {
+  if (!env) {
+    return key;
+  }
+  return process.env[`MISO_${env.toUpperCase()}_API_KEY`] || undefined;
 }

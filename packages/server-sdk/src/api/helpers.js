@@ -37,6 +37,7 @@ async function recoverValidRecords(client, type, records, options, response) {
     return; // still fail, never mind...
   }
   response.recovered = {
+    product_ids: validRecords.map(record => record.product_id),
     records: validRecords.length,
     bytes: validPayload.length * 2,
   };

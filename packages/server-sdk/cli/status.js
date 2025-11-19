@@ -7,12 +7,13 @@ const build = type => yargs => {
 };
 
 const run = type => async ({
+  env,
   key,
   server,
   taskId,
   debug,
 }) => {
-  const client = new MisoClient({ key, server, debug });
+  const client = new MisoClient({ env, key, server, debug });
   if (taskId) {
     runOne(client, type, taskId);
   } else {

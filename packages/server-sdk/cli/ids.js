@@ -19,12 +19,13 @@ const build = type => yargs => {
 };
 
 const run = type => async ({
+  env,
   key,
   server,
   type: recordType,
   debug,
 }) => {
-  const client = new MisoClient({ key, server, debug });
+  const client = new MisoClient({ env, key, server, debug });
   let ids;
   try {
     const options = recordType ? { type: recordType } : {};
