@@ -1,4 +1,7 @@
 import { Transform, pipeline as _pipeline } from 'stream';
+import { chain } from 'stream-chain';
+
+export const chain = chain;
 
 export function parse({ lenient } = {}) {
   const parsnFn = lenient ? parseJsonIfPossible : JSON.parse;
