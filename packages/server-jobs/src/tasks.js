@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import { LOG_LEVEL } from './constants.js';
 import { finished } from './process.js';
-import { createLogFunction, generateJobId } from './logs.js';
+import { createLogFunction, generateShortId } from './logs.js';
 import { formatDuration } from './utils.js';
 
 export async function runJob(job, options = {}) {
@@ -11,9 +11,10 @@ export async function runJob(job, options = {}) {
 
   log(`Starting job with ${tasks.length} tasks`);
 
+  const total = tasks.length;
   let index = 0;
   for (let task of tasks) {
-    task = normalizeTask(task, index);
+    task = normalizeTask(task, { index, total });
     await runTask(job, task, options);
     index++;
   }
@@ -41,15 +42,15 @@ async function runTask(job, task, options = {}) {
 function normalizeJob(job) {
   job = { ...job, timestamp: Date.now() };
   if (!job.id) {
-    job.id = generateJobId();
+    job.id = generateShortId();
   }
   return job;
 }
 
-function normalizeTask(task, index) {
-  task = { ...task, index, timestamp: Date.now() };
+function normalizeTask(task, { index, total } = {}) {
+  task = { ...task, index, total, timestamp: Date.now() };
   if (!task.id) {
-    task.id = generateJobId();
+    task.id = generateShortId();
   }
   return task;
 }

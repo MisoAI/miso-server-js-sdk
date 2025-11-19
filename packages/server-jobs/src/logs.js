@@ -1,6 +1,6 @@
 import { LOG_LEVEL, getLogLevelValue } from './constants.js';
 
-export function generateJobId() {
+export function generateShortId() {
   // 4-char random string
   return Math.random().toString(36).slice(2, 6).toLowerCase();
 }
