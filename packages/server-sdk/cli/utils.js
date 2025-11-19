@@ -23,8 +23,7 @@ export function buildForApi(yargs) {
     .option('debug', {
       describe: 'Set log level to debug',
       type: 'boolean',
-    })
-    .demandOption(['key'], 'API key is required.');
+    });
 }
 
 export function buildForSearch(yargs) {
