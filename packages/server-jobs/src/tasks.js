@@ -1,5 +1,6 @@
+import { spawn } from 'child_process';
 import { LOG_LEVEL } from './constants.js';
-import { spawn } from './process.js';
+import { finished } from './process.js';
 import { createLogFunction, generateJobId } from './logs.js';
 import { formatDuration } from './utils.js';
 
@@ -27,12 +28,10 @@ async function runTask(job, task, options = {}) {
   const { command, args, shell } = task;
   log(`Starting task: ${formatTaskCommand(task)}`);
 
-  await spawn(command, args || [], {
-    shell,
-    onStdout: data => log(parseJsonIfNecessary(data)),
-    onStderr: data => log(LOG_LEVEL.ERROR.NAME, parseJsonIfNecessary(data)),
-    ...options,
-  });
+  const child = spawn(command, args, { shell });
+  child.stdout.on('data', data => log(parseJsonIfNecessary(data)));
+  child.stderr.on('data', data => log(LOG_LEVEL.ERROR.NAME, parseJsonIfNecessary(data)));
+  await finished(child);
 
   const endTime = Date.now();
   const elapsed = endTime - task.timestamp;

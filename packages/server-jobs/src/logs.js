@@ -64,23 +64,20 @@ function formatEvent({ job, task, type, level, message = '', ...event } = {}) {
 
 function formatJobTag(job) {
   if (typeof job === 'string') {
-    return `[${job}]`;
+    return `[job=${job}]`;
   }
-  let tags = '';
-  if (job.id) {
-    tags += `[${job.id}]`;
-  }
+  const terms = [];
   if (job.name) {
-    tags += `[${job.name}]`;
+    terms.push(job.name);
   }
-  return tags;
+  if (job.id) {
+    terms.push(job.id);
+  }
+  return terms.length ? `[job=${terms.join('/')}]` : '';
 }
 
 function formatTaskTag(task) {
-  if (typeof task === 'string') {
-    return `[${task}]`;
-  }
-  return `[${task.name || task.id}]`;
+  return `[task=${typeof task === 'string' ? task : (task.name || task.id)}]`;
 }
 
 function defaultLogOutput(level, message) {
