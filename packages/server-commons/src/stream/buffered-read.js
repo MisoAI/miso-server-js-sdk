@@ -107,7 +107,7 @@ export default class BufferedReadStream extends Readable {
     let index = 0;
     for (const record of records) {
       terminate = terminate || strategy.terminate(record, state, request, index);
-      if (!terminate && this._filter(record)) {
+      if (!terminate && this._filter(record, state, request, index)) {
         state.accept();
         accepted.push(this._transform(record));
       }
