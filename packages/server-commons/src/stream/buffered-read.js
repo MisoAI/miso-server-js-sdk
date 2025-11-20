@@ -91,10 +91,10 @@ export default class BufferedReadStream extends Readable {
     this._debug(`[BufferedReadStream] Load response: ${JSON.stringify(response)} => data = ${data && data.length}`);
 
     // TODO: support strategy option: keepOrder = false
-    this._loads.push(request.index, () => this._resolveLoad(response, data));
+    this._loads.push(request.index, () => this._resolveLoad(response, data, request));
   }
 
-  _resolveLoad(response, records) {
+  _resolveLoad(response, records, request) {
     const state = this._state;
     const strategy = this._strategy;
 
@@ -104,8 +104,9 @@ export default class BufferedReadStream extends Readable {
     // apply terminate and filter function
     let terminate = false;
     const accepted = [];
+    let index = 0;
     for (const record of records) {
-      terminate = terminate || strategy.terminate(record, state);
+      terminate = terminate || strategy.terminate(record, state, request, index);
       if (!terminate && this._filter(record)) {
         state.accept();
         accepted.push(this._transform(record));
@@ -113,6 +114,7 @@ export default class BufferedReadStream extends Readable {
       if (terminate) {
         break;
       }
+      index++;
     }
     if (terminate || (this._state.pendingLoads === 0 && this._state.exhausted)) {
       state.terminate();
