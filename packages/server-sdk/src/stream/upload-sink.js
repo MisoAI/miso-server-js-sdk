@@ -28,28 +28,12 @@ class UploadSink extends ApiSink {
 
 }
 
-class ExperimentEventUploadSink extends UploadSink {
-
-  constructor(client, options) {
-    super(client, { ...options, type: 'experiment-events' });
-  }
-
-  async _execute(payload) {
-    const { experimentId } = this._options;
-    const { data } = await this._client.api.experiments.uploadEvent(experimentId, payload);
-    return data;
-  }
-
-}
-
 export default function create(client, type, options) {
   switch (type) {
     case 'users':
     case 'products':
     case 'interactions':
       return new UploadSink(client, { ...options, type });
-    case 'experiment-events':
-      return new ExperimentEventUploadSink(client, options);
     default:
       throw new Error(`Unrecognized type: ${type}`);
   }
