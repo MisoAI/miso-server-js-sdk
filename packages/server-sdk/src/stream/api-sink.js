@@ -62,6 +62,9 @@ export default class ApiSink extends sink.BpsSink {
       if (error.response.recovered) {
         data.recovered = error.response.recovered;
       }
+      if (error.response.issues) {
+        data.issues = error.response.issues;
+      }
     }
 
     // keep track of service stats on successful calls

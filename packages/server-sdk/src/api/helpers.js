@@ -14,12 +14,15 @@ export async function upload(client, type, records, options = {}) {
 }
 
 async function recoverValidRecords(client, type, records, options, response) {
-  if (!response || response.status !== 422 || !options.recoverValidRecordsOn422) {
+  if (!response || response.status !== 422) {
     return;
   }
   records = extractRecordsFromUploadPayload(records);
   // try to collect valid records and resend them, which should pass the validation
-  const { groups = [], unrecognized = [] } = process422ResponseBody(records, response.data); // it takes records too
+  const { groups = [], unrecognized = [] } = response.issues = process422ResponseBody(records, response.data); // it takes records too
+  if (!options.recoverValidRecordsOn422) {
+    return; // still write issues to response
+  }
   if (groups.length === 0 || groups.length === records.length || unrecognized.length > 0) {
     // if there are unrecognized messages, it's hard to tell which records are valid
     return;
