@@ -47,29 +47,12 @@ const users = {
     .command(status('users')),
 };
 
-const experiments = {
-  command: 'experiments',
-  aliases: ['experiment'],
-  description: 'Experiment commands',
-  builder: yargs => buildForApi(yargs)
-    .option('experiment-id', {
-      alias: ['exp-id'],
-      describe: 'Experiment ID for experiment API',
-    })
-    .command({
-      command: 'events',
-      builder: yargs => yargs
-        .command(upload('experiment-events')),
-    }),
-};
-
 yargs.build(yargs => {
   yargs
     .env('MISO')
     .command(interactions)
     .command(products)
     .command(users)
-    .command(experiments)
     .command(transform)
     .command(mergeLocal)
     .command(search)
