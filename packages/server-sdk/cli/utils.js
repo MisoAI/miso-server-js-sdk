@@ -17,7 +17,7 @@ export function buildForApi(yargs) {
     .option('param', {
       alias: ['v', 'var'],
       describe: 'Extra URL parameters',
-      type: 'array',
+      type: 'string',
       coerce: _yargs.coerceToArray,
     })
     .option('debug', {
