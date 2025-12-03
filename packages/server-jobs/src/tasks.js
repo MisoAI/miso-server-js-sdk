@@ -60,6 +60,9 @@ function formatTaskCommand({ command, args = [] }) {
 }
 
 function parseJsonIfNecessary(data) {
+  if (Buffer.isBuffer(data)) {
+    data = data.toString();
+  }
   if (typeof data !== 'string') {
     return data;
   }
