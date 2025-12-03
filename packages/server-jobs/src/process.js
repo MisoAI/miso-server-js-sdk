@@ -24,7 +24,7 @@ export async function spawn(command, args, { onStdout, onStderr, ...options } = 
   });
 }
 
-export function getMemoryUsage(child) {
+export async function getMemoryUsage(child) {
   const ps = spawn('ps', ['-o', 'pid,rss,vsz,pmem', '-p', child.pid]);
   for await (const line of ps.stdout) {
     const [pid, rss, vsz, pmem] = line.toString().trim().split(' ');
