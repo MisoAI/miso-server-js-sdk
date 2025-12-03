@@ -11,6 +11,8 @@ export default class DeleteStream extends stream.BufferedWriteStream {
     objectMode,
     heartbeatInterval,
     // sink
+    dryRun,
+    params,
     recordsPerSecond,
     // buffer
     recordsPerRequest,
@@ -35,6 +37,8 @@ export default class DeleteStream extends stream.BufferedWriteStream {
 
     this._sink = new DeleteSink(client, {
       type,
+      dryRun,
+      params,
       recordsPerSecond,
     });
 

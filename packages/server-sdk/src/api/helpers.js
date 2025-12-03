@@ -135,18 +135,15 @@ export function process422ResponseBody(payload, { data } = {}) {
 }
 
 export async function batchDelete(client, type, ids, options = {}) {
-  const url = buildUrl(client, `${type}/_delete`, { ...options, async: true });
+  const url = buildUrl(client, `${type}/_delete`, options);
   const payload = buildBatchDeletePayload(type, ids);
   const { data } = await client._axios.post(url, payload);
   return data;
 }
 
-export function buildUrl(client, path, { async, dryRun, params: extraParams } = {}) {
+export function buildUrl(client, path, { dryRun, params: extraParams } = {}) {
   let { server, key } = client._options;
   let params = `?api_key=${key}`;
-  if (async) {
-    params += '&async=1';
-  }
   if (dryRun) {
     params += '&dry_run=1';
   }
