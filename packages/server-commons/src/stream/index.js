@@ -8,3 +8,4 @@ export { default as LogUpdateStream } from './log-update.js';
 export { default as DiffStream } from './diff.js';
 export { default as ParallelTransform } from './parallel-transform.js';
 export { default as XmlParseStream } from './xml.js';
+export { default as EasyTransform } from './easy-transform.js';
