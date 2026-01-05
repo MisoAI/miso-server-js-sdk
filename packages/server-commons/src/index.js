@@ -5,6 +5,7 @@ export * from './file.js';
 export * from './config.js';
 export * from './async.js';
 
+export * from './channel/index.js';
 export * as sink from './sink/index.js';
 export * as buffer from './buffer/index.js';
 export * as stream from './stream/index.js';

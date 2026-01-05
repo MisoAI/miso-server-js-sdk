@@ -8,24 +8,24 @@ export default class EasyTransform extends Transform {
       if (typeof transform !== 'function') {
         throw new Error(`transform must be a function`);
       }
-      this._runTransform = transform;
+      this._runTransform = transform.bind(this);
     }
     if (flush) {
       if (typeof flush !== 'function') {
         throw new Error(`flush must be a function`);
       }
-      this._runFlush = flush;
+      this._runFlush = flush.bind(this);
     }
     this._buffer = [];
     this._callback = undefined;
   }
 
   // customization //
-  async _runTransform(chunk, encoding, context) {
+  async _runTransform(chunk, encoding) {
     throw new Error(`Unimplemented.`);
   }
 
-  async _runFlush(context) {}
+  async _runFlush() {}
 
   // stream internal //
   async _transform(chunk, encoding, next) {
