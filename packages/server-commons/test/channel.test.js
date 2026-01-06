@@ -1,6 +1,6 @@
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
-import { Channel, WriteChannel } from '../src/index.js';
+import { Channel, WriteChannel, delay } from '../src/index.js';
 
 function createDataEvent(i) {
   const id = `p${i}`;
@@ -52,6 +52,7 @@ test('WriteChannel', async () => {
     },
     sink: {
       write: async (event) => {
+        //await delay(100);
         writes.push(event.payload);
       }
     },

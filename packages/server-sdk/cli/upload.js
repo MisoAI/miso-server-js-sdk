@@ -1,32 +1,20 @@
+import { pipeline } from 'stream/promises';
 import split2 from 'split2';
 import { log, stream } from '@miso.ai/server-commons';
 import { MisoClient, logger, normalize } from '../src/index.js';
+import { buildForWrite } from './utils.js';
 
 function build(yargs) {
-  return yargs
+  return buildForWrite(yargs)
     .option('dry-run', {
       alias: ['dry'],
       describe: 'Dry run mode',
+      type: 'boolean',
+      default: false,
     })
     .option('lenient', {
       describe: 'Accept some lenient record schema',
       type: 'boolean',
-    })
-    .option('requests-per-second', {
-      alias: ['rps'],
-      describe: 'How many requests to send per second',
-    })
-    .option('records-per-request', {
-      alias: ['rpr'],
-      describe: 'How many records to send in a request',
-    })
-    .option('bytes-per-request', {
-      alias: ['bpr'],
-      describe: 'How many bytes to send in a request',
-    })
-    .option('bytes-per-second', {
-      alias: ['bps'],
-      describe: 'How many bytes to send per second',
     })
     .option('progress', {
       alias: ['p'],
@@ -49,6 +37,47 @@ const run = type => async ({
   env,
   key,
   server,
+  channel,
+  ...options
+}) => {
+  const { debug } = options;
+  const client = new MisoClient({ env, key, server, debug });
+
+  if (channel) {
+    await runChannel(client, type, options);
+  } else {
+    await runStream(client, type, options);
+  }
+};
+
+async function runChannel(client, type, {
+  param: params,
+  ['dry-run']: dryRun,
+  ['requests-per-second']: requestsPerSecond,
+  ['bytes-per-second']: bytesPerSecond,
+  ['records-per-request']: recordsPerRequest,
+  ['bytes-per-request']: bytesPerRequest,
+  debug,
+}) {
+  const uploadChannel = client.api[type].uploadChannel({
+    dryRun,
+    params,
+    requestsPerSecond,
+    bytesPerSecond,
+    recordsPerRequest,
+    bytesPerRequest,
+    debug, // TODO: review this
+  });
+
+  await pipeline(
+    process.stdin,
+    split2(JSON.parse),
+    uploadChannel,
+    new stream.OutputStream({ objectMode: true }),
+  );
+}
+
+async function runStream(client, type, {
   param: params,
   ['dry-run']: dryRun,
   lenient,
@@ -56,18 +85,15 @@ const run = type => async ({
   ['records-per-request']: recordsPerRequest,
   ['bytes-per-request']: bytesPerRequest,
   ['bytes-per-second']: bytesPerSecond,
-  ['experiment-id']: experimentId,
-  debug,
   progress,
+  debug,
+  ['experiment-id']: experimentId,
   ['stream-name']: name,
   ['log-level']: loglevel,
   ['log-format']: logFormat,
-}) => {
-
+}) {
   loglevel = (debug || progress) ? log.DEBUG : loglevel;
   logFormat = progress ? logger.FORMAT.PROGRESS : logFormat;
-
-  const client = new MisoClient({ env, key, server, debug });
 
   const uploadStreamObjectMode = lenient;
 
@@ -98,7 +124,7 @@ const run = type => async ({
   // lenient: stdin -> split2 -> parse -> normalize -> upload -> log
   // notice that the output of split2 are strings, while input/output of normalize are objects
 
-  await stream.pipeline(
+  await pipeline(
     process.stdin,
     split2(),
     ...(lenient ? [
@@ -108,7 +134,7 @@ const run = type => async ({
     uploadStream,
     logStream,
   );
-};
+}
 
 export default function(type) {
   return {

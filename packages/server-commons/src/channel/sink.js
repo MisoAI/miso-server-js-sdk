@@ -1,14 +1,6 @@
 import { trimObj } from '../object.js';
 import Resolution from '../resolution.js';
 
-function normalizeOptions({
-  ...options
-}) {
-  return {
-    ...options,
-  };
-}
-
 function clone(obj) {
   return Object.freeze(trimObj({ ...obj }));
 }
@@ -16,7 +8,7 @@ function clone(obj) {
 export default class WriteChannelSink {
 
   constructor({ write, ...options } = {}) {
-    this._options = normalizeOptions(options);
+    this._options = this._normalizeOptions(options);
     if (write) {
       if (typeof write !== 'function') {
         throw new Error('write must be a function.');
@@ -27,6 +19,14 @@ export default class WriteChannelSink {
       start: undefined,
       started: { index: -1, writes: 0, records: 0, bytes: 0 },
       finished: { index: -1, writes: 0, records: 0, bytes: 0, successful: 0, failed: 0 },
+    };
+  }
+
+  _normalizeOptions({
+    ...options
+  }) {
+    return {
+      ...options,
     };
   }
 

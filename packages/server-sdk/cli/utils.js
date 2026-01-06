@@ -49,6 +49,36 @@ export function buildForSearch(yargs) {
     });
 }
 
+export function buildForWrite(yargs) {
+  return yargs
+    .option('channel', {
+      alias: ['c'],
+      describe: 'Use channel protocol',
+      type: 'boolean',
+      default: false,
+    })
+    .option('requests-per-second', {
+      alias: ['rps'],
+      describe: 'How many requests to send per second',
+      type: 'number',
+    })
+    .option('bytes-per-second', {
+      alias: ['bps'],
+      describe: 'How many bytes to send per second',
+      type: 'number',
+    })
+    .option('records-per-request', {
+      alias: ['rpr'],
+      describe: 'How many records to send in a request',
+      type: 'number',
+    })
+    .option('bytes-per-request', {
+      alias: ['bpr'],
+      describe: 'How many bytes to send in a request',
+      type: 'number',
+    });
+}
+
 export function formatError(err) {
   const { response } = err;
   if (response) {

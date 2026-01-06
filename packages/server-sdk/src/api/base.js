@@ -4,6 +4,7 @@ import UploadStream from '../stream/upload.js';
 import DeleteStream from '../stream/delete.js';
 import StatusStream from '../stream/status.js';
 import MergeStream from '../stream/merge.js';
+import { UploadChannel, DeleteChannel } from '../channel/index.js';
 
 export class Queries {
 
@@ -35,6 +36,10 @@ export class Writable {
     return new UploadStream(this._client, this._type, options);
   }
 
+  uploadChannel(options = {}) {
+    return new UploadChannel(this._client, this._type, options);
+  }
+
 }
 
 export class Entities extends Writable {
@@ -60,6 +65,10 @@ export class Entities extends Writable {
 
   deleteStream(options = {}) {
     return new DeleteStream(this._client, this._type, options);
+  }
+
+  deleteChannel(options = {}) {
+    return new DeleteChannel(this._client, this._type, options);
   }
 
   async status(taskId) {

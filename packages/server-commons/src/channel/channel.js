@@ -1,56 +1,5 @@
 import EasyTransform from '../stream/easy-transform.js';
-import { LOG_LEVEL } from './constants.js';
-import { trimObj } from '../object.js';
-
-function normalizeEvent({
-  type,
-  channel,
-  index,
-  timestamp,
-  ...rest
-} = {}) {
-  return trimObj({
-    type,
-    channel,
-    index,
-    ...rest,
-    timestamp,
-  });
-}
-
-class Out {
-
-  constructor(channel) {
-    this._channel = channel;
-  }
-
-  pass({ depth = 0, ...event }) {
-    // don't put default timestamp
-    this._channel._pushBuffer(normalizeEvent({
-      ...event,
-      depth: depth + 1,
-    }));
-  }
-
-  write({ timestamp = Date.now(), ...event }) {
-    this._channel._pushBuffer(normalizeEvent({
-      ...event,
-      channel: this._channel.name,
-      depth: 0,
-      timestamp,
-    }));
-  }
-
-  log(level, message, data) {
-    this.write({
-      type: 'log',
-      logLevel: level,
-      message,
-      ...data,
-    });
-  }
-
-}
+import { LOG_LEVEL, ChannelOutput, createStartEvent, createEndEvent } from './events.js';
 
 export default class Channel extends EasyTransform {
 
@@ -70,7 +19,7 @@ export default class Channel extends EasyTransform {
       this._runCustomFlush = flush.bind(this);
     }
     this._upstream = {};
-    this.out = new Out(this);
+    this.out = new ChannelOutput(this);
   }
 
   get name() {
@@ -88,7 +37,7 @@ export default class Channel extends EasyTransform {
     return {};
   }
 
-  get results() {
+  get result() {
     return {};
   }
 
@@ -163,23 +112,11 @@ export default class Channel extends EasyTransform {
   }
 
   _createStartEvent(event) {
-    return this._stackEvent(event, 'configs', this.config);
+    return createStartEvent(this, event);
   }
 
   _createEndEvent(event) {
-    return this._stackEvent(event, 'results', this.results);
-  }
-
-  _stackEvent(event = {}, field, info) {
-    info = {
-      ...info,
-      channel: this.name,
-      timestamp: Date.now(),
-    };
-    return {
-      ...event,
-      [field]: [...(event[field] || []), info],
-    };
+    return createEndEvent(this, event);
   }
 
 }

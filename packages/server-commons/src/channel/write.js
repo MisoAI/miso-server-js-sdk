@@ -74,17 +74,13 @@ export default class WriteChannel extends Channel {
     if (!this._sinkGate) {
       return;
     }
-    const pauseTime = this._sinkGate.blockedTime();
+    const pauseTime = this._sinkGate.blockedTime(this._sink.state);
     await this._time.pause(pauseTime);
-    //} else if (this._state._pending.length > 15) {
-      // TODO: figure out best strategy on this
-      // release event loop for downstream
-      //await delay();
   }
 
   async _dispatchAll(requests) {
-    await this._pauseIfNecessary();
     for (const request of requests) {
+      await this._pauseIfNecessary();
       this._dispatch(request); // don't wait
     }
   }

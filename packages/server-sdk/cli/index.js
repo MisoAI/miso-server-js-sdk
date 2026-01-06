@@ -12,6 +12,7 @@ import status from './status.js';
 import get from './get.js';
 import search from './search.js';
 import hybridSearch from './hybrid-search.js';
+import upgrade from './upgrade.js';
 
 const interactions = {
   command: 'interactions',
@@ -54,6 +55,7 @@ yargs.build(yargs => {
     .command(products)
     .command(users)
     .command(transform)
+    .command(upgrade)
     .command(mergeLocal)
     .command(search)
     .command(hybridSearch)

@@ -1,26 +1,14 @@
-// TODO: these parameters are Miso-specific
-function normalizeOptions({
-  writesPerSecond = 10,
-  recordsPerSecord = 100000,
-  bytesPerSecond = 100 * 1024 * 1024,
-  ...options
-} = {}) {
-  return {
-    writesPerSecond,
-    recordsPerSecord,
-    bytesPerSecond,
-    ...options,
-  };
-}
-
 export default class WriteChannelSinkGate {
 
-  constructor(options) {
-    this._options = normalizeOptions(options);
+  constructor(options = {}) {
+    this._options = options;
   }
 
   blockedTime(sinkState, now = Date.now()) {
     const { start, started } = sinkState;
+    if (start === undefined) {
+      return 0;
+    }
     const elapsed = now - start;
     const targetBps = this._targetBps(now);
     const targetRps = this._targetRps(now);
@@ -41,7 +29,7 @@ export default class WriteChannelSinkGate {
   }
 
   _targetRps(timestamp) {
-    return this._options.recordsPerSecord;
+    return this._options.recordsPerSecond;
   }
 
   _targetWps(timestamp) {

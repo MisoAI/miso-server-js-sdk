@@ -1,5 +1,5 @@
-function defaultSerialize(record) {
-  return typeof record === 'string' ? record : JSON.stringify(record);
+function defaultSerialize({ payload }) {
+  return typeof payload === 'string' ? payload : JSON.stringify(payload);
 }
 
 function normalizeOptions({
@@ -63,9 +63,8 @@ export default class WriteChannelBuffer {
    * @returns An array of requests.
    */
   push(event) {
-    const { payload } = event;
     let dispatches = [];
-    const serializedPayload = this._options.serialize(payload);
+    const serializedPayload = this._options.serialize(event);
     const contentSize = serializedPayload.length * 2;
     const { empty } = this;
 
