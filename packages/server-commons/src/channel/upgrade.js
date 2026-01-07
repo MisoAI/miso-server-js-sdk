@@ -69,10 +69,24 @@ export default class UpgradeChannel extends EasyTransform {
     return payload;
   }
 
+  async _id(payload) {
+    const id = this._options.idField;
+    if (id) {
+      return payload[id];
+    }
+    if (this._options.targetForm === 'miso') {
+      // ad-hoc!
+      return payload.product_id || payload.user_id;
+    }
+    return payload.id;
+  }
+
   async _upgrade(payload) {
-    const form = this._options.form;
+    const form = this._options.targetForm;
+    const id = await this._id(payload);
     return trimObj({
       form,
+      id,
       payload,
     });
   }

@@ -39,11 +39,35 @@ function splitData(data, ids) {
   return [positive, negative];
 }
 
+function writeIssuesToData(data, { groups = [] } = {}) {
+  for (const { index, violations = [] } of groups) {
+    try {
+      const errors = (data[index].errors || (data[index].errors = []));
+      errors.push(...(violations.map(v => trimObj({ status: 422, ...v }))));
+    } catch(_) {}
+  }
+}
+
+function writeResponseErrorToFailedData(response) {
+  // 422 errors are already handled by writeIssuesToData
+  if (!response.error && (response.status < 400 || response.status === 422)) {
+    return;
+  }
+  const error = trimObj({
+    status: response.status,
+    message: response.error || response.statusText,
+  });
+  for (const event of response.failed.data) {
+    (event.errors || (event.errors = [])).push({ ...error });
+  }
+}
+
 export class ChannelApiSink extends WriteChannelSink {
 
   constructor(client, options) {
     super(options);
     this._client = client;
+    // TODO: axios retry
   }
 
   _normalizeOptions({
@@ -63,6 +87,7 @@ export class ChannelApiSink extends WriteChannelSink {
     let response;
     try {
       response = await this._send(payload);
+      response.writes = 1;
       response.successful = { records, data };
       response.failed = { records: 0, data: [] };
     } catch(error) {
@@ -70,26 +95,28 @@ export class ChannelApiSink extends WriteChannelSink {
       if (!error.response) {
         throw error;
       }
-      const status = error.response.status;
-      response = error.response.data;
+      response = processMisoApiResponse(error.response);
       if (typeof response !== 'object') {
-        response = trimObj({ status, errors: true, cause: response });
-      } else if (status) {
-        response = { status, ...response };
+        response = trimObj({ error: response });
       }
       const { recovered, issues } = error.response;
+      // write issues into failed data events
+      writeIssuesToData(data, issues);
+      // TODO: handle issue.unrecognized
+
       if (recovered) {
         const [positive, negative] = splitData(data, recovered.product_ids);
+        response.writes = 2;
         response.successful = { records: positive.length, data: positive };
         response.failed = { records: negative.length, data: negative };
       } else {
+        response.writes = 1;
         response.successful = { records: 0, data: [] };
         response.failed = { records, data };
       }
-      if (issues) {
-        response.issues = issues;
-      }
     }
+
+    writeResponseErrorToFailedData(response);
 
     return response;
   }
@@ -116,8 +143,8 @@ export class ApiWriteChannel extends WriteChannel {
       case 'data':
         if (event.form === 'miso') {
           await this._runMisoData(event);
+          return;
         }
-      default:
     }
     await super._runCustomTransform(event);
   }
@@ -126,4 +153,24 @@ export class ApiWriteChannel extends WriteChannel {
     await this.writeData(event);
   }
 
+}
+
+function maskApiKeyInMisoUrl(url) {
+  // mask the api_key from the url
+  return url.replace(/api_key=\w+/, 'api_key=****');
+}
+
+export function processMisoApiResponse(response) {
+  if (typeof response !== 'object') {
+    return response;
+  }
+  const { data: body, status, statusText, config = {} } = response;
+  const { method, url } = config;
+  return trimObj({
+    status,
+    statusText,
+    method,
+    url: maskApiKeyInMisoUrl(url),
+    body,
+  });
 }

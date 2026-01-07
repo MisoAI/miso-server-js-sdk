@@ -46,27 +46,58 @@ export function normalizeEvent({
   });
 }
 
+export function validateEvent(event) {
+  switch (event.type) {
+    case 'data':
+      if (!event.id) {
+        throw new Error('Id is required for data events');
+      }
+      if (!event.form) {
+        throw new Error('Form is required for data events');
+      }
+      break;
+  }
+}
+
+export function generateDefaultSinkResponse({ records, data }) {
+  // default implementation: assume all successful
+  return {
+    writes: 1,
+    successful: {
+      records,
+      data,
+    },
+    failed: {
+      records: 0,
+      data: [],
+    },
+  };
+}
+
 export class ChannelOutput {
 
   constructor(channel) {
     this._channel = channel;
   }
 
-  pass({ depth = 0, ...event }) {
+  pass({ depth = 0, ...rest }) {
     // don't put default timestamp
-    this._channel._pushBuffer(normalizeEvent({
-      ...event,
+    const event = {
+      ...rest,
       depth: depth + 1,
-    }));
+    };
+    this._channel._pushBuffer(normalizeEvent(event));
   }
 
-  write({ timestamp = Date.now(), ...event }) {
-    this._channel._pushBuffer(normalizeEvent({
-      ...event,
+  write({ timestamp = Date.now(), ...rest }) {
+    const event = {
+      ...rest,
       channel: this._channel.name,
       depth: 0,
       timestamp,
-    }));
+    };
+    validateEvent(event);
+    this._channel._pushBuffer(normalizeEvent(event));
   }
 
   log(level, message, data) {

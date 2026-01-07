@@ -1,4 +1,4 @@
-import { ChannelApiSink, ApiWriteChannel } from './api.js';
+import { ChannelApiSink, ApiWriteChannel, processMisoApiResponse } from './api.js';
 import { upload } from '../api/helpers.js';
 
 // channel //
@@ -62,8 +62,8 @@ class ChannelUploadSink extends ChannelApiSink {
 
   async _send(payload) {
     const { type, dryRun, params } = this._options;
-    const { data } = await upload(this._client, type, payload, { recoverValidRecordsOn422: true, dryRun, params });
-    return data;
+    const response = await upload(this._client, type, payload, { recoverValidRecordsOn422: true, dryRun, params });
+    return processMisoApiResponse(response);
   }
 
 }

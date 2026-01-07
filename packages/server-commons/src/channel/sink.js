@@ -1,5 +1,6 @@
 import { trimObj } from '../object.js';
 import Resolution from '../resolution.js';
+import { generateDefaultSinkResponse } from './events.js';
 
 function clone(obj) {
   return Object.freeze(trimObj({ ...obj }));
@@ -44,7 +45,7 @@ export default class WriteChannelSink {
       this._finishedRes.reject(new Error(`More data written after finished call`));
       this._finishedRes = undefined;
     }
-    const { records, bytes, ids } = request;
+    const { records, bytes, data } = request;
     const now = Date.now();
     const { started, finished } = this._state;
     if (started.writes === 0) {
@@ -58,9 +59,23 @@ export default class WriteChannelSink {
     const { index } = started;
     let response;
     try {
-      response = await this._write(request) || {};
+      response = await this._write(request);
     } catch(error) {
-      response = trimObj({ error: error.message, failed: trimObj({ records, ids }) });
+      // TODO: add the error info into failed data events
+      response = trimObj({
+        writes: 1,
+        successful: trimObj({ records: 0, data: [] }),
+        failed: trimObj({ records, data }),
+        error: error.message,
+      });
+    }
+
+    // sanity check
+    if (!response || !response.successful || !response.failed) {
+      throw new Error(`Invalid response: ${JSON.stringify(response)}`);
+    }
+    if (response.successful.records + response.failed.records !== records) {
+      throw new Error(`Invalid response: successful records (${response.successful.records}) + failed records (${response.failed.records}) !== records (${records})`);
     }
 
     // a _write call may use more than 1 write
@@ -72,13 +87,8 @@ export default class WriteChannelSink {
     finished.writes += writes;
     finished.records += records;
     finished.bytes += bytes;
-
-    if (!response.failed) {
-      finished.successful += records; // assume all records are successful
-    } else {
-      finished.successful += (response.successful && response.successful.records) || 0;
-      finished.failed += (response.failed && response.failed.records) || 0;
-    }
+    finished.successful += response.successful.records;
+    finished.failed += response.failed.records;
 
     if (this._finishedRes && finished.writes === started.writes) {
       this._finishedRes.resolve();
@@ -88,19 +98,9 @@ export default class WriteChannelSink {
     return response;
   }
 
-  async _write({ records, data }) {
+  async _write(event) {
     // default implementation: do nothing but assume all successful
-    return {
-      writes: 1,
-      successful: {
-        records,
-        data,
-      },
-      failed: {
-        records: 0,
-        data: [],
-      },
-    };
+    return generateDefaultSinkResponse(event);
   }
 
   get finished() {

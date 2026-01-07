@@ -8,17 +8,20 @@ function build(yargs) {
       describe: 'Channel name',
       type: 'string',
     })
-    .option('form', {
-      alias: 'm',
-      describe: 'Data form',
+    .option('target-form', {
+      alias: 'tf',
+      describe: 'Target data form',
       type: 'string',
-    });
+    })
+    .option('id-field', {
+      alias: 'id',
+      describe: 'Id field',
+      type: 'string',
+    })
+    .demandOption(['target-form']);
 }
 
 async function run(options) {
-  if (!options.form) {
-    throw new Error('Data form is required: --form <form>');
-  }
   await pipeline(
     process.stdin,
     split2(),

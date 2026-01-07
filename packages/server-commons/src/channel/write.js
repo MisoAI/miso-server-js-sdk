@@ -90,20 +90,38 @@ export default class WriteChannel extends Channel {
     if (this._time.firstWriteAt === undefined) {
       this._time.setFirstWrite();
     }
+
+    const { data: _0, payload: _1, ...restOfRequest } = request;
     this.out.write({
-      ...request,
+      ...restOfRequest,
       type: 'request',
       index,
     });
-    const response = await this._sink.write(request);
+
+    const { successful, failed, ...response } = await this._sink.write(request);
     this._time.addWrite(response.timestamp - request.timestamp);
+
     this.out.write({
       ...response,
       type: 'response',
       index,
     });
 
+    // write write event
+    const successfulIds = (successful && successful.data && successful.data.map(d => d.id)) || [];
+    if (successfulIds.length > 0) {
+      this.out.write({
+        type: 'write',
+        index,
+        ids: successfulIds,
+      });
+    }
     // TODO: dedupe
+
+    // recover failed data events and pass through
+    for (const event of failed.data || []) {
+      this.out.pass(event);
+    }
   }
 
 }

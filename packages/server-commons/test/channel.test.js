@@ -1,6 +1,7 @@
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
 import { Channel, WriteChannel, delay } from '../src/index.js';
+import { generateDefaultSinkResponse } from '../src/channel/events.js';
 
 function createDataEvent(i) {
   const id = `p${i}`;
@@ -54,6 +55,7 @@ test('WriteChannel', async () => {
       write: async (event) => {
         //await delay(100);
         writes.push(event.payload);
+        return generateDefaultSinkResponse(event);
       }
     },
     async transform(event) {
@@ -84,23 +86,27 @@ test('WriteChannel', async () => {
   assert.equal(outputs[0].type, 'start');
   assert.equal(outputs[outputs.length - 1].type, 'end');
 
-  // assert: n request & response events, with index in order
-  let expectedRequestIndex = 0, expectedResponseIndex = 0;
+  // assert: n request & response events
+  let expectedRequestIndex = 0, responseCount = 0, writeCount = 0;
   for (const event of outputs) {
     switch (event.type) {
       case 'request':
         assert.equal(event.index, expectedRequestIndex++);
-        assert.ok(expectedRequestIndex >= expectedResponseIndex);
         break;
       case 'response':
-        assert.equal(event.index, expectedResponseIndex++);
-        assert.ok(expectedRequestIndex >= expectedResponseIndex);
+        responseCount++;
+        assert.ok(event.index <= expectedRequestIndex);
+        break;
+      case 'write':
+        writeCount++;
+        assert.ok(event.index <= expectedRequestIndex);
         break;
     }
   }
-  const expectedRequestCount = Math.ceil(data.length / recordCap);
-  assert.equal(expectedRequestIndex, expectedRequestCount);
-  assert.equal(expectedResponseIndex, expectedRequestCount);
+  const expectedWriteCount = Math.ceil(data.length / recordCap);
+  assert.equal(expectedRequestIndex, expectedWriteCount);
+  assert.equal(responseCount, expectedWriteCount);
+  assert.equal(writeCount, expectedWriteCount);
 
   //assert.equal(rest.length, expectedRequestCount);
   // there should be 
