@@ -26,9 +26,13 @@ export default class WriteChannelSink {
   _normalizeOptions({
     ...options
   }) {
-    return {
+    return trimObj({
       ...options,
-    };
+    });
+  }
+
+  get options() {
+    return { ...this._options };
   }
 
   get state() {

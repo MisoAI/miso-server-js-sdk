@@ -34,10 +34,13 @@ function normalizeSinkGate(sinkGate) {
   return sinkGate;
 }
 
+// TODO: we may as well split the buffering to a preceding channel
+
 export default class WriteChannel extends Channel {
 
-  constructor({ buffer, sink, sinkGate, ...options } = {}) {
+  constructor({ domain, buffer, sink, sinkGate, ...options } = {}) {
     super(options);
+    this._domain = domain;
     this._payloadBuffer = normalizeBuffer(buffer);
     this._sink = normalizeSink(sink);
     this._sinkGate = normalizeSinkGate(sinkGate);
@@ -52,6 +55,21 @@ export default class WriteChannel extends Channel {
       time: this._time.snapshot(Date.now()),
       write: this._sink.state,
     };
+  }
+
+  async _runCustomTransform(event) {
+    switch (event.type) {
+      case 'data':
+        if (event.domain === this._domain) {
+          await this._runData(event);
+          return;
+        }
+    }
+    await super._runCustomTransform(event);
+  }
+
+  async _runData(event) {
+    await this.writeData(event);
   }
 
   async writeData(event) {

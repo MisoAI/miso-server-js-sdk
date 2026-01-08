@@ -8,7 +8,7 @@ export const LOG_LEVEL = {
 };
 
 export function createStartEvent(channel, event = { type: 'start' }) {
-  return stackEvent(channel, event, 'configs', channel.config);
+  return stackEvent(channel, event, 'options', channel.options);
 }
 
 export function createEndEvent(channel, event = { type: 'end' }) {
@@ -16,20 +16,26 @@ export function createEndEvent(channel, event = { type: 'end' }) {
 }
 
 export function stackEvent(channel, event = {}, field, info) {
-  info = {
-    ...info,
+  info = normalizeChannelInfo({
     channel: channel.name,
-    timestamp: Date.now(),
-  };
+    ...info,
+  });
   return {
     ...event,
     [field]: [...(event[field] || []), info],
   };
 }
 
+export function normalizeChannelInfo({ channel, timestamp, ...info }) {
+  return trimObj({
+    channel,
+    ...info,
+  });
+}
+
 export function normalizeEvent({
   type,
-  form,
+  domain,
   channel,
   index,
   timestamp,
@@ -38,7 +44,7 @@ export function normalizeEvent({
   // re-order properties
   return trimObj({
     type,
-    form,
+    domain,
     channel,
     index,
     ...rest,
@@ -52,8 +58,8 @@ export function validateEvent(event) {
       if (!event.id) {
         throw new Error('Id is required for data events');
       }
-      if (!event.form) {
-        throw new Error('Form is required for data events');
+      if (!event.domain) {
+        throw new Error('Domain is required for data events');
       }
       break;
   }

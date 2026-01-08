@@ -1,6 +1,6 @@
 import { pipeline } from 'stream/promises';
 import split2 from 'split2';
-import { log, stream } from '@miso.ai/server-commons';
+import { log, stream, splitObj } from '@miso.ai/server-commons';
 import { MisoClient, logger, normalize } from '../src/index.js';
 import { buildForWrite } from './utils.js';
 
@@ -10,7 +10,6 @@ function build(yargs) {
       alias: ['dry'],
       describe: 'Dry run mode',
       type: 'boolean',
-      default: false,
     })
     .option('lenient', {
       describe: 'Accept some lenient record schema',
@@ -50,24 +49,9 @@ const run = type => async ({
   }
 };
 
-async function runChannel(client, type, {
-  param: params,
-  ['dry-run']: dryRun,
-  ['requests-per-second']: requestsPerSecond,
-  ['bytes-per-second']: bytesPerSecond,
-  ['records-per-request']: recordsPerRequest,
-  ['bytes-per-request']: bytesPerRequest,
-  debug,
-}) {
-  const uploadChannel = client.api[type].uploadChannel({
-    dryRun,
-    params,
-    requestsPerSecond,
-    bytesPerSecond,
-    recordsPerRequest,
-    bytesPerRequest,
-    debug, // TODO: review this
-  });
+async function runChannel(client, type, options) {
+  const [uploadOptions] = splitObj(options, ['dryRun', 'params', 'requestsPerSecond', 'bytesPerSecond', 'recordsPerRequest', 'bytesPerRequest', 'debug']);
+  const uploadChannel = client.api[type].uploadChannel(uploadOptions);
 
   await pipeline(
     process.stdin,

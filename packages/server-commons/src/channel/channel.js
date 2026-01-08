@@ -1,11 +1,11 @@
-import EasyTransform from '../stream/easy-transform.js';
+import { ChannelBase } from './component.js';
 import { LOG_LEVEL, ChannelOutput, createStartEvent, createEndEvent } from './events.js';
 
-export default class Channel extends EasyTransform {
+export default class Channel extends ChannelBase {
 
-  constructor({ name, transform, flush, ...options } = {}) {
-    super({ ...options, objectMode: true });
-    this._name = name || this.constructor.name;
+  constructor({ transform, flush, ...options } = {}) {
+    super(options);
+
     if (transform) {
       if (typeof transform !== 'function') {
         throw new Error('Transform must be a function');
@@ -18,29 +18,12 @@ export default class Channel extends EasyTransform {
       }
       this._runCustomFlush = flush.bind(this);
     }
+
     this._upstream = {};
     this.out = new ChannelOutput(this);
   }
 
-  get name() {
-    return this._name;
-  }
-
-
-
   // customization //
-  get config() {
-    return {};
-  }
-
-  get pulse() {
-    return {};
-  }
-
-  get result() {
-    return {};
-  }
-
   async _runCustomTransform(event) {
     this.out.pass(event);
   }

@@ -1,59 +1,28 @@
 import { trimObj } from '../object.js';
-import EasyTransform from '../stream/easy-transform.js';
+import { ChannelBase } from './component.js';
 import { ChannelOutput, createStartEvent, createEndEvent } from './events.js';
 
-export default class UpgradeChannel extends EasyTransform {
+export default class UpgradeChannel extends ChannelBase {
 
-  constructor({ name = 'upgrade', config, result, upgrade, objectMode, ...options } = {}) {
+  constructor({ name = 'upgrade', upgrade, objectMode, ...options } = {}) {
     super({
       ...options,
+      name,
       writableObjectMode: objectMode,
       readableObjectMode: true,
     });
+
+    this._objectMode = objectMode;
+
     if (upgrade) {
       if (typeof upgrade !== 'function') {
         throw new Error('Upgrade must be a function');
       }
       this._upgrade = upgrade.bind(this);
     }
-    if (config) {
-      if (typeof config !== 'function') {
-        throw new Error('Start must be a function');
-      }
-      this._config = config.bind(this);
-    }
-    if (result) {
-      if (typeof result !== 'function') {
-        throw new Error('End must be a function');
-      }
-      this._result = result.bind(this);
-    }
-    this._options = options;
-    this._objectMode = objectMode;
-    this._name = name;
 
     this._started = false;
     this.out = new ChannelOutput(this);
-  }
-
-  get name() {
-    return this._name;
-  }
-
-  get config() {
-    return this._config();
-  }
-
-  get result() {
-    return this._result();
-  }
-
-  _config() {
-    return {};
-  }
-
-  _result() {
-    return {};
   }
 
   async _parse(payload, encoding) {
@@ -64,7 +33,10 @@ export default class UpgradeChannel extends EasyTransform {
       payload = payload.toString();
     }
     if (typeof payload === 'string') {
-      payload = JSON.parse(payload.trim());
+      payload = payload.trim();
+      if (!this._options.asId) {
+        payload = JSON.parse(payload);
+      }
     }
     return payload;
   }
@@ -74,7 +46,7 @@ export default class UpgradeChannel extends EasyTransform {
     if (id) {
       return payload[id];
     }
-    if (this._options.targetForm === 'miso') {
+    if (this._options.domain === 'miso') {
       // ad-hoc!
       return payload.product_id || payload.user_id;
     }
@@ -82,13 +54,20 @@ export default class UpgradeChannel extends EasyTransform {
   }
 
   async _upgrade(payload) {
-    const form = this._options.targetForm;
-    const id = await this._id(payload);
-    return trimObj({
-      form,
-      id,
-      payload,
-    });
+    const domain = this._options.domain;
+    if (this._options.asId) {
+      return trimObj({
+        domain,
+        id: `${payload}`.trim(),
+      });
+    } else {
+      const id = await this._id(payload);
+      return trimObj({
+        domain,
+        id,
+        payload,
+      });
+    }
   }
 
   _createStartEvent() {

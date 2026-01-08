@@ -67,7 +67,7 @@ export class ChannelApiSink extends WriteChannelSink {
   constructor(client, options) {
     super(options);
     this._client = client;
-    // TODO: axios retry
+    // TODO: take axios options?
   }
 
   _normalizeOptions({
@@ -133,6 +133,7 @@ export class ApiWriteChannel extends WriteChannel {
     super({
       ...options,
       sinkGate: normalizeApiSinkGateOptions(options),
+      domain: 'miso',
     });
     this._client = client;
     this._type = type;
@@ -141,15 +142,15 @@ export class ApiWriteChannel extends WriteChannel {
   async _runCustomTransform(event) {
     switch (event.type) {
       case 'data':
-        if (event.form === 'miso') {
-          await this._runMisoData(event);
+        if (event.domain === 'miso') {
+          await this._runData(event);
           return;
         }
     }
     await super._runCustomTransform(event);
   }
 
-  async _runMisoData(event) {
+  async _runData(event) {
     await this.writeData(event);
   }
 
