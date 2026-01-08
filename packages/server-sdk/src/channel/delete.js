@@ -1,12 +1,13 @@
-import { ChannelApiSink, ApiWriteChannel } from './api.js';
+import { ChannelApiSink, ApiWriteChannel, processMisoApiResponse } from './api.js';
 import { batchDelete } from '../api/helpers.js';
 
 // channel //
 export default class DeleteChannel extends ApiWriteChannel {
 
-  constructor(client, type, options = {}) {
-    super({
+  constructor(client, type, { name = 'delete', ...options } = {}) {
+    super(client, type, {
       ...options,
+      name,
       buffer: normalizeBufferOptions(type, options),
       sink: createSink(client, type, options),
     });
@@ -18,7 +19,7 @@ export default class DeleteChannel extends ApiWriteChannel {
 const DEFAULT_BUFFER_OPTIONS = Object.freeze({
   payloadSuffix: ']}}',
   payloadDelimiter: ',',
-  serialize: event => event.id,
+  serialize: event => JSON.stringify(event.id),
   recordCap: 1000,
 });
 
@@ -61,7 +62,8 @@ class ChannelDeleteSink extends ChannelApiSink {
 
   async _send(payload) {
     const { type, params } = this._options;
-    return batchDelete(this._client, type, payload, { params });
+    const response = await batchDelete(this._client, type, payload, { params });
+    return processMisoApiResponse(response);
   }
 
 }
