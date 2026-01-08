@@ -86,12 +86,7 @@ export class ChannelOutput {
     this._channel = channel;
   }
 
-  pass({ depth = 0, ...rest }) {
-    // don't put default timestamp
-    const event = {
-      ...rest,
-      depth: depth + 1,
-    };
+  pass(event) {
     this._channel._pushBuffer(normalizeEvent(event));
   }
 
@@ -99,7 +94,6 @@ export class ChannelOutput {
     const event = {
       ...rest,
       channel: this._channel.name,
-      depth: 0,
       timestamp,
     };
     validateEvent(event);

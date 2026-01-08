@@ -121,7 +121,7 @@ export class ChannelApiSink extends WriteChannelSink {
     return response;
   }
 
-  async _send(request) {
+  async _send(payload) {
     throw new Error(`Unimplemented.`);
   }
 

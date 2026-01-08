@@ -1,15 +1,16 @@
 import { trimObj } from '../object.js';
 import Resolution from '../resolution.js';
+import { ChannelComponent } from './component.js';
 import { generateDefaultSinkResponse } from './events.js';
 
 function clone(obj) {
   return Object.freeze(trimObj({ ...obj }));
 }
 
-export default class WriteChannelSink {
+export default class WriteChannelSink extends ChannelComponent {
 
   constructor({ write, ...options } = {}) {
-    this._options = this._normalizeOptions(options);
+    super(options);
     if (write) {
       if (typeof write !== 'function') {
         throw new Error('write must be a function.');
@@ -21,18 +22,6 @@ export default class WriteChannelSink {
       started: { index: -1, writes: 0, records: 0, bytes: 0 },
       finished: { index: -1, writes: 0, records: 0, bytes: 0, successful: 0, failed: 0 },
     };
-  }
-
-  _normalizeOptions({
-    ...options
-  }) {
-    return trimObj({
-      ...options,
-    });
-  }
-
-  get options() {
-    return { ...this._options };
   }
 
   get state() {

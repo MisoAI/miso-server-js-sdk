@@ -36,7 +36,7 @@ test('Channel', async () => {
   }
 
   assert.equal(outputs[0].type, 'start');
-  assert.equal(outputs.slice(1, -1), data.map(event => ({ ...event, depth: 1 })));
+  assert.equal(outputs.slice(1, -1), data);
   assert.equal(outputs[outputs.length - 1].type, 'end');
 });
 
