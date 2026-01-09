@@ -12,19 +12,15 @@ function build(yargs) {
 
 async function run({ file }) {
   const transform = await stream.getTransformStream(file);
-  const streams = [
-    process.stdin,
-    split2(),
-  ];
-  if (transform.writableObjectMode) {
-    streams.push(stream.parse());
-  }
-  streams.push(transform);
-  streams.push(new stream.OutputStream({
-    objectMode: transform.readableObjectMode,
-  }));
 
-  await pipeline(...streams);
+  await pipeline(
+    process.stdin,
+    transform.writableObjectMode ? split2(JSON.parse) : split2(),
+    transform,
+    new stream.OutputStream({
+      objectMode: transform.readableObjectMode,
+    }),
+  );
 }
 
 export default {

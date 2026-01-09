@@ -39,8 +39,7 @@ const run = type => async ({
   const outputStream = new stream.OutputStream({ objectMode: true });
   await pipeline(
     process.stdin,
-    split2(),
-    stream.parse(),
+    split2(JSON.parse),
     mergeStream,
     outputStream
   );

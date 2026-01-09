@@ -110,11 +110,12 @@ async function runStream(client, type, {
 
   await pipeline(
     process.stdin,
-    split2(),
     ...(lenient ? [
-      stream.parse(),
+      split2(JSON.parse),
       new normalize.Stream(type),
-    ] : []),
+    ] : [
+      split2(),
+    ]),
     uploadStream,
     logStream,
   );
