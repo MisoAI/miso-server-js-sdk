@@ -1,4 +1,5 @@
 import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 import { stream } from '@miso.ai/server-commons';
 import { MisoClient } from '../src/index.js';
 import diff from './ids-diff.js';
@@ -38,7 +39,7 @@ const run = type => async ({
   const readStream = Readable.from(ids);
   const outputStream = new stream.OutputStream();
 
-  await stream.pipeline(
+  await pipeline(
     readStream,
     outputStream,
   );

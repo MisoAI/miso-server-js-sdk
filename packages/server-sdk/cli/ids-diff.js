@@ -1,3 +1,4 @@
+import { pipeline } from 'stream/promises';
 import split2 from 'split2';
 import { stream } from '@miso.ai/server-commons';
 import { MisoClient } from '../src/index.js';
@@ -41,7 +42,7 @@ const run = type => async ({
   const diffStream = new stream.DiffStream(misoIds, { output });
   const outputStream = new stream.OutputStream({ objectMode: false });
 
-  await stream.pipeline(
+  await pipeline(
     process.stdin,
     split2(),
     diffStream,

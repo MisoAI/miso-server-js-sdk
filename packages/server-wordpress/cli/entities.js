@@ -61,7 +61,7 @@ export async function runGet(client, name, options) {
 
 export async function runIds(client, name, { update, transform, resolve, fields, ...options }) {
   if (update) {
-    await stream.pipeline(
+    await pipeline(
       await buildUpdateStream(client, name, update, { ...options, fields: ['id'] }),
       new Transform({
         objectMode: true,
@@ -72,7 +72,7 @@ export async function runIds(client, name, { update, transform, resolve, fields,
       new stream.OutputStream(),
     );
   } else {
-    await stream.pipeline(
+    await pipeline(
       await client.entities(name).ids(options),
       new stream.OutputStream(),
     );
@@ -80,14 +80,14 @@ export async function runIds(client, name, { update, transform, resolve, fields,
 }
 
 export async function runUpdate(client, name, update, options) {
-  await stream.pipeline(
+  await pipeline(
     await buildUpdateStream(client, name, update, options),
     new stream.OutputStream(),
   );
 }
 
 export async function runPresence(client, name, options) {
-  await stream.pipeline(
+  await pipeline(
     process.stdin,
     split2(),
     client.entities(name).presence(options),

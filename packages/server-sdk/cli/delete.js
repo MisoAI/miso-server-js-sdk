@@ -80,7 +80,7 @@ async function runStream(client, type, {
     format: logFormat,
   });
 
-  await stream.pipeline(
+  await pipeline(
     process.stdin,
     split2(),
     deleteStream,

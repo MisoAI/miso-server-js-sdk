@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pipeline } from 'stream/promises';
 import { yargs, stream } from '@miso.ai/server-commons';
 import { version, feedStreams } from '../src/index.js';
 
@@ -32,7 +33,7 @@ yargs.build(yargs => {
 });
 
 async function run(options) {
-  await stream.pipeline(
+  await pipeline(
     process.stdin,
     ...feedStreams(options),
     new stream.OutputStream(),

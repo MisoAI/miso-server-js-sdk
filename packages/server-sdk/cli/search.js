@@ -1,4 +1,5 @@
 import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 import { stream } from '@miso.ai/server-commons';
 import { MisoClient } from '../src/index.js';
 import { buildForApi, buildForSearch } from './utils.js';
@@ -16,7 +17,7 @@ async function run({ query, fq, fl, rows, env, key, server, debug }) {
   const readStream = Readable.from(records);
   const outputStream = new stream.OutputStream();
 
-  await stream.pipeline(
+  await pipeline(
     readStream,
     outputStream,
   );

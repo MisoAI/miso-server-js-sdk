@@ -1,6 +1,7 @@
 import { createWriteStream } from 'fs';
 import { access, mkdir } from 'fs/promises';
 import { createGzip } from 'zlib';
+import { pipeline } from 'stream/promises';
 import { startOfDate, endOfDate, stream } from '@miso.ai/server-commons';
 import { WordPressClient } from '../src/index.js';
 import { buildForEntities } from './utils.js';
@@ -79,7 +80,7 @@ async function run({
     const startTime = Date.now();
     const sourceStream = await client.posts.stream({ ...options, after, before });
 
-    await stream.pipeline(
+    await pipeline(
       sourceStream,
       stream.stringify(),
       createGzip(),

@@ -1,4 +1,5 @@
-import { Transform, pipeline as _pipeline } from 'stream';
+import { Transform } from 'stream';
+import { pipeline as _pipeline } from 'stream/promises';
 import { chain as _chain } from 'stream-chain';
 
 export const chain = _chain;
@@ -34,8 +35,12 @@ export function stringify() {
   });
 }
 
+/**
+ * @deprecated Use native stream/promises pipeline instead.
+ */
 export async function pipeline(...streams) {
-  return new Promise((resolve, reject) => _pipeline(...streams.filter(s => s), err => err ? reject(err) : resolve()));
+  const flattened = streams.length === 1 && Array.isArray(streams[0]) ? streams[0] : streams;
+  return _pipeline(flattened.filter(Boolean));
 }
 
 export async function collect(stream) {

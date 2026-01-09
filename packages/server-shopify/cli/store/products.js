@@ -1,3 +1,4 @@
+import { pipeline } from 'stream/promises';
 import { stream } from '@miso.ai/server-commons';
 import { ShopifyStoreAdminClient } from '../../src/index.js';
 
@@ -42,7 +43,7 @@ async function runCount(options) {
 
 async function runList(options) {
   const client = new ShopifyStoreAdminClient(options);
-  await stream.pipeline(
+  await pipeline(
     client.products.stream(options),
     new stream.OutputStream({
       objectMode: true,

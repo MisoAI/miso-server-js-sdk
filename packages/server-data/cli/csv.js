@@ -2,6 +2,7 @@
 import { yargs } from '@miso.ai/server-commons';
 import version from '../src/version.js';
 import { Parser } from 'csv-parse';
+import { pipeline } from 'stream/promises';
 import { splitObj, stream } from '@miso.ai/server-commons';
 import { CsvTransformObjectStream } from '../src/index.js';
 
@@ -51,7 +52,7 @@ async function run({ object, ...options }) {
   parseOptions.relax_quotes = true;
   parseOptions.relax_column_count = true;
   const transforms = object ? [new CsvTransformObjectStream()] : [];
-  await stream.pipeline(
+  await pipeline(
     process.stdin,
     new Parser(parseOptions),
     ...transforms,

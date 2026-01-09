@@ -1,3 +1,4 @@
+import { pipeline } from 'stream/promises';
 import split2 from 'split2';
 import { stream } from '@miso.ai/server-commons';
 import { MisoClient } from '../src/index.js';
@@ -31,14 +32,14 @@ async function runOne(client, type, taskId) {
 }
 
 async function runStream(client, type) {
-  await stream.pipeline([
+  await pipeline(
     process.stdin,
     split2(),
     client.api[type].statusStream(),
     new stream.OutputStream({
       objectMode: true,
     }),
-  ]);
+  );
 }
 
 export default function(type) {

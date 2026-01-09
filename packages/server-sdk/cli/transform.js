@@ -1,3 +1,4 @@
+import { pipeline } from 'stream/promises';
 import split2 from 'split2';
 import { stream } from '@miso.ai/server-commons';
 
@@ -23,7 +24,7 @@ async function run({ file }) {
     objectMode: transform.readableObjectMode,
   }));
 
-  await stream.pipeline(...streams);
+  await pipeline(...streams);
 }
 
 export default {

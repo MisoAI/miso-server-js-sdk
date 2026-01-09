@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { createReadStream } from 'fs';
 import { createGunzip } from 'zlib';
+import { pipeline } from 'stream/promises';
 import split2 from 'split2';
 import { stream } from '@miso.ai/server-commons';
 import { MisoClient } from '../src/index.js';
@@ -36,7 +37,7 @@ const run = type => async ({
   const client = new MisoClient({ env, key, server, debug });
   const mergeStream = client.api[type].mergeStream({ ...options, mergeFn, records });
   const outputStream = new stream.OutputStream({ objectMode: true });
-  await stream.pipeline(
+  await pipeline(
     process.stdin,
     split2(),
     stream.parse(),
