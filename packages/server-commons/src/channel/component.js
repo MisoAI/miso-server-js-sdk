@@ -1,5 +1,6 @@
 import EasyTransform from '../stream/easy-transform.js';
 import { trimObj } from '../object.js';
+import { stackEventInfo } from './events.js';
 
 // TODO: camelCase to kebab-case on options keys
 function exportOptions(options) {
@@ -61,6 +62,10 @@ export class ChannelBase extends EasyTransform {
 
   get result() {
     return {};
+  }
+
+  _stackEventInfo(event, field, info) {
+    return stackEventInfo(this, event, field, info);
   }
 
 }

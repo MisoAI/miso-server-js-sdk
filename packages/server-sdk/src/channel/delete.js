@@ -1,4 +1,4 @@
-import { ChannelApiSink, ApiWriteChannel, processMisoApiResponse } from './api.js';
+import { ChannelApiSink, ApiWriteChannel } from './api.js';
 import { batchDelete } from '../api/helpers.js';
 
 // channel //
@@ -62,8 +62,7 @@ class ChannelDeleteSink extends ChannelApiSink {
 
   async _send(payload) {
     const { type, params } = this._options;
-    const response = await batchDelete(this._client, type, payload, { params });
-    return processMisoApiResponse(response);
+    return await batchDelete(this._client, type, payload, { params });
   }
 
 }

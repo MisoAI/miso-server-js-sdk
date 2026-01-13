@@ -39,21 +39,22 @@ function splitData(data, ids) {
   return [positive, negative];
 }
 
-function writeIssuesToData(data, { groups = [] } = {}) {
+function writeIssuesToData(data, { groups = [] } = {}, { name: channel } = {}) {
   for (const { index, violations = [] } of groups) {
     try {
       const errors = (data[index].errors || (data[index].errors = []));
-      errors.push(...(violations.map(v => trimObj({ status: 422, ...v }))));
+      errors.push(...(violations.map(v => trimObj({ channel, status: 422, ...v }))));
     } catch(_) {}
   }
 }
 
-function writeResponseErrorToFailedData(response) {
+function writeResponseErrorToFailedData(response, { name: channel } = {}) {
   // 422 errors are already handled by writeIssuesToData
   if (!response.error && (response.status < 400 || response.status === 422)) {
     return;
   }
   const error = trimObj({
+    channel, 
     status: response.status,
     message: response.error || response.statusText,
   });
@@ -87,6 +88,7 @@ export class ChannelApiSink extends WriteChannelSink {
     let response;
     try {
       response = await this._send(payload);
+      response = processMisoApiResponse(response);
       response.writes = 1;
       response.successful = { records, data };
       response.failed = { records: 0, data: [] };
@@ -101,7 +103,8 @@ export class ChannelApiSink extends WriteChannelSink {
       }
       const { recovered, issues } = error.response;
       // write issues into failed data events
-      writeIssuesToData(data, issues);
+      // TODO: need to add channel name
+      writeIssuesToData(data, issues, this._channel);
       // TODO: handle issue.unrecognized
 
       if (recovered) {
@@ -109,6 +112,7 @@ export class ChannelApiSink extends WriteChannelSink {
         response.writes = 2;
         response.successful = { records: positive.length, data: positive };
         response.failed = { records: negative.length, data: negative };
+        response.recovered = processMisoApiResponse(recovered);
       } else {
         response.writes = 1;
         response.successful = { records: 0, data: [] };
@@ -116,7 +120,8 @@ export class ChannelApiSink extends WriteChannelSink {
       }
     }
 
-    writeResponseErrorToFailedData(response);
+    // TODO: need to add channel name
+    writeResponseErrorToFailedData(response, this._channel);
 
     return response;
   }
@@ -133,7 +138,6 @@ export class ApiWriteChannel extends WriteChannel {
     super({
       ...options,
       sinkGate: normalizeApiSinkGateOptions(options),
-      domain: 'miso',
     });
     this._client = client;
     this._type = type;
@@ -142,10 +146,8 @@ export class ApiWriteChannel extends WriteChannel {
   async _runCustomTransform(event) {
     switch (event.type) {
       case 'data':
-        if (event.domain === 'miso') {
-          await this._runData(event);
-          return;
-        }
+        await this._runData(event);
+        return;
     }
     await super._runCustomTransform(event);
   }
@@ -154,6 +156,21 @@ export class ApiWriteChannel extends WriteChannel {
     await this.writeData(event);
   }
 
+  _createWriteEvent(context) {
+    return trimObj({
+      ...super._createWriteEvent(context),
+      taskId: getTaskIdFromResponse(context.response),
+    });
+  }
+
+}
+
+function getTaskIdFromResponse(response) {
+  return getTaskIdFromResponse0(response) || getTaskIdFromResponse0(response.recovered);
+}
+
+function getTaskIdFromResponse0({ body } = {}) {
+  return body && body.data && body.data.task_id;
 }
 
 function maskApiKeyInMisoUrl(url) {

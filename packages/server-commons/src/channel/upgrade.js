@@ -30,11 +30,15 @@ export default class UpgradeChannel extends ChannelBase {
       return payload;
     }
     if (Buffer.isBuffer(payload)) {
-      payload = payload.toString();
+      payload = payload.toString().trim();
     }
-    if (typeof payload === 'string') {
-      payload = payload.trim();
-      if (!this._options.asId) {
+    if (this._options.asId) {
+      // convert to string
+      payload = `${payload}`.trim();
+    } else {
+      if (typeof payload === 'string' && payload.charAt(0) === '{' && payload.charAt(payload.length - 1) === '}') {
+        // should be an object
+        // TODO: ad-hoc!
         payload = JSON.parse(payload);
       }
     }
@@ -42,32 +46,29 @@ export default class UpgradeChannel extends ChannelBase {
   }
 
   async _id(payload) {
+    if (this._options.asId) {
+      return payload;
+    }
+    if (typeof payload !== 'object') {
+      throw new Error('Cannot determine id from payload');
+    }
     const id = this._options.idField;
     if (id) {
       return payload[id];
     }
-    if (this._options.domain === 'miso') {
-      // ad-hoc!
-      return payload.product_id || payload.user_id;
-    }
-    return payload.id;
+    // ad-hoc!
+    return payload.product_id || payload.user_id || payload.id;
   }
 
   async _upgrade(payload) {
-    const domain = this._options.domain;
-    if (this._options.asId) {
-      return trimObj({
-        domain,
-        id: `${payload}`.trim(),
-      });
-    } else {
-      const id = await this._id(payload);
-      return trimObj({
-        domain,
-        id,
-        payload,
-      });
+    const id = await this._id(payload);
+    if (!id) {
+      throw new Error('Id not found in payload');
     }
+    return {
+      id,
+      payload,
+    };
   }
 
   _createStartEvent() {

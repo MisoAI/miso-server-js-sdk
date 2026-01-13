@@ -38,7 +38,7 @@ export default class WriteChannelSink extends ChannelComponent {
       this._finishedRes.reject(new Error(`More data written after finished call`));
       this._finishedRes = undefined;
     }
-    const { records, bytes, data } = request;
+    const { records, bytes } = request;
     const now = Date.now();
     const { started, finished } = this._state;
     if (started.writes === 0) {
@@ -50,18 +50,7 @@ export default class WriteChannelSink extends ChannelComponent {
     started.bytes += bytes;
 
     const { index } = started;
-    let response;
-    try {
-      response = await this._write(request);
-    } catch(error) {
-      // TODO: add the error info into failed data events
-      response = trimObj({
-        writes: 1,
-        successful: trimObj({ records: 0, data: [] }),
-        failed: trimObj({ records, data }),
-        error: error.message,
-      });
-    }
+    const response = await this._write(request);
 
     // sanity check
     if (!response || !response.successful || !response.failed) {

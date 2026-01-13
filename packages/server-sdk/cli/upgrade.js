@@ -8,11 +8,6 @@ function build(yargs) {
       describe: 'Channel name',
       type: 'string',
     })
-    .option('domain', {
-      alias: 'd',
-      describe: 'Target data domain to upgrade to',
-      type: 'string',
-    })
     .option('id-field', {
       alias: 'id',
       describe: 'Payload field to use as ID',
@@ -21,12 +16,11 @@ function build(yargs) {
     .option('as-id', {
       describe: 'Upgrade as ID',
       type: 'boolean',
-    })
-    .demandOption(['domain']);
+    });
 }
 
 async function run(options) {
-  const [upgradeOptions] = splitObj(options, ['name', 'asId', 'idField', 'domain']);
+  const [upgradeOptions] = splitObj(options, ['name', 'asId', 'idField']);
   await pipeline(
     process.stdin,
     split2(),

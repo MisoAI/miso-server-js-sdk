@@ -34,16 +34,18 @@ async function recoverValidRecords(client, type, records, options, response) {
   }
   const url = buildUrl(client, type, options);
   const validPayload = buildUploadPayload(validRecords);
+  let secondResponse;
   try {
-    await client._axios.post(url, validPayload);
+    secondResponse = await client._axios.post(url, validPayload);
   } catch (_) {
     return; // still fail, never mind...
   }
-  response.recovered = {
+  response.recovered = trimObj({
+    ...secondResponse,
     product_ids: validRecords.map(record => record.product_id),
     records: validRecords.length,
     bytes: validPayload.length * 2,
-  };
+  });
 }
 
 export async function merge(client, type, record, { mergeFn = defaultMerge } = {}) {

@@ -183,7 +183,7 @@ export default class BufferedWriteStream extends Transform {
       result: failed ? 'failed' : 'successful',
       index: request.index,
       records: request.records,
-      recovered: response.recovered || { records: 0, bytes: 0 },
+      recovered: summarizeRecovered(response.recovered),
       bytes: request.bytes,
       time: response.timestamp - request.timestamp,
     });
@@ -193,4 +193,12 @@ export default class BufferedWriteStream extends Transform {
     return this._sink.write(payload, request);
   }
 
+}
+
+function summarizeRecovered({ recovered }) {
+  if (!recovered) {
+    return { records: 0, bytes: 0 };
+  }
+  const { records, bytes } = recovered;
+  return { records, bytes };
 }

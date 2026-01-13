@@ -38,11 +38,11 @@ function normalizeSinkGate(sinkGate) {
 
 export default class WriteChannel extends Channel {
 
-  constructor({ domain, buffer, sink, sinkGate, ...options } = {}) {
+  constructor({ buffer, sink, sinkGate, ...options } = {}) {
     super(options);
-    this._domain = domain;
     this._payloadBuffer = normalizeBuffer(buffer);
     this._sink = normalizeSink(sink);
+    this._sink._channel = this;
     this._sinkGate = normalizeSinkGate(sinkGate);
     this._time = new TimeTracker();
     this._index = 0;
@@ -60,10 +60,8 @@ export default class WriteChannel extends Channel {
   async _runCustomTransform(event) {
     switch (event.type) {
       case 'data':
-        if (event.domain === this._domain) {
-          await this._runData(event);
-          return;
-        }
+        await this._runData(event);
+        return;
     }
     await super._runCustomTransform(event);
   }
@@ -110,6 +108,7 @@ export default class WriteChannel extends Channel {
     }
 
     const { data: _0, payload: _1, ...restOfRequest } = request;
+    // TODO: we want to write real request/response event, so these have to be buried into the sink
     this.out.write({
       ...restOfRequest,
       type: 'request',
@@ -129,17 +128,24 @@ export default class WriteChannel extends Channel {
     const successfulIds = (successful && successful.data && successful.data.map(d => d.id)) || [];
     if (successfulIds.length > 0) {
       this.out.write({
+        ...this._createWriteEvent({ index, request, response, successfulIds }),
         type: 'write',
-        index,
-        ids: successfulIds,
       });
     }
     // TODO: dedupe
 
     // recover failed data events and pass through
     for (const event of failed.data || []) {
+      // TODO: review this
       this.out.pass(event);
     }
+  }
+
+  _createWriteEvent({ index, successfulIds }) {
+    return {
+      index,
+      ids: successfulIds,
+    };
   }
 
 }
