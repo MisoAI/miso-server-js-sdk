@@ -1,4 +1,3 @@
-import { trimObj } from '../object.js';
 import { ChannelBase } from './component.js';
 import { ChannelOutput, createStartEvent, createEndEvent } from './events.js';
 
