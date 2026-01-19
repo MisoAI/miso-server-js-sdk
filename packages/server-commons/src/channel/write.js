@@ -67,7 +67,9 @@ export default class WriteChannel extends Channel {
   }
 
   async _runData(event) {
-    await this.writeData(event);
+    if (event.payload !== undefined) {
+      await this.writeData(event);
+    }
   }
 
   async writeData(event) {
