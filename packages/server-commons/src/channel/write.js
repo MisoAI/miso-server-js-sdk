@@ -60,16 +60,17 @@ export default class WriteChannel extends Channel {
   async _runCustomTransform(event) {
     switch (event.type) {
       case 'data':
-        await this._runData(event);
-        return;
+        if (event.payload !== undefined) {
+          await this._runData(event);
+          return;
+        }
+        break;
     }
     await super._runCustomTransform(event);
   }
 
   async _runData(event) {
-    if (event.payload !== undefined) {
-      await this.writeData(event);
-    }
+    await this.writeData(event);
   }
 
   async writeData(event) {
