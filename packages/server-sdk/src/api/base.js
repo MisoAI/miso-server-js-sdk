@@ -49,7 +49,7 @@ export class Entities extends Writable {
   }
 
   async get(id) {
-    const url = buildUrl(this._client, `${this._type}/${id}`);
+    const url = buildUrl(this._client, `${this._type}/${encodeURIComponent(id)}`);
     return (await this._client._axios.get(url)).data.data;
   }
 
