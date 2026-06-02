@@ -195,7 +195,7 @@ export default class BufferedWriteStream extends Transform {
 
 }
 
-function summarizeRecovered({ recovered }) {
+function summarizeRecovered(recovered) {
   if (!recovered) {
     return { records: 0, bytes: 0 };
   }
