@@ -14,6 +14,9 @@ function build(yargs) {
       describe: 'Return answer',
       default: false,
     })
+    .option('start', {
+      type: 'number',
+    })
     .option('total', {
       type: 'boolean',
       alias: ['c', 'count'],
@@ -22,9 +25,9 @@ function build(yargs) {
     });
 }
 
-async function run({ query, fq, fl, rows, answer, total: returnTotal, env, key, server, debug }) {
+async function run({ query, fq, fl, rows, start, answer, total: returnTotal, env, key, server, debug }) {
   const client = new MisoClient({ env, key, server, debug });
-  const { products, total } = await client.api.ask.search({ q: query, fq, fl, rows, answer });
+  const { products, total } = await client.api.ask.search({ q: query, fq, fl, rows, start, answer });
 
   if (returnTotal) {
     console.log(total);
