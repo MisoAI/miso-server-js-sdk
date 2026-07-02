@@ -14,19 +14,38 @@ function build(yargs) {
       describe: 'Return answer',
       default: false,
     })
-    .option('start', {
+    .option('exhaust', {
+      alias: ['x'],
+      type: 'boolean',
+      describe: 'Keep reading results until exhausted',
+      default: false,
+    })
+    .option('page-size', {
+      alias: ['ps'],
       type: 'number',
+      describe: 'Number of rows to read per request when exhausting',
+      default: 1000,
     })
     .option('total', {
-      type: 'boolean',
       alias: ['c', 'count'],
+      type: 'boolean',
       describe: 'Return total number of products',
       default: false,
     });
 }
 
-async function run({ query, fq, fl, rows, start, answer, total: returnTotal, env, key, server, debug }) {
+async function run({ query, fq, fl, rows, start, answer, exhaust, pageSize, total: returnTotal, env, key, server, debug }) {
   const client = new MisoClient({ env, key, server, debug });
+
+  if (!returnTotal && exhaust) {
+    const readStream = client.api.ask.searchStream({ q: query, fq, fl, answer }, { pageSize, start, limit: rows });
+    await pipeline(
+      readStream,
+      new stream.OutputStream(),
+    );
+    return;
+  }
+
   const { products, total } = await client.api.ask.search({ q: query, fq, fl, rows, start, answer });
 
   if (returnTotal) {

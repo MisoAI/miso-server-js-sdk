@@ -1,4 +1,5 @@
 import { Queries } from './base.js';
+import createSearchStream from '../stream/search.js';
 
 export default class Ask extends Queries {
 
@@ -8,6 +9,10 @@ export default class Ask extends Queries {
 
   async search(payload, options = {}) {
     return this._run('search', payload, options);
+  }
+
+  searchStream(payload = {}, options = {}) {
+    return createSearchStream(this, 'search', payload, options);
   }
 
 }
