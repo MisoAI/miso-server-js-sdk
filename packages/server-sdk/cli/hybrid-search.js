@@ -13,12 +13,24 @@ function build(yargs) {
       type: 'boolean',
       describe: 'Return answer',
       default: false,
+    })
+    .option('total', {
+      type: 'boolean',
+      alias: ['c', 'count'],
+      describe: 'Return total number of products',
+      default: false,
     });
 }
 
-async function run({ query, fq, fl, rows, answer, env, key, server, debug }) {
+async function run({ query, fq, fl, rows, answer, total: returnTotal, env, key, server, debug }) {
   const client = new MisoClient({ env, key, server, debug });
-  const { products } = await client.api.ask.search({ q: query, fq, fl, rows, answer });
+  const { products, total } = await client.api.ask.search({ q: query, fq, fl, rows, answer });
+
+  if (returnTotal) {
+    console.log(total);
+    return;
+  }
+
   const readStream = Readable.from(products);
   const outputStream = new stream.OutputStream();
 
