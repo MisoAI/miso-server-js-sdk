@@ -6,6 +6,7 @@ import merge from './merge.js';
 import upload from './upload.js';
 import del from './delete.js';
 import ids from './ids.js';
+import comm from './comm.js';
 import transform from './transform.js';
 import mergeLocal from './merge-local.js';
 import status from './status.js';
@@ -30,6 +31,7 @@ const products = {
     .command(upload('products'))
     .command(del('products'))
     .command(ids('products'))
+    .command(comm('products'))
     .command(get('products'))
     .command(merge('products'))
     .command(status('products')),
